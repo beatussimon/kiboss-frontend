@@ -1,17 +1,61 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../app/store';
 import { fetchRides } from '../../features/rides/ridesSlice';
-import { MapPin, ArrowRight, Users, Star } from 'lucide-react';
+import { getDistanceToRide } from '../../utils/distance';
+import { MapPin, ArrowRight, Users, Star, Navigation, Search } from 'lucide-react';
 
 export default function RidesPage() {
   const dispatch = useDispatch<AppDispatch>();
   const { rides, isLoading } = useSelector((state: RootState) => state.rides);
+  const { userLocation } = useSelector((state: RootState) => state.location);
+  
+  const [searchParams, setSearchParams] = useState({
+    origin: '',
+    destination: '',
+    departure_date: '',
+  });
 
+  // Handle search form submission
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    dispatch(fetchRides({
+      origin: searchParams.origin || undefined,
+      destination: searchParams.destination || undefined,
+      departure_date: searchParams.departure_date || undefined,
+    }));
+  };
+
+  // Initial load
   useEffect(() => {
     dispatch(fetchRides({}));
   }, [dispatch]);
+
+  // Sort rides by proximity if user location is available
+  const sortedRides = useMemo(() => {
+    if (!userLocation || !rides) return rides;
+    
+    return [...rides].sort((a, b) => {
+      const distanceA = getDistanceToRide(
+        userLocation.latitude,
+        userLocation.longitude,
+        a.stops
+      );
+      const distanceB = getDistanceToRide(
+        userLocation.latitude,
+        userLocation.longitude,
+        b.stops
+      );
+      return distanceA - distanceB;
+    });
+  }, [rides, userLocation]);
+
+  // Calculate distance for each ride for display
+  const getRideDistance = (stops: any[]) => {
+    if (!userLocation) return null;
+    return getDistanceToRide(userLocation.latitude, userLocation.longitude, stops);
+  };
 
   return (
     <div>
@@ -24,12 +68,40 @@ export default function RidesPage() {
 
       {/* Search Filters */}
       <div className="card p-4 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <input type="text" placeholder="From" className="input" />
-          <input type="text" placeholder="To" className="input" />
-          <input type="date" className="input" />
-          <button className="btn-primary">Search</button>
-        </div>
+        <form onSubmit={handleSearch}>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="relative">
+              <MapPin className="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input 
+                type="text" 
+                placeholder="From" 
+                className="input pl-10"
+                value={searchParams.origin}
+                onChange={(e) => setSearchParams({ ...searchParams, origin: e.target.value })}
+              />
+            </div>
+            <div className="relative">
+              <MapPin className="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input 
+                type="text" 
+                placeholder="To" 
+                className="input pl-10"
+                value={searchParams.destination}
+                onChange={(e) => setSearchParams({ ...searchParams, destination: e.target.value })}
+              />
+            </div>
+            <input 
+              type="date" 
+              className="input"
+              value={searchParams.departure_date}
+              onChange={(e) => setSearchParams({ ...searchParams, departure_date: e.target.value })}
+            />
+            <button type="submit" className="btn-primary flex items-center justify-center gap-2">
+              <Search className="h-4 w-4" />
+              Search
+            </button>
+          </div>
+        </form>
       </div>
 
       {isLoading ? (
@@ -46,9 +118,11 @@ export default function RidesPage() {
             </div>
           ))}
         </div>
-      ) : rides.length > 0 ? (
+      ) : sortedRides && sortedRides.length > 0 ? (
         <div className="space-y-4">
-          {rides.map((ride) => (
+          {sortedRides.map((ride) => {
+            const distance = getRideDistance(ride.stops);
+            return (
             <Link key={ride.id} to={`/rides/${ride.id}`} className="card p-6 hover:shadow-md transition-shadow block">
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 bg-primary-100 rounded-lg flex items-center justify-center">
@@ -61,9 +135,19 @@ export default function RidesPage() {
                     {ride.origin} → {ride.destination}
                   </div>
                   <div className="flex items-center justify-between mt-2">
-                    <span className="text-sm text-gray-500">
-                      {new Date(ride.departure_time).toLocaleString()}
-                    </span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm text-gray-500">
+                        {new Date(ride.departure_time).toLocaleString()}
+                      </span>
+                      {distance !== null && (
+                        <span className="flex items-center text-sm text-primary-600">
+                          <Navigation className="h-3.5 w-3.5 mr-1" />
+                          {distance < 1 
+                            ? `${Math.round(distance * 1000)}m` 
+                            : `${distance.toFixed(1)} km`}
+                        </span>
+                      )}
+                    </div>
                     <div className="flex items-center gap-3">
                       <span className="flex items-center text-sm text-gray-500">
                         <Users className="h-4 w-4 mr-1" />
@@ -77,7 +161,7 @@ export default function RidesPage() {
                 </div>
               </div>
             </Link>
-          ))}
+          )})}
         </div>
       ) : (
         <div className="card p-12 text-center">

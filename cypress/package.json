@@ -1,0 +1,17 @@
+{
+  "name": "kiboss-e2e-tests",
+  "version": "1.0.0",
+  "description": "E2E tests for KIBOSS - Real database to frontend verification",
+  "scripts": {
+    "e2e:open": "cypress open",
+    "e2e:run": "cypress run",
+    "e2e:run:headed": "cypress run --headed",
+    "start:backend": "cd ../backend && python manage.py runserver 8000",
+    "start:frontend": "cd ../frontend && npm run dev",
+    "test:e2e": "npm run start:backend & npm run start:frontend && sleep 10 && npm run e2e:run",
+    "test:e2e:headed": "npm run start:backend & npm run start:frontend && sleep 10 && npm run e2e:run:headed"
+  },
+  "dependencies": {
+    "cypress": "^13.6.0"
+  }
+}

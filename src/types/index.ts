@@ -12,6 +12,11 @@ export interface User {
   trust_score: string;
   total_ratings_count: number;
   is_blocked: boolean;
+  verification_tier?: string;
+  verification_badge?: {
+    tier: string;
+    color: string | null;
+  };
   profile?: UserProfile;
   roles?: UserRole[];
 }
@@ -46,6 +51,7 @@ export interface AuthState {
   refreshToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  error: string | null;
 }
 
 // ==================== Asset Types ====================
@@ -65,28 +71,33 @@ export interface Asset {
   pricing_rules: PricingRule[];
   availability_rules: AvailabilityRule[];
   capacities: Capacity[];
-  time_granularity: TimeGranularity;
+  time_granularity: TimeGranularity | null;
   properties: Record<string, unknown>;
   photos: AssetPhoto[];
-  average_rating: string;
+  average_rating: number;
   total_reviews: number;
   total_bookings: number;
   created_at: string;
+  updated_at?: string;
 }
 
 export interface AssetPhoto {
   id: string;
   url: string;
   is_primary: boolean;
+  caption?: string;
+  order?: number;
 }
 
 export interface PricingRule {
   id: string;
   name: string;
   unit_type: string;
-  price: string;
-  min_duration_minutes: number;
+  price: number;
+  min_duration_minutes?: number;
+  max_duration_minutes?: number;
   priority: number;
+  is_active?: boolean;
 }
 
 export interface AvailabilityRule {
@@ -121,6 +132,7 @@ export interface AssetFilters {
   max_price?: number;
   available_from?: string;
   available_to?: string;
+  search?: string;
   page?: number;
   page_size?: number;
 }
@@ -226,7 +238,7 @@ export interface SignatureInfo {
 }
 
 // ==================== Ride Types ====================
-export type RideStatus = 'SCHEDULED' | 'OPEN' | 'DEPARTED' | 'IN_TRANSIT' | 'COMPLETED' | 'CANCELLED';
+export type RideStatus = 'SCHEDULED' | 'OPEN' | 'FULL' | 'DEPARTED' | 'IN_TRANSIT' | 'COMPLETED' | 'CANCELLED';
 
 export interface Ride {
   id: string;
@@ -234,14 +246,24 @@ export interface Ride {
   origin: string;
   destination: string;
   departure_time: string;
+  estimated_arrival?: string;
   total_seats: number;
   available_seats: number;
-  seat_price: string;
+  seat_price: number;
   currency: string;
   status: RideStatus;
   driver: User;
-  vehicle: Vehicle;
+  driver_email?: string;
+  vehicle_asset?: Asset;
+  vehicle_description?: string;
+  vehicle_color?: string;
+  vehicle_license_plate?: string;
   stops: RideStop[];
+  confirmed_seats?: number;
+  reserved_seats?: number;
+  driver_notes?: string;
+  created_at: string;
+  updated_at?: string;
 }
 
 export interface Vehicle {
@@ -253,12 +275,15 @@ export interface Vehicle {
 
 export interface RideStop {
   id: string;
-  location: string;
-  latitude: string;
-  longitude: string;
+  stop_type: 'PICKUP' | 'DROPOFF' | 'BOTH';
+  name: string;
+  address?: string;
+  latitude: number;
+  longitude: number;
+  estimated_arrival?: string;
+  departure_time?: string;
   stop_order: number;
-  is_pickup: boolean;
-  is_dropoff: boolean;
+  notes?: string;
 }
 
 export interface Seat {
@@ -299,6 +324,8 @@ export interface Thread {
   participants: User[];
   messages: Message[];
   message_count: number;
+  booking?: string;  // Booking ID if this is a booking-related thread
+  ride?: string;    // Ride ID if this is a ride-related thread
   created_at: string;
   updated_at: string;
   is_flagged: boolean;
@@ -377,6 +404,7 @@ export interface Rating {
 // ==================== Social Types ====================
 export interface PublicUser {
   id: string;
+  username: string;
   first_name: string;
   last_name: string;
   email: string;
@@ -387,6 +415,10 @@ export interface PublicUser {
   rating: number;
   review_count: number;
   is_following: boolean;
+  verification_badge?: {
+    tier: string;
+    color: string | null;
+  };
   listings: Listing[];
   rides: PublicRide[];
   reviews: Review[];

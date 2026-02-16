@@ -90,7 +90,7 @@ export default function ProfilePage() {
         <div className="flex items-center gap-6 mb-8">
           <div className="relative">
             <div className="w-24 h-24 bg-gray-200 rounded-full overflow-hidden">
-              {user.profile?.avatar ? (
+              {user?.profile?.avatar ? (
                 <img src={user.profile.avatar} alt={user.first_name} className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center bg-primary-100">
@@ -106,15 +106,15 @@ export default function ProfilePage() {
           </div>
           <div>
             <h2 className="text-xl font-semibold text-gray-900">
-              {user.first_name} {user.last_name}
+              {user?.first_name} {user?.last_name}
             </h2>
-            <p className="text-gray-500">@{user.email?.split('@')[0]}</p>
+            <p className="text-gray-500">@{user?.email?.split('@')[0]}</p>
             <div className="flex items-center gap-2 mt-2">
-              <span className={`badge ${user.is_email_verified ? 'badge-success' : 'badge-warning'}`}>
-                {user.is_email_verified ? 'Verified' : 'Unverified'}
+              <span className={`badge ${user?.is_email_verified ? 'badge-success' : 'badge-warning'}`}>
+                {user?.is_email_verified ? 'Verified' : 'Unverified'}
               </span>
-              <span className={`badge ${user.is_identity_verified ? 'badge-success' : 'badge-warning'}`}>
-                {user.is_identity_verified ? 'Identity Verified' : 'Unverified'}
+              <span className={`badge ${user?.is_identity_verified ? 'badge-success' : 'badge-warning'}`}>
+                {user?.is_identity_verified ? 'Identity Verified' : 'Unverified'}
               </span>
             </div>
           </div>
@@ -156,7 +156,7 @@ export default function ProfilePage() {
               <Mail className="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
                 type="email"
-                value={user.email}
+                value={user?.email || ''}
                 disabled
                 className="input pl-10 bg-gray-50"
               />

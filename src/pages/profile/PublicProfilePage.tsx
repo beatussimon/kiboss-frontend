@@ -1,11 +1,12 @@
 import { useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../app/store';
 import { fetchPublicProfile, followUser, unfollowUser } from '../../features/social/socialSlice';
 import { User, MapPin, Calendar, Star, MessageCircle } from 'lucide-react';
 import { useState } from 'react';
 import { PublicUser } from '../../types';
+import VerificationBadge from '../../components/ui/VerificationBadge';
 
 export default function PublicProfilePage() {
   const { userId } = useParams<{ userId: string }>();
@@ -49,8 +50,12 @@ export default function PublicProfilePage() {
           <div className="flex-1">
             <div className="flex items-start justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">
+                <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
                   {user.first_name} {user.last_name}
+                  <VerificationBadge 
+                    tier={user.verification_badge?.tier} 
+                    color={user.verification_badge?.color} 
+                  />
                 </h1>
                 <p className="text-gray-500">@{user.username || user.email?.split('@')[0]}</p>
               </div>
@@ -110,14 +115,18 @@ export default function PublicProfilePage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {user.listings?.length > 0 ? (
                 user.listings.map((listing) => (
-                  <div key={listing.id} className="card overflow-hidden">
+                  <Link 
+                    key={listing.id} 
+                    to={`/assets/${listing.id}`}
+                    className="card overflow-hidden hover:shadow-md transition-shadow"
+                  >
                     <div className="h-40 bg-gray-200" />
                     <div className="p-4">
                       <h3 className="font-semibold">{listing.title}</h3>
                       <p className="text-sm text-gray-500">{listing.type}</p>
                       <p className="text-primary-600 font-bold mt-2">${listing.price}/day</p>
                     </div>
-                  </div>
+                  </Link>
                 ))
               ) : (
                 <p className="text-gray-500 col-span-3 text-center py-8">No listings yet</p>
@@ -129,7 +138,11 @@ export default function PublicProfilePage() {
             <div className="space-y-4">
               {user.rides?.length > 0 ? (
                 user.rides.map((ride) => (
-                  <div key={ride.id} className="card p-4">
+                  <Link 
+                    key={ride.id} 
+                    to={`/rides/${ride.id}`}
+                    className="card p-4 hover:shadow-md transition-shadow block"
+                  >
                     <div className="flex justify-between">
                       <div>
                         <p className="font-medium">{ride.origin} → {ride.destination}</p>
@@ -139,7 +152,7 @@ export default function PublicProfilePage() {
                       </div>
                       <p className="text-primary-600 font-bold">${ride.price}/seat</p>
                     </div>
-                  </div>
+                  </Link>
                 ))
               ) : (
                 <p className="text-gray-500 text-center py-8">No rides yet</p>

@@ -149,9 +149,9 @@ export default function HomePage() {
               </div>
             ))}
           </div>
-        ) : assets.length > 0 ? (
+        ) : (assets && assets.length > 0) ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {assets.slice(0, 6).map((asset) => (
+            {(assets || []).slice(0, 6).map((asset) => (
               <Link key={asset.id} to={`/assets/${asset.id}`} className="card group hover:shadow-lg transition-shadow">
                 <div className="aspect-video relative overflow-hidden rounded-t-xl">
                   {asset.photos?.[0] ? (
@@ -240,9 +240,9 @@ export default function HomePage() {
               </div>
             ))}
           </div>
-        ) : rides.length > 0 ? (
+        ) : (rides && rides.length > 0) ? (
           <div className="space-y-4">
-            {rides.slice(0, 5).map((ride) => (
+            {(rides || []).slice(0, 5).map((ride) => (
               <Link key={ride.id} to={`/rides/${ride.id}`} className="card p-4 hover:shadow-md transition-shadow">
                 <div className="flex items-center gap-4">
                   <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center">

@@ -18,14 +18,22 @@ const initialState: NotificationsState = {
   error: null,
 };
 
-export const fetchNotifications = createAsyncThunk(
+export const fetchNotifications = createAsyncThunk<
+  Notification[],
+  { status?: string; category?: string } | undefined,
+  { rejectValue: string }
+>(
   'notifications/fetchNotifications',
-  async (params?: { status?: string; category?: string }, { rejectWithValue }) => {
+  async (params, { rejectWithValue }) => {
     try {
       const response = await api.get<Notification[]>('/notifications/', { params });
       return response.data;
     } catch (error: unknown) {
-      const axiosError = error as { response?: { data?: { message?: string } } };
+      const axiosError = error as { response?: { status?: number; data?: { message?: string } } };
+      // Return empty array on 404 (endpoint not found) to prevent ErrorBoundary
+      if (axiosError.response?.status === 404) {
+        return [];
+      }
       return rejectWithValue(axiosError.response?.data?.message || 'Failed to fetch notifications');
     }
   }
@@ -105,8 +113,10 @@ const notificationsSlice = createSlice({
       })
       .addCase(fetchNotifications.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.notifications = action.payload;
-        state.unreadCount = action.payload.filter((n) => n.status !== 'READ').length;
+        const payload = action.payload as unknown;
+        const notifications = Array.isArray(payload) ? payload : ((payload as { results?: unknown[] })?.results || []);
+        state.notifications = notifications;
+        state.unreadCount = (notifications as { status?: string }[]).filter((n) => n.status !== 'READ').length;
       })
       .addCase(fetchNotifications.rejected, (state, action) => {
         state.isLoading = false;

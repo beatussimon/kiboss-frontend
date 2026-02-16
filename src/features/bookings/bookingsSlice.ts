@@ -148,8 +148,13 @@ export const fetchBookingTimeline = createAsyncThunk(
   'bookings/fetchTimeline',
   async (bookingId: string, { rejectWithValue }) => {
     try {
-      const response = await api.get<{ events: BookingTimelineEvent[] }>(`/bookings/${bookingId}/timeline/`);
-      return response.data.events;
+      const response = await api.get<BookingTimelineEvent[] | { events: BookingTimelineEvent[] }>(`/bookings/${bookingId}/timeline/`);
+      // Handle both array response and { events: [] } response formats
+      const data = response.data;
+      if (Array.isArray(data)) {
+        return data;
+      }
+      return data.events || [];
     } catch (error: unknown) {
       const axiosError = error as { response?: { data?: { message?: string } } };
       return rejectWithValue(axiosError.response?.data?.message || 'Failed to fetch timeline');
@@ -193,8 +198,18 @@ const bookingsSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload as string;
       })
+      .addCase(fetchBooking.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
       .addCase(fetchBooking.fulfilled, (state, action) => {
+        state.isLoading = false;
         state.currentBooking = action.payload;
+      })
+      .addCase(fetchBooking.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+        state.currentBooking = null;
       })
       .addCase(createBooking.fulfilled, (state, action) => {
         state.bookings.unshift(action.payload);

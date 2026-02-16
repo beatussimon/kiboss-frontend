@@ -26,7 +26,9 @@ export const fetchAssets = createAsyncThunk(
   'assets/fetchAssets',
   async (filters: AssetFilters = {}, { rejectWithValue }) => {
     try {
-      const response = await api.get<PaginatedResponse<Asset>>('/assets/', { params: filters });
+      const response = await api.get<PaginatedResponse<Asset>>('/assets/', { 
+        params: filters 
+      });
       return response.data;
     } catch (error: unknown) {
       const axiosError = error as { response?: { data?: { message?: string } } };
@@ -56,7 +58,12 @@ export const createAsset = createAsyncThunk(
       return response.data;
     } catch (error: unknown) {
       const axiosError = error as { response?: { data?: { message?: string; details?: Record<string, string[]> } } };
-      return rejectWithValue(axiosError.response?.data?.message || 'Failed to create asset');
+      const details = axiosError.response?.data?.details;
+      let message = axiosError.response?.data?.message || 'Failed to create asset';
+      if (details) {
+        message = Object.entries(details).map(([field, errors]) => `${field}: ${errors.join(', ')}`).join('; ');
+      }
+      return rejectWithValue(message);
     }
   }
 );
@@ -102,26 +109,30 @@ const assetsSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      // Fetch assets
       .addCase(fetchAssets.pending, (state) => {
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(fetchAssets.fulfilled, (state, action) => {
+      .addCase(fetchAssets.fulfilled, (state, action: PayloadAction<PaginatedResponse<Asset>>) => {
         state.isLoading = false;
-        state.assets = action.payload.results;
-        state.count = action.payload.count;
-        state.next = action.payload.next;
-        state.previous = action.payload.previous;
+        // Defensive: ensure results is an array
+        state.assets = action.payload.results || [];
+        state.count = action.payload.count || 0;
+        state.next = action.payload.next || null;
+        state.previous = action.payload.previous || null;
       })
       .addCase(fetchAssets.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
+        state.assets = [];
       })
+      // Fetch single asset
       .addCase(fetchAsset.pending, (state) => {
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(fetchAsset.fulfilled, (state, action) => {
+      .addCase(fetchAsset.fulfilled, (state, action: PayloadAction<Asset>) => {
         state.isLoading = false;
         state.currentAsset = action.payload;
       })
@@ -129,19 +140,22 @@ const assetsSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload as string;
       })
+      // Create asset
       .addCase(createAsset.pending, (state) => {
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(createAsset.fulfilled, (state, action) => {
+      .addCase(createAsset.fulfilled, (state, action: PayloadAction<Asset>) => {
         state.isLoading = false;
         state.assets.unshift(action.payload);
+        state.count += 1;
       })
       .addCase(createAsset.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
       })
-      .addCase(updateAsset.fulfilled, (state, action) => {
+      // Update asset
+      .addCase(updateAsset.fulfilled, (state, action: PayloadAction<Asset>) => {
         const index = state.assets.findIndex((a) => a.id === action.payload.id);
         if (index !== -1) {
           state.assets[index] = action.payload;

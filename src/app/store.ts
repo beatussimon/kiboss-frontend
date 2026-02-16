@@ -7,6 +7,8 @@ import messagingReducer from '../features/messaging/messagingSlice';
 import notificationsReducer from '../features/notifications/notificationsSlice';
 import ratingsReducer from '../features/ratings/ratingsSlice';
 import socialReducer from '../features/social/socialSlice';
+import adminReducer from '../features/admin/adminSlice';
+import locationReducer from '../features/location/locationSlice';
 
 export const store = configureStore({
   reducer: {
@@ -18,6 +20,8 @@ export const store = configureStore({
     notifications: notificationsReducer,
     ratings: ratingsReducer,
     social: socialReducer,
+    admin: adminReducer,
+    location: locationReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

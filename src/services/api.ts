@@ -29,7 +29,8 @@ const getAuthState = (): RootState['auth'] => {
       refreshToken: localStorage.getItem('refreshToken'),
       isAuthenticated: !!localStorage.getItem('accessToken'),
       isLoading: false,
-    };
+      error: null,
+    } as RootState['auth'];
   }
   return storeRef.getState().auth;
 };

@@ -4,13 +4,21 @@ import { useDispatch } from 'react-redux';
 import { AppDispatch } from '../../app/store';
 import { createAsset } from '../../features/assets/assetsSlice';
 import toast from 'react-hot-toast';
-import { Home } from 'lucide-react';
+import { Asset, AssetType } from '../../types';
 
 export default function CreateAssetPage() {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    name: string;
+    description: string;
+    asset_type: AssetType;
+    address: string;
+    city: string;
+    country: string;
+    pricing_rules: { name: string; unit_type: string; price: string; min_duration_minutes: number; priority: number }[];
+  }>({
     name: '',
     description: '',
     asset_type: 'ROOM',
@@ -24,7 +32,7 @@ export default function CreateAssetPage() {
     e.preventDefault();
     setIsLoading(true);
     try {
-      const result = await dispatch(createAsset(formData));
+      const result = await dispatch(createAsset(formData as unknown as Partial<Asset>));
       if (createAsset.fulfilled.match(result)) {
         toast.success('Asset created successfully!');
         navigate(`/assets/${result.payload.id}`);
@@ -71,7 +79,7 @@ export default function CreateAssetPage() {
               <label className="block text-sm font-medium text-gray-700 mb-1">Asset Type</label>
               <select
                 value={formData.asset_type}
-                onChange={(e) => setFormData({ ...formData, asset_type: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, asset_type: e.target.value as AssetType })}
                 className="input"
               >
                 <option value="ROOM">Room</option>

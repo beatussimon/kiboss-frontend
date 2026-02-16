@@ -6,6 +6,7 @@ import { RouterProvider, createBrowserRouter } from 'react-router-dom';
 import App from './App';
 import { store } from './app/store';
 import { setStore } from './services/api';
+import ErrorBoundary from './components/ErrorBoundary';
 import './index.css';
 
 // Set the store reference in api.ts to avoid circular dependency
@@ -18,38 +19,40 @@ const router = createBrowserRouter(
     future: {
       v7_fetcherPersist: true,
       v7_relativeSplatPath: true,
-      // @ts-expect-error - v7_startTransition is available in React Router v7
       v7_startTransition: true,
-    },
+      v7_partialHydration: true,
+    } as Record<string, boolean>,
   }
 );
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <Provider store={store}>
-      <RouterProvider router={router} />
-      <Toaster
-        position="top-right"
-        toastOptions={{
-          duration: 4000,
-          style: {
-            background: '#363636',
-            color: '#fff',
-          },
-          success: {
-            iconTheme: {
-              primary: '#22c55e',
-              secondary: '#fff',
+    <ErrorBoundary>
+      <Provider store={store}>
+        <RouterProvider router={router} future={{ v7_startTransition: true }} />
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            duration: 4000,
+            style: {
+              background: '#363636',
+              color: '#fff',
             },
-          },
-          error: {
-            iconTheme: {
-              primary: '#ef4444',
-              secondary: '#fff',
+            success: {
+              iconTheme: {
+                primary: '#22c55e',
+                secondary: '#fff',
+              },
             },
-          },
-        }}
-      />
-    </Provider>
+            error: {
+              iconTheme: {
+                primary: '#ef4444',
+                secondary: '#fff',
+              },
+            },
+          }}
+        />
+      </Provider>
+    </ErrorBoundary>
   </React.StrictMode>
 );

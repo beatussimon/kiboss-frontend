@@ -26,6 +26,7 @@ import ThreadPage from './pages/messages/ThreadPage';
 import NotificationsPage from './pages/notifications/NotificationsPage';
 import ProfilePage from './pages/profile/ProfilePage';
 import PublicProfilePage from './pages/profile/PublicProfilePage';
+import SearchPage from './pages/search/SearchPage';
 
 // Protected Route Component
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -117,7 +118,8 @@ function App() {
         <Route path="/messages/:threadId" element={<ThreadPage />} />
         <Route path="/notifications" element={<NotificationsPage />} />
         <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/users/:id" element={<PublicProfilePage />} />
+        <Route path="/users/:userId" element={<PublicProfilePage />} />
+        <Route path="/search" element={<SearchPage />} />
       </Route>
 
       {/* Catch all - redirect to home */}

@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Link, useSearchParams } from 'react-router-dom';
 import { AppDispatch, RootState } from '../../app/store';
 import { fetchAssets } from '../../features/assets/assetsSlice';
+import { AssetType } from '../../types';
 import { Home, MapPin, Star, Filter, Grid, List } from 'lucide-react';
 
 export default function AssetsPage() {
@@ -11,7 +12,7 @@ export default function AssetsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
-  const assetType = searchParams.get('asset_type') || undefined;
+  const assetType = searchParams.get('asset_type') as AssetType | undefined;
   const city = searchParams.get('city') || undefined;
 
   useEffect(() => {
@@ -96,7 +97,7 @@ export default function AssetsPage() {
             </div>
           ))}
         </div>
-      ) : assets.length > 0 ? (
+      ) : assets && assets.length > 0 ? (
         <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-4'}>
           {assets.map((asset) => (
             <Link key={asset.id} to={`/assets/${asset.id}`} className="card group hover:shadow-lg transition-shadow">

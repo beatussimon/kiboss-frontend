@@ -1,14 +1,26 @@
-import { useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../app/store';
 import { fetchAsset } from '../../features/assets/assetsSlice';
+import ContactButton from '../../components/messaging/ContactButton';
+import InlineMessagingPanel from '../../components/messaging/InlineMessagingPanel';
 import { Home, MapPin, Star, Shield, Calendar, User, MessageCircle } from 'lucide-react';
+import VerificationBadge from '../../components/ui/VerificationBadge';
 
 export default function AssetDetailPage() {
   const { id } = useParams<{ id: string }>();
   const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
   const { currentAsset: asset, isLoading } = useSelector((state: RootState) => state.assets);
+  const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
+  const [showMessaging, setShowMessaging] = useState(false);
+  const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
+
+  const handleThreadCreated = (threadId: string) => {
+    // Navigate to the thread page instead of showing inline
+    navigate(`/messages/${threadId}`);
+  };
 
   useEffect(() => {
     if (id) {
@@ -65,12 +77,36 @@ export default function AssetDetailPage() {
           </div>
         </div>
         <div className="flex items-center gap-4">
-          <Link to={`/messages?asset_id=${asset.id}`} className="btn-secondary">
-            <MessageCircle className="h-4 w-4 mr-2" />
-            Contact Owner
-          </Link>
+          {/* Contact Owner Button */}
+          {isAuthenticated && user?.id !== asset.owner?.id && asset.owner?.id && (
+            <ContactButton
+              targetUserId={asset.owner.id}
+              label="Contact Owner"
+              threadType="INQUIRY"
+              listingId={asset.id}
+              subject={`Inquiry about ${asset.name}`}
+              onThreadCreated={handleThreadCreated}
+              variant="secondary"
+            />
+          )}
+          {!isAuthenticated && (
+            <Link to={`/login?redirect=${encodeURIComponent(window.location.pathname)}`} className="btn-secondary">
+              <MessageCircle className="h-4 w-4 mr-2" />
+              Contact Owner
+            </Link>
+          )}
         </div>
       </div>
+
+      {/* Inline Messaging Panel */}
+      {showMessaging && activeThreadId && (
+        <div className="mb-6">
+          <InlineMessagingPanel
+            threadId={activeThreadId}
+            onClose={() => setShowMessaging(false)}
+          />
+        </div>
+      )}
 
       {/* Rating & Reviews */}
       <div className="flex items-center gap-4 mb-6">
@@ -79,11 +115,21 @@ export default function AssetDetailPage() {
           <span className="ml-1 font-semibold">{asset.average_rating || 'N/A'}</span>
           <span className="ml-1 text-gray-500">({asset.total_reviews || 0} reviews)</span>
         </div>
+        {/* Owner Profile Link with Verification Badge */}
         <Link to={`/users/${asset.owner.id}`} className="flex items-center gap-2 text-primary-600 hover:text-primary-700">
-          <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
-            <User className="h-4 w-4 text-gray-500" />
+          <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+            {asset.owner.profile?.avatar ? (
+              <img src={asset.owner.profile.avatar} alt={asset.owner.first_name} className="w-full h-full object-cover" />
+            ) : (
+              <User className="h-4 w-4 text-gray-500" />
+            )}
           </div>
           <span>{asset.owner.first_name}</span>
+          <VerificationBadge 
+            tier={asset.owner.verification_badge?.tier}
+            color={asset.owner.verification_badge?.color}
+            size="sm"
+          />
         </Link>
       </div>
 

@@ -8,6 +8,7 @@ const initialState: AuthState = {
   refreshToken: localStorage.getItem('refreshToken'),
   isAuthenticated: !!localStorage.getItem('accessToken'),
   isLoading: false,
+  error: null,
 };
 
 export const login = createAsyncThunk(

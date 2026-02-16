@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { Ride, SeatAvailability, SeatBooking, PaginatedResponse } from '../../types';
 import api from '../../services/api';
 
@@ -54,7 +54,7 @@ export const fetchSeatAvailability = createAsyncThunk(
   'rides/fetchSeatAvailability',
   async (rideId: string, { rejectWithValue }) => {
     try {
-      const response = await api.get<SeatAvailability>(`/rides/${rideId}/seats/`);
+      const response = await api.get<SeatAvailability>(`/rides/${rideId}/seats_detail/`);
       return response.data;
     } catch (error: unknown) {
       const axiosError = error as { response?: { data?: { message?: string } } };
@@ -65,9 +65,9 @@ export const fetchSeatAvailability = createAsyncThunk(
 
 export const bookSeat = createAsyncThunk(
   'rides/bookSeat',
-  async ({ rideId, data }: { rideId: string; data: { seat_number: number; pickup_stop_id: string; dropoff_stop_id: string; passenger_notes?: string; luggage_count?: number; payment_method: string } }, { rejectWithValue }) => {
+  async ({ rideId, data }: { rideId: string; data: { seat_number: number; pickup_stop_id?: string; dropoff_stop_id?: string; passenger_notes?: string; luggage_count?: number; payment_method: string } }, { rejectWithValue }) => {
     try {
-      const response = await api.post<Ride>(`/rides/${rideId}/book/`, data);
+      const response = await api.post<SeatBooking>(`/rides/${rideId}/book/`, data);
       return response.data;
     } catch (error: unknown) {
       const axiosError = error as { response?: { data?: { message?: string } } };
@@ -80,7 +80,9 @@ export const fetchMyBookings = createAsyncThunk(
   'rides/fetchMyBookings',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await api.get<SeatBooking[]>('/rides/my_bookings/');
+      const response = await api.get<SeatBooking[]>('/rides/bookings/', { 
+        params: { passenger: 'me' } 
+      });
       return response.data;
     } catch (error: unknown) {
       const axiosError = error as { response?: { data?: { message?: string } } };
@@ -93,7 +95,9 @@ export const fetchMyDrives = createAsyncThunk(
   'rides/fetchMyDrives',
   async (params: { status?: string } = {}, { rejectWithValue }) => {
     try {
-      const response = await api.get<PaginatedResponse<Ride>>('/rides/my_drives/', { params });
+      const response = await api.get<PaginatedResponse<Ride>>('/rides/', { 
+        params: { driver: 'me', ...params } 
+      });
       return response.data;
     } catch (error: unknown) {
       const axiosError = error as { response?: { data?: { message?: string } } };
@@ -104,9 +108,9 @@ export const fetchMyDrives = createAsyncThunk(
 
 export const cancelSeatBooking = createAsyncThunk(
   'rides/cancelSeatBooking',
-  async ({ rideId, seatBookingId, reason }: { rideId: string; seatBookingId: string; reason: string }, { rejectWithValue }) => {
+  async ({ rideId, seatBookingId, reason }: { rideId: string; seatBookingId: string; reason?: string }, { rejectWithValue }) => {
     try {
-      const response = await api.post(`/rides/${rideId}/seats/${seatBookingId}/cancel/`, { reason });
+      const response = await api.post(`/rides/${rideId}/bookings/${seatBookingId}/cancel/`, { reason });
       return response.data;
     } catch (error: unknown) {
       const axiosError = error as { response?: { data?: { message?: string } } };
@@ -129,30 +133,46 @@ const ridesSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      // Fetch rides
       .addCase(fetchRides.pending, (state) => {
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(fetchRides.fulfilled, (state, action) => {
+      .addCase(fetchRides.fulfilled, (state, action: PayloadAction<PaginatedResponse<Ride>>) => {
         state.isLoading = false;
-        state.rides = action.payload.results;
-        state.count = action.payload.count;
+        state.rides = action.payload.results || [];
+        state.count = action.payload.count || 0;
       })
       .addCase(fetchRides.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
+        state.rides = [];
       })
-      .addCase(fetchRide.fulfilled, (state, action) => {
+      // Fetch single ride
+      .addCase(fetchRide.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchRide.fulfilled, (state, action: PayloadAction<Ride>) => {
+        state.isLoading = false;
         state.currentRide = action.payload;
       })
-      .addCase(fetchSeatAvailability.fulfilled, (state, action) => {
+      .addCase(fetchRide.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+        state.currentRide = null;
+      })
+      // Fetch seat availability
+      .addCase(fetchSeatAvailability.fulfilled, (state, action: PayloadAction<SeatAvailability>) => {
         state.seatAvailability = action.payload;
       })
-      .addCase(fetchMyBookings.fulfilled, (state, action) => {
-        state.myBookings = action.payload;
+      // Fetch my bookings
+      .addCase(fetchMyBookings.fulfilled, (state, action: PayloadAction<SeatBooking[]>) => {
+        state.myBookings = action.payload || [];
       })
-      .addCase(fetchMyDrives.fulfilled, (state, action) => {
-        state.myDrives = action.payload.results;
+      // Fetch my drives
+      .addCase(fetchMyDrives.fulfilled, (state, action: PayloadAction<PaginatedResponse<Ride>>) => {
+        state.myDrives = action.payload.results || [];
       });
   },
 });

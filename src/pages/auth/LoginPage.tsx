@@ -1,18 +1,43 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../app/store';
 import { login } from '../../features/auth/authSlice';
+import { setUserLocation } from '../../features/location/locationSlice';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import toast from 'react-hot-toast';
+import LocationModal from '../../components/location/LocationModal';
 
 export default function LoginPage() {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const { isLoading, error } = useSelector((state: RootState) => state.auth);
+  const { userLocation, isLocationPermissionGranted } = useSelector((state: RootState) => state.location);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [showLocationModal, setShowLocationModal] = useState(false);
+
+  // Check and restore location from localStorage on mount
+  useEffect(() => {
+    const savedLocation = localStorage.getItem('userLocation');
+    if (savedLocation) {
+      try {
+        const locationData = JSON.parse(savedLocation);
+        dispatch(setUserLocation(locationData));
+      } catch (e) {
+        console.error('Failed to parse saved location:', e);
+      }
+    } else {
+      // Show location modal if no saved location
+      setShowLocationModal(true);
+    }
+  }, [dispatch]);
+
+  const handleLoginSuccess = () => {
+    toast.success('Welcome back!');
+    navigate('/');
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,6 +62,7 @@ export default function LoginPage() {
 
   return (
     <div>
+      <LocationModal />
       <h3 className="text-lg font-medium text-gray-900 mb-6">Sign in to your account</h3>
       
       {error && (

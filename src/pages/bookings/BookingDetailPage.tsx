@@ -1,22 +1,72 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../app/store';
-import { fetchBooking, fetchBookingTimeline, cancelBooking } from '../../features/bookings/bookingsSlice';
-import { Calendar, MapPin, Clock, User, Shield, CreditCard, ArrowLeft } from 'lucide-react';
+import { fetchBooking, fetchBookingTimeline, cancelBooking, clearCurrentBooking, clearError } from '../../features/bookings/bookingsSlice';
+import ContactButton from '../../components/messaging/ContactButton';
+import InlineMessagingPanel from '../../components/messaging/InlineMessagingPanel';
+import { Calendar, MapPin, Clock, User, Shield, CreditCard, ArrowLeft, MessageCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function BookingDetailPage() {
   const { id } = useParams<{ id: string }>();
   const dispatch = useDispatch<AppDispatch>();
-  const { currentBooking: booking, timeline, isLoading } = useSelector((state: RootState) => state.bookings);
+  const { currentBooking: booking, timeline, isLoading, error } = useSelector((state: RootState) => state.bookings);
+  const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
+  const [showMessaging, setShowMessaging] = useState(false);
+  const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
+
+  // Validate booking ID
+  if (id === 'new' || !id) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="card p-8 text-center">
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Invalid Booking</h2>
+          <p className="text-gray-500">The requested booking could not be found.</p>
+          <Link to="/bookings" className="text-primary-600 hover:text-primary-700 mt-4 inline-block">
+            ← Back to Bookings
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const handleThreadCreated = (threadId: string) => {
+    setActiveThreadId(threadId);
+    setShowMessaging(true);
+  };
 
   useEffect(() => {
-    if (id) {
+    // Clear previous error and booking data when ID changes
+    dispatch(clearError());
+    dispatch(clearCurrentBooking());
+    
+    if (id && id !== 'new') {
       dispatch(fetchBooking(id));
       dispatch(fetchBookingTimeline(id));
     }
+    
+    // Cleanup on unmount
+    return () => {
+      dispatch(clearError());
+      dispatch(clearCurrentBooking());
+    };
   }, [dispatch, id]);
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="card p-8 text-center">
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Booking Not Found</h2>
+          <p className="text-gray-500">{error || 'The requested booking could not be found or you do not have permission to view it.'}</p>
+          <Link to="/bookings" className="text-primary-600 hover:text-primary-700 mt-4 inline-block">
+            ← Back to Bookings
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   const getStatusBadge = (status: string) => {
     const statusClasses: Record<string, string> = {
@@ -44,7 +94,7 @@ export default function BookingDetailPage() {
     }
   };
 
-  if (isLoading || !booking) {
+  if (isLoading || !booking || !booking.asset) {
     return <div className="animate-pulse card p-8 h-96" />;
   }
 
@@ -85,7 +135,20 @@ export default function BookingDetailPage() {
               </div>
               <div>
                 <p className="font-medium">{booking.asset.name}</p>
-                <p className="text-sm text-gray-500">Owned by {booking.owner.first_name}</p>
+                <p className="text-sm text-gray-500">Owned by {booking.owner?.first_name || 'Unknown'}</p>
+                {isAuthenticated && user && booking.owner && (
+                  <ContactButton
+                    targetUserId={booking.owner.id}
+                    label="Message Owner"
+                    threadType="BOOKING"
+                    bookingId={booking.id}
+                    subject={`Booking #${booking.id} - ${booking.asset.name}`}
+                    onThreadCreated={handleThreadCreated}
+                    variant="outline"
+                    size="sm"
+                    className="mt-2"
+                  />
+                )}
               </div>
             </div>
           </div>
@@ -179,6 +242,17 @@ export default function BookingDetailPage() {
               <button onClick={handleCancel} className="btn-danger w-full">
                 Cancel Booking
               </button>
+            </div>
+          )}
+
+          {/* Inline Messaging Panel */}
+          {showMessaging && activeThreadId && (
+            <div className="card p-6">
+              <InlineMessagingPanel
+                threadId={activeThreadId}
+                onClose={() => setShowMessaging(false)}
+                height="400px"
+              />
             </div>
           )}
         </div>
