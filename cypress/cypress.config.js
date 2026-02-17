@@ -3,7 +3,8 @@ const { defineConfig } = require('cypress');
 module.exports = defineConfig({
   e2e: {
     baseUrl: 'http://localhost:5173',
-    apiBaseUrl: 'http://localhost:8000',
+    supportFile: 'support/e2e.ts',
+    specPattern: 'e2e/**/*.cy.{js,jsx,ts,tsx}',
     viewportWidth: 1280,
     viewportHeight: 720,
     video: true,
@@ -17,6 +18,7 @@ module.exports = defineConfig({
     env: {
       backendUrl: 'http://localhost:8000',
       frontendUrl: 'http://localhost:5173',
+      apiBaseUrl: 'http://localhost:8000',
       apiVersion: 'v1',
     },
   },

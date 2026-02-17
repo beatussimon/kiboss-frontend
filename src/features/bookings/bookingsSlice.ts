@@ -24,11 +24,11 @@ export const fetchBookings = createAsyncThunk(
   'bookings/fetchBookings',
   async (filters: BookingFilters = {}, { rejectWithValue }) => {
     try {
-      const response = await api.get<PaginatedResponse<Booking>>('/bookings/', { params: filters });
+      const response = await api.get<PaginatedResponse<Booking> | Booking[]>('/bookings/', { params: filters });
       return response.data;
     } catch (error: unknown) {
-      const axiosError = error as { response?: { data?: { message?: string } } };
-      return rejectWithValue(axiosError.response?.data?.message || 'Failed to fetch bookings');
+      const axiosError = error as { response?: { data?: { error?: string; message?: string } } };
+      return rejectWithValue(axiosError.response?.data?.error || axiosError.response?.data?.message || 'Failed to fetch bookings');
     }
   }
 );
@@ -40,8 +40,8 @@ export const fetchBooking = createAsyncThunk(
       const response = await api.get<Booking>(`/bookings/${bookingId}/`);
       return response.data;
     } catch (error: unknown) {
-      const axiosError = error as { response?: { data?: { message?: string } } };
-      return rejectWithValue(axiosError.response?.data?.message || 'Failed to fetch booking');
+      const axiosError = error as { response?: { data?: { error?: string; message?: string } } };
+      return rejectWithValue(axiosError.response?.data?.error || axiosError.response?.data?.message || 'Failed to fetch booking');
     }
   }
 );
@@ -191,8 +191,13 @@ const bookingsSlice = createSlice({
       })
       .addCase(fetchBookings.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.bookings = action.payload.results;
-        state.count = action.payload.count;
+        if (Array.isArray(action.payload)) {
+          state.bookings = action.payload;
+          state.count = action.payload.length;
+        } else {
+          state.bookings = action.payload.results;
+          state.count = action.payload.count;
+        }
       })
       .addCase(fetchBookings.rejected, (state, action) => {
         state.isLoading = false;

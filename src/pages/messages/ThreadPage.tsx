@@ -9,7 +9,7 @@ import { Send, ArrowLeft, Paperclip, Image, FileText } from 'lucide-react';
 export default function ThreadPage() {
   const { threadId } = useParams<{ threadId: string }>();
   const dispatch = useDispatch<AppDispatch>();
-  const { currentThread: thread, messages, isLoading, isLoadingMessages, pagination } = useSelector((state: RootState) => state.messaging);
+  const { currentThread: thread, messages, isLoading, isLoadingMessages, pagination, error } = useSelector((state: RootState) => state.messaging);
   const { user } = useSelector((state: RootState) => state.auth);
   const [message, setMessage] = useState('');
   const [attachment, setAttachment] = useState<File | null>(null);
@@ -24,8 +24,10 @@ export default function ThreadPage() {
 
   const handleSend = async () => {
     if (!message.trim() || !threadId) return;
-    await dispatch(sendMessage({ threadId, content: message }));
+    const attachments = attachment ? [attachment] : undefined;
+    await dispatch(sendMessage({ threadId, content: message, attachments }));
     setMessage('');
+    setAttachment(null);
     // Refresh messages after sending
     dispatch(fetchThreadMessages({ threadId, page: 1 }));
   };
@@ -49,8 +51,20 @@ export default function ThreadPage() {
     return user?.id === senderId;
   };
 
-  if (isLoading || !thread) {
+  if (isLoading) {
     return <div className="animate-pulse card p-8 h-96" />;
+  }
+
+  if (!thread) {
+    return (
+      <div className="card p-8">
+        <h2 className="text-lg font-semibold text-gray-900 mb-2">Conversation unavailable</h2>
+        <p className="text-sm text-gray-500 mb-4">{error || 'This conversation does not exist or you no longer have access.'}</p>
+        <Link to="/messages" className="text-primary-600 hover:text-primary-700">
+          ← Back to Messages
+        </Link>
+      </div>
+    );
   }
 
   return (

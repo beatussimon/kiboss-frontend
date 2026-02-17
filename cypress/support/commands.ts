@@ -3,6 +3,32 @@
 // These commands verify real data flowing from Django DB to React Frontend
 // ***********************************************************
 
+// Command to get JWT token for authenticated requests
+Cypress.Commands.add('getAuthToken', (email, password) => {
+  return cy.request({
+    method: 'POST',
+    url: `${Cypress.env('apiBaseUrl')}/auth/token/`,
+    body: {
+      email,
+      password,
+    },
+    failOnStatusCode: false,
+  }).then((response) => {
+    if (response.status === 200 && response.body.access) {
+      return response.body.access;
+    }
+    return null;
+  });
+});
+
+// Command to set auth token in localStorage and window
+Cypress.Commands.add('setAuthToken', (token) => {
+  if (token) {
+    window.localStorage.setItem('accessToken', token);
+    window.localStorage.setItem('refreshToken', '');
+  }
+});
+
 // Command to check if backend API is running
 Cypress.Commands.add('checkBackendHealth', () => {
   cy.request({
@@ -14,8 +40,8 @@ Cypress.Commands.add('checkBackendHealth', () => {
   });
 });
 
-// Command to create test data via Django API
-Cypress.Commands.add('createAssetViaApi', (assetData) => {
+// Command to create test data via Django API (with authentication)
+Cypress.Commands.add('createAssetViaApi', (assetData, token) => {
   const defaultAsset = {
     name: 'Cypress Test Asset',
     description: 'Created via Cypress E2E test',
@@ -34,6 +60,7 @@ Cypress.Commands.add('createAssetViaApi', (assetData) => {
   };
 
   const finalAsset = { ...defaultAsset, ...assetData };
+  const authHeader = token ? { Authorization: `Bearer ${token}` } : {};
 
   return cy.request({
     method: 'POST',
@@ -41,12 +68,13 @@ Cypress.Commands.add('createAssetViaApi', (assetData) => {
     body: finalAsset,
     headers: {
       'Content-Type': 'application/json',
+      ...authHeader,
     },
   });
 });
 
-// Command to create test ride via Django API
-Cypress.Commands.add('createRideViaApi', (rideData) => {
+// Command to create test ride via Django API (with authentication)
+Cypress.Commands.add('createRideViaApi', (rideData, token) => {
   const defaultRide = {
     driver: 1,
     vehicle_asset: 1,
@@ -64,6 +92,7 @@ Cypress.Commands.add('createRideViaApi', (rideData) => {
   };
 
   const finalRide = { ...defaultRide, ...rideData };
+  const authHeader = token ? { Authorization: `Bearer ${token}` } : {};
 
   return cy.request({
     method: 'POST',
@@ -71,22 +100,27 @@ Cypress.Commands.add('createRideViaApi', (rideData) => {
     body: finalRide,
     headers: {
       'Content-Type': 'application/json',
+      ...authHeader,
     },
   });
 });
 
 // Command to clear all test data
-Cypress.Commands.add('clearTestData', () => {
+Cypress.Commands.add('clearTestData', (token) => {
+  const authHeader = token ? { Authorization: `Bearer ${token}` } : {};
+  
   cy.request({
     method: 'DELETE',
     url: `${Cypress.env('apiBaseUrl')}/api/v1/assets/`,
     failOnStatusCode: false,
+    headers: authHeader,
   });
 
   cy.request({
     method: 'DELETE',
     url: `${Cypress.env('apiBaseUrl')}/api/v1/rides/`,
     failOnStatusCode: false,
+    headers: authHeader,
   });
 });
 
@@ -122,7 +156,8 @@ Cypress.Commands.add('checkNoMockData', () => {
 // Command to verify empty state
 Cypress.Commands.add('verifyEmptyState', (pageType) => {
   if (pageType === 'assets') {
-    cy.contains('No assets available').should('exist');
+    // UI shows "No assets found" not "No assets available"
+    cy.contains('No assets found').should('exist');
     cy.contains('assets found').parent().should('contain', '0');
   } else {
     cy.contains('No rides available').should('exist');
@@ -134,4 +169,54 @@ Cypress.Commands.add('reloadAndVerify', (verificationFn) => {
   cy.reload();
   cy.wait(2000);
   verificationFn();
+});
+
+// Command to login user via API
+Cypress.Commands.add('login', (email, password) => {
+  cy.request({
+    method: 'POST',
+    url: `${Cypress.env('apiBaseUrl')}/auth/token/`,
+    body: {
+      email,
+      password,
+    },
+    failOnStatusCode: false,
+  }).then((response) => {
+    if (response.status === 200) {
+      // Store tokens in localStorage to match frontend behavior
+      const accessToken = response.body.access;
+      const refreshToken = response.body.refresh;
+      if (accessToken) {
+        window.localStorage.setItem('accessToken', accessToken);
+        window.localStorage.setItem('refreshToken', refreshToken);
+        window.localStorage.setItem('token', accessToken);
+        
+        // Store user info if available
+        if (response.body.user) {
+          window.localStorage.setItem('user', JSON.stringify(response.body.user));
+        }
+      }
+    }
+    return response;
+  });
+});
+
+// Command to register a new user
+Cypress.Commands.add('register', (userData) => {
+  const defaultUser = {
+    email: 'testuser@example.com',
+    password: 'testpass123',
+    password_confirm: 'testpass123',
+    first_name: 'Test',
+    last_name: 'User',
+  };
+
+  const finalUser = { ...defaultUser, ...userData };
+
+  return cy.request({
+    method: 'POST',
+    url: `${Cypress.env('apiBaseUrl')}/auth/register/`,
+    body: finalUser,
+    failOnStatusCode: false,
+  });
 });

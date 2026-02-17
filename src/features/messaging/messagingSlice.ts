@@ -98,7 +98,7 @@ export const createContextualThread = createAsyncThunk(
   'messaging/createContextualThread',
   async (data: {
     target_user_id: string;
-    thread_type?: 'INQUIRY' | 'BOOKING' | 'RIDE' | 'DISPUTE' | 'DIRECT';
+    thread_type?: 'INQUIRY' | 'BOOKING' | 'RIDE' | 'DISPUTE';
     subject?: string;
     listing_id?: string;
     booking_id?: string;
@@ -154,10 +154,25 @@ export const uploadAttachment = createAsyncThunk(
 // Removed createThread - not used for contextual messaging
 export const sendMessage = createAsyncThunk(
   'messaging/sendMessage',
-  async ({ threadId, content, attachments }: { threadId: string; content: string; attachments?: unknown[] }, { rejectWithValue }) => {
+  async ({ threadId, content, attachments }: { threadId: string; content: string; attachments?: File[] }, { rejectWithValue }) => {
     try {
-      const response = await api.post<Message>(`/messaging/threads/${threadId}/messages/`, { content, attachments });
-      return { threadId, message: response.data };
+      const response = await api.post<Message>(`/messaging/threads/${threadId}/messages/`, { content });
+      const message = response.data;
+
+      if (attachments && attachments.length > 0) {
+        await Promise.all(
+          attachments.map((file) => {
+            const formData = new FormData();
+            formData.append('message', message.id);
+            formData.append('file', file);
+            return api.post('/messaging/attachments/', formData, {
+              headers: { 'Content-Type': 'multipart/form-data' },
+            });
+          })
+        );
+      }
+
+      return { threadId, message };
     } catch (error: unknown) {
       const axiosError = error as { 
         response?: { 
@@ -260,7 +275,17 @@ const messagingSlice = createSlice({
         state.error = action.payload as string;
       })
       .addCase(fetchThread.fulfilled, (state, action) => {
+        state.isLoading = false;
         state.currentThread = action.payload;
+      })
+      .addCase(fetchThread.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchThread.rejected, (state, action) => {
+        state.isLoading = false;
+        state.currentThread = null;
+        state.error = action.payload as string;
       })
       .addCase(fetchThreadMessages.pending, (state) => {
         state.isLoadingMessages = true;
@@ -285,6 +310,9 @@ const messagingSlice = createSlice({
           state.currentThread.messages = [...(state.currentThread.messages || []), message];
           state.currentThread.message_count += 1;
         }
+      })
+      .addCase(createContextualThread.rejected, (state, action) => {
+        state.error = action.payload as string;
       });
   },
 });

@@ -11,7 +11,7 @@ interface ContactButtonProps {
   /** Display text for the button */
   label?: string;
   /** Thread type - defaults to INQUIRY for listings */
-  threadType?: 'INQUIRY' | 'BOOKING' | 'RIDE' | 'DISPUTE' | 'DIRECT';
+  threadType?: 'INQUIRY' | 'BOOKING' | 'RIDE' | 'DISPUTE';
   /** Optional listing/asset ID */
   listingId?: string;
   /** Optional booking ID */

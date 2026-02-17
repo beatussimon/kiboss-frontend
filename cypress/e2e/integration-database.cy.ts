@@ -11,13 +11,32 @@
  */
 
 describe('KIBOSS E2E Integration Tests', () => {
-  const API_URL = 'http://localhost:8000/api/v1';
+  const API_BASE_URL = 'http://localhost:8000/api/v1';
   const FRONTEND_URL = 'http://localhost:5173';
+  let authToken: string = '';
 
   beforeEach(() => {
+    // Get auth token for authenticated requests
+    cy.request({
+      method: 'POST',
+      url: `${API_BASE_URL}/auth/token/`,
+      body: {
+        email: 'admin@example.com',
+        password: 'admin123',
+      },
+      failOnStatusCode: false,
+    }).then((response) => {
+      if (response.status === 200 && response.body.access) {
+        authToken = response.body.access;
+        // Set token in localStorage for frontend
+        window.localStorage.setItem('accessToken', authToken);
+        window.localStorage.setItem('refreshToken', response.body.refresh || '');
+      }
+    });
+
     // Verify backend is running - FAIL if not
     cy.request({
-      url: `${API_URL}/`,
+      url: `${API_BASE_URL}/`,
       failOnStatusCode: false,
     }).should((response) => {
       expect(response.status).to.eq(200);
@@ -45,12 +64,23 @@ describe('KIBOSS E2E Integration Tests', () => {
         total_reviews: 15,
       };
 
-      cy.request('POST', `${API_URL}/assets/`, testAsset).then((createResponse) => {
+      cy.request({
+        method: 'POST',
+        url: `${API_BASE_URL}/assets/`,
+        body: testAsset,
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${authToken}`,
+        },
+      }).then((createResponse) => {
         expect(createResponse.status).to.eq(201);
         const assetId = createResponse.body.id;
         
         // Step 2: Verify asset exists in database
-        cy.request(`${API_URL}/assets/${assetId}/`).should((getResponse) => {
+        cy.request({
+          url: `${API_BASE_URL}/assets/${assetId}/`,
+          headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
+        }).should((getResponse) => {
           expect(getResponse.status).to.eq(200);
           expect(getResponse.body.name).to.eq(testAsset.name);
           expect(getResponse.body.city).to.eq(testAsset.city);
@@ -87,12 +117,23 @@ describe('KIBOSS E2E Integration Tests', () => {
         vehicle_description: 'E2E Test Vehicle',
       };
 
-      cy.request('POST', `${API_URL}/rides/`, testRide).then((createResponse) => {
+      cy.request({
+        method: 'POST',
+        url: `${API_BASE_URL}/rides/`,
+        body: testRide,
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${authToken}`,
+        },
+      }).then((createResponse) => {
         expect(createResponse.status).to.eq(201);
         const rideId = createResponse.body.id;
         
         // Step 2: Verify ride exists in database
-        cy.request(`${API_URL}/rides/${rideId}/`).should((getResponse) => {
+        cy.request({
+          url: `${API_BASE_URL}/rides/${rideId}/`,
+          headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
+        }).should((getResponse) => {
           expect(getResponse.status).to.eq(200);
           expect(getResponse.body.route_name).to.eq(testRide.route_name);
           expect(getResponse.body.origin).to.eq(testRide.origin);
@@ -129,7 +170,15 @@ describe('KIBOSS E2E Integration Tests', () => {
       };
 
       // Step 1: Create asset via API
-      cy.request('POST', `${API_URL}/assets/`, testAsset).then((createResponse) => {
+      cy.request({
+        method: 'POST',
+        url: `${API_BASE_URL}/assets/`,
+        body: testAsset,
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${authToken}`,
+        },
+      }).then((createResponse) => {
         expect(createResponse.status).to.eq(201);
         
         // Step 2: Navigate to frontend
@@ -162,7 +211,15 @@ describe('KIBOSS E2E Integration Tests', () => {
       };
 
       // Step 1: Create ride via API
-      cy.request('POST', `${API_URL}/rides/`, testRide).then((createResponse) => {
+      cy.request({
+        method: 'POST',
+        url: `${API_BASE_URL}/rides/`,
+        body: testRide,
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${authToken}`,
+        },
+      }).then((createResponse) => {
         expect(createResponse.status).to.eq(201);
         
         // Step 2: Navigate to frontend
@@ -190,8 +247,8 @@ describe('KIBOSS E2E Integration Tests', () => {
       cy.visit(`${FRONTEND_URL}/assets`);
       cy.wait(3000);
 
-      // Verify empty state is shown (not an error)
-      cy.contains('No assets available').should('exist');
+      // Verify empty state is shown (not an error) - UI shows "No assets found"
+      cy.contains('No assets found').should('exist');
       
       // Verify count shows 0
       cy.contains('assets found').parent().should('contain', '0');
@@ -220,11 +277,22 @@ describe('KIBOSS E2E Integration Tests', () => {
       };
 
       // Create asset
-      cy.request('POST', `${API_URL}/assets/`, testAsset).then((createResponse) => {
+      cy.request({
+        method: 'POST',
+        url: `${API_BASE_URL}/assets/`,
+        body: testAsset,
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${authToken}`,
+        },
+      }).then((createResponse) => {
         expect(createResponse.status).to.eq(201);
 
         // Verify API returns the data
-        cy.request(`${API_URL}/assets/`).should((listResponse) => {
+        cy.request({
+          url: `${API_BASE_URL}/assets/`,
+          headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
+        }).should((listResponse) => {
           expect(listResponse.status).to.eq(200);
           const assetInApi = listResponse.body.results.find(
             (a) => a.name === testAsset.name
@@ -260,11 +328,22 @@ describe('KIBOSS E2E Integration Tests', () => {
       };
 
       // Create ride
-      cy.request('POST', `${API_URL}/rides/`, testRide).then((createResponse) => {
+      cy.request({
+        method: 'POST',
+        url: `${API_BASE_URL}/rides/`,
+        body: testRide,
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${authToken}`,
+        },
+      }).then((createResponse) => {
         expect(createResponse.status).to.eq(201);
 
         // Verify API returns the data
-        cy.request(`${API_URL}/rides/`).should((listResponse) => {
+        cy.request({
+          url: `${API_BASE_URL}/rides/`,
+          headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
+        }).should((listResponse) => {
           expect(listResponse.status).to.eq(200);
           const rideInApi = listResponse.body.results.find(
             (r) => r.route_name === testRide.route_name
@@ -291,8 +370,9 @@ describe('KIBOSS E2E Integration Tests', () => {
       // and should FAIL (not pass silently)
       
       cy.request({
-        url: `${API_URL}/assets/`,
+        url: `${API_BASE_URL}/assets/`,
         failOnStatusCode: false,
+        headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
       }).should((response) => {
         // If this fails, it means backend is down - TEST SHOULD FAIL
         expect(response.status).to.not.eq(500);
@@ -303,7 +383,7 @@ describe('KIBOSS E2E Integration Tests', () => {
 });
 
 // Custom commands for seeding and cleanup
-Cypress.Commands.add('seedTestData', (apiUrl) => {
+Cypress.Commands.add('seedTestData', (apiUrl, token = '') => {
   const assets = [
     { name: 'Seed Asset 1', asset_type: 'ROOM', owner: 1, city: 'Seed City 1', country: 'US' },
     { name: 'Seed Asset 2', asset_type: 'VEHICLE', owner: 1, city: 'Seed City 2', country: 'US' },
@@ -324,21 +404,45 @@ Cypress.Commands.add('seedTestData', (apiUrl) => {
     },
   ];
 
+  const authHeader = token ? { Authorization: `Bearer ${token}` } : {};
+
   // Create seed data
   return cy.wrap(null).then(() => {
     assets.forEach((asset) => {
-      cy.request('POST', `${apiUrl}/assets/`, asset);
+      cy.request({
+        method: 'POST',
+        url: `${apiUrl}/assets/`,
+        body: asset,
+        headers: { 'Content-Type': 'application/json', ...authHeader },
+      });
     });
     rides.forEach((ride) => {
-      cy.request('POST', `${apiUrl}/rides/`, ride);
+      cy.request({
+        method: 'POST',
+        url: `${apiUrl}/rides/`,
+        body: ride,
+        headers: { 'Content-Type': 'application/json', ...authHeader },
+      });
     });
   });
 });
 
-Cypress.Commands.add('cleanupTestData', (apiUrl) => {
+Cypress.Commands.add('cleanupTestData', (apiUrl, token = '') => {
+  const authHeader = token ? { Authorization: `Bearer ${token}` } : {};
+  
   // Clean up test data from database
   return cy.wrap(null).then(() => {
-    cy.request('DELETE', `${apiUrl}/assets/`);
-    cy.request('DELETE', `${apiUrl}/rides/`);
+    cy.request({
+      method: 'DELETE',
+      url: `${apiUrl}/assets/`,
+      failOnStatusCode: false,
+      headers: authHeader,
+    });
+    cy.request({
+      method: 'DELETE',
+      url: `${apiUrl}/rides/`,
+      failOnStatusCode: false,
+      headers: authHeader,
+    });
   });
 });

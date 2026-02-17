@@ -98,6 +98,10 @@ export default function BookingDetailPage() {
     return <div className="animate-pulse card p-8 h-96" />;
   }
 
+  const isOwnerView = Boolean(user?.id && booking.owner?.id && user.id === booking.owner.id);
+  const counterparty = isOwnerView ? booking.renter : booking.owner;
+  const counterpartyLabel = isOwnerView ? 'Message Renter' : 'Message Owner';
+
   return (
     <div>
       <Link to="/bookings" className="text-primary-600 hover:text-primary-700 mb-4 inline-block">
@@ -135,11 +139,13 @@ export default function BookingDetailPage() {
               </div>
               <div>
                 <p className="font-medium">{booking.asset.name}</p>
-                <p className="text-sm text-gray-500">Owned by {booking.owner?.first_name || 'Unknown'}</p>
-                {isAuthenticated && user && booking.owner && (
+                <p className="text-sm text-gray-500">
+                  {isOwnerView ? `Rented by ${booking.renter?.first_name || 'Unknown'}` : `Owned by ${booking.owner?.first_name || 'Unknown'}`}
+                </p>
+                {isAuthenticated && user && counterparty && counterparty.id !== user.id && (
                   <ContactButton
-                    targetUserId={booking.owner.id}
-                    label="Message Owner"
+                    targetUserId={counterparty.id}
+                    label={counterpartyLabel}
                     threadType="BOOKING"
                     bookingId={booking.id}
                     subject={`Booking #${booking.id} - ${booking.asset.name}`}

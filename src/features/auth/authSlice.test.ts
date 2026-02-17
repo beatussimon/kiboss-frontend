@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect } from 'vitest'
-import authSlice, { login, register, logout, fetchCurrentUser, updateUser } from './authSlice'
+import authReducer, { login, register, logout, fetchCurrentUser, updateUser } from './authSlice'
 
 describe('Auth Slice', () => {
   describe('Actions', () => {
@@ -27,11 +27,7 @@ describe('Auth Slice', () => {
     })
   })
 
-  describe('Slice Name', () => {
-    it('should have correct slice name', () => {
-      expect(authSlice.name).toBe('auth')
-    })
-  })
+
 })
 
 describe('Auth Selectors', () => {

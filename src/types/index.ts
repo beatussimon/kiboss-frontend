@@ -324,6 +324,8 @@ export interface Thread {
   participants: User[];
   messages: Message[];
   message_count: number;
+  context_type?: 'ASSET' | 'BOOKING' | 'RIDE';
+  context_id?: string;
   booking?: string;  // Booking ID if this is a booking-related thread
   ride?: string;    // Ride ID if this is a ride-related thread
   created_at: string;
