@@ -259,6 +259,7 @@ export interface Ride {
   vehicle_color?: string;
   vehicle_license_plate?: string;
   stops: RideStop[];
+  stops_data?: Partial<RideStop>[]; // For creating rides with stops
   confirmed_seats?: number;
   reserved_seats?: number;
   driver_notes?: string;

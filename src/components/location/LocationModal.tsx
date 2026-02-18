@@ -1,10 +1,22 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../../app/store';
 import { setUserLocation, setLocationModalShown, setLocationPermissionGranted } from '../../features/location/locationSlice';
 
 interface LocationModalProps {
   onClose?: () => void;
+}
+
+interface UserLocation {
+  latitude: number;
+  longitude: number;
+  timestamp: number;
+  accuracy?: number;
+  altitude?: number | null;
+  altitudeAccuracy?: number | null;
+  heading?: number | null;
+  speed?: number | null;
+  source?: string;
 }
 
 export default function LocationModal({ onClose }: LocationModalProps) {
@@ -14,6 +26,7 @@ export default function LocationModal({ onClose }: LocationModalProps) {
   );
   const [isRequesting, setIsRequesting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     // Check if location was already granted
@@ -33,57 +46,169 @@ export default function LocationModal({ onClose }: LocationModalProps) {
     dispatch(setLocationModalShown(true));
   }, [dispatch, userLocation, isLocationPermissionGranted]);
 
-  const requestLocation = () => {
+  // Fallback location service using IP-based geolocation
+  const fetchFallbackLocation = useCallback(async (): Promise<UserLocation | null> => {
+    try {
+      // Use a free IP geolocation API with timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      
+      const response = await fetch('https://ipapi.co/json/', {
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+      
+      if (!response.ok) return null;
+      
+      const data = await response.json();
+      if (!data.latitude || !data.longitude) return null;
+      
+      return {
+        latitude: data.latitude,
+        longitude: data.longitude,
+        timestamp: Date.now(),
+        accuracy: 5000, // Approximate accuracy for IP-based location
+        source: 'ipapi',
+      };
+    } catch (error) {
+      console.error('Failed to fetch fallback location:', error);
+      return null;
+    }
+  }, []);
+
+  const handleLocationSuccess = useCallback((locationData: UserLocation) => {
+    // Save to localStorage for persistence
+    localStorage.setItem('userLocation', JSON.stringify(locationData));
+    localStorage.removeItem('locationModalDismissed');
+    
+    dispatch(setUserLocation(locationData));
+    dispatch(setLocationPermissionGranted(true));
+    dispatch(setLocationModalShown(false));
+    setIsRequesting(false);
+    setError(null);
+    
+    if (onClose) onClose();
+  }, [dispatch, onClose]);
+
+  const handleLocationError = useCallback(async (err: GeolocationPositionError, currentRetry: number) => {
+    setIsRequesting(false);
+    
+    // Handle different error types with more specific messages
+    if (err.code === err.PERMISSION_DENIED) {
+      setError('Location permission denied. You can still browse rides but nearby suggestions will be limited.');
+      localStorage.setItem('locationModalDismissed', 'true');
+      dispatch(setLocationPermissionGranted(false));
+      return;
+    }
+    
+    if (err.code === err.POSITION_UNAVAILABLE) {
+      setError('Location information is unavailable. Trying fallback location service...');
+      
+      // Try fallback location service
+      const fallbackLocation = await fetchFallbackLocation();
+      if (fallbackLocation) {
+        handleLocationSuccess(fallbackLocation);
+        return;
+      }
+      
+      setError('Location information is unavailable and fallback location service failed. Please check your device settings and try again.');
+      return;
+    }
+    
+    if (err.code === err.TIMEOUT) {
+      // Implement retry logic for timeout errors
+      if (currentRetry < 2) {
+        setRetryCount(currentRetry + 1);
+        setError('Location request timed out. Retrying...');
+        // Retry after a short delay
+        setTimeout(() => {
+          requestLocationWithRetry(currentRetry + 1);
+        }, 2000);
+        return;
+      } else {
+        setError('Location request timed out after multiple attempts. Trying fallback location service...');
+        
+        // Try fallback location service
+        const fallbackLocation = await fetchFallbackLocation();
+        if (fallbackLocation) {
+          handleLocationSuccess(fallbackLocation);
+          return;
+        }
+        
+        setError('Location request timed out. Please check your connection and try again, or use the fallback location.');
+      }
+      return;
+    }
+    
+    // Unknown error
+    setError('An unknown error occurred while getting your location. Trying fallback location service...');
+    
+    // Try fallback location service
+    const fallbackLocation = await fetchFallbackLocation();
+    if (fallbackLocation) {
+      handleLocationSuccess(fallbackLocation);
+      return;
+    }
+    
+    setError('Unable to determine your location. Please try again later.');
+  }, [dispatch, fetchFallbackLocation, handleLocationSuccess]);
+
+  const requestLocationWithRetry = useCallback(async (currentRetry: number = 0) => {
     if (!navigator.geolocation) {
-      setError('Geolocation is not supported by your browser');
+      // Try fallback location service
+      const fallbackLocation = await fetchFallbackLocation();
+      if (fallbackLocation) {
+        handleLocationSuccess(fallbackLocation);
+        return;
+      }
+      setError('Geolocation is not supported by your browser and fallback location service failed.');
       return;
     }
 
     setIsRequesting(true);
     setError(null);
 
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const locationData = {
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-          timestamp: position.timestamp,
-        };
-        
-        // Save to localStorage for persistence
-        localStorage.setItem('userLocation', JSON.stringify(locationData));
-        
-        dispatch(setUserLocation(locationData));
-        dispatch(setLocationModalShown(false));
+    try {
+      // Use Promise-based approach for better error handling
+      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(
+          resolve,
+          reject,
+          {
+            enableHighAccuracy: currentRetry === 0, // Try high accuracy first, fallback to low on retry
+            timeout: currentRetry === 0 ? 15000 : 10000, // Reduce timeout on retry
+            maximumAge: 300000, // 5 minutes cache
+          }
+        );
+      });
+
+      const locationData: UserLocation = {
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+        timestamp: position.timestamp,
+        accuracy: position.coords.accuracy,
+        altitude: position.coords.altitude,
+        altitudeAccuracy: position.coords.altitudeAccuracy,
+        heading: position.coords.heading,
+        speed: position.coords.speed,
+      };
+
+      handleLocationSuccess(locationData);
+
+    } catch (err: unknown) {
+      if (err instanceof GeolocationPositionError) {
+        handleLocationError(err, currentRetry);
+      } else {
         setIsRequesting(false);
-        
-        if (onClose) onClose();
-      },
-      (err) => {
-        setIsRequesting(false);
-        switch (err.code) {
-          case err.PERMISSION_DENIED:
-            setError('Location permission denied. You can still browse rides but nearby suggestions will be limited.');
-            localStorage.setItem('locationModalDismissed', 'true');
-            dispatch(setLocationPermissionGranted(false));
-            break;
-          case err.POSITION_UNAVAILABLE:
-            setError('Location information is unavailable. Please try again later.');
-            break;
-          case err.TIMEOUT:
-            setError('Location request timed out. Please try again.');
-            break;
-          default:
-            setError('An unknown error occurred while getting your location.');
-        }
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 300000, // 5 minutes cache
+        setError('An unexpected error occurred. Please try again.');
       }
-    );
-  };
+    }
+  }, [fetchFallbackLocation, handleLocationSuccess, handleLocationError]);
+
+  const requestLocation = useCallback(() => {
+    setRetryCount(0);
+    requestLocationWithRetry(0);
+  }, [requestLocationWithRetry]);
 
   const handleDismiss = () => {
     dispatch(setLocationModalShown(false));
@@ -95,6 +220,19 @@ export default function LocationModal({ onClose }: LocationModalProps) {
     dispatch(setLocationModalShown(false));
     localStorage.setItem('locationModalDismissed', 'true');
     if (onClose) onClose();
+  };
+
+  const handleUseFallback = async () => {
+    setIsRequesting(true);
+    setError(null);
+    
+    const fallbackLocation = await fetchFallbackLocation();
+    if (fallbackLocation) {
+      handleLocationSuccess(fallbackLocation);
+    } else {
+      setIsRequesting(false);
+      setError('Unable to get location from IP. Please enable location services or try again.');
+    }
   };
 
   if (!isLocationModalShown) return null;
@@ -174,9 +312,21 @@ export default function LocationModal({ onClose }: LocationModalProps) {
             )}
           </button>
           
+          {/* Fallback option */}
+          <button
+            onClick={handleUseFallback}
+            disabled={isRequesting}
+            className="w-full bg-gray-100 text-gray-700 py-3 px-4 rounded-lg font-medium hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+            </svg>
+            Use Approximate Location
+          </button>
+          
           <button
             onClick={handleSkip}
-            className="w-full bg-gray-100 text-gray-700 py-3 px-4 rounded-lg font-medium hover:bg-gray-200 transition-colors"
+            className="w-full text-gray-500 py-2 px-4 rounded-lg font-medium hover:text-gray-700 transition-colors"
           >
             Skip for now
           </button>

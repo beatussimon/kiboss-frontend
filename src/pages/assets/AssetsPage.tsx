@@ -1,23 +1,69 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useSearchParams } from 'react-router-dom';
 import { AppDispatch, RootState } from '../../app/store';
 import { fetchAssets } from '../../features/assets/assetsSlice';
 import { AssetType } from '../../types';
-import { Home, MapPin, Star, Filter, Grid, List } from 'lucide-react';
+import { Home, MapPin, Star, Filter, Grid, List, Loader2 } from 'lucide-react';
 
 export default function AssetsPage() {
   const dispatch = useDispatch<AppDispatch>();
-  const { assets, isLoading, count } = useSelector((state: RootState) => state.assets);
+  const { assets, isLoading, count, next } = useSelector((state: RootState) => state.assets);
   const [searchParams, setSearchParams] = useSearchParams();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [page, setPage] = useState(1);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
   const assetType = searchParams.get('asset_type') as AssetType | undefined;
   const city = searchParams.get('city') || undefined;
 
+  // Reset page when filters change
   useEffect(() => {
-    dispatch(fetchAssets({ asset_type: assetType, city }));
+    setPage(1);
+    dispatch(fetchAssets({ asset_type: assetType, city, page: 1 }));
   }, [dispatch, assetType, city]);
+
+  // Infinite scroll observer
+  const handleLoadMore = useCallback(async () => {
+    if (isLoadingMore || !next) return;
+    
+    setIsLoadingMore(true);
+    const nextPage = page + 1;
+    
+    try {
+      await dispatch(fetchAssets({ asset_type: assetType, city, page: nextPage }));
+      setPage(nextPage);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [dispatch, assetType, city, page, isLoadingMore, next]);
+
+  useEffect(() => {
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+    }
+
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && next && !isLoadingMore) {
+          handleLoadMore();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (loadMoreRef.current) {
+      observerRef.current.observe(loadMoreRef.current);
+    }
+
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, [handleLoadMore, next, isLoadingMore]);
 
   return (
     <div>
@@ -138,6 +184,15 @@ export default function AssetsPage() {
               </div>
             </Link>
           ))}
+          {/* Load more trigger */}
+          <div ref={loadMoreRef} className="col-span-full flex justify-center py-4">
+            {isLoadingMore && (
+              <div className="flex items-center gap-2 text-gray-500">
+                <Loader2 className="h-5 w-5 animate-spin" />
+                <span>Loading more...</span>
+              </div>
+            )}
+          </div>
         </div>
       ) : (
         <div className="card p-12 text-center">

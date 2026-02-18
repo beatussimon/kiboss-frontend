@@ -10,6 +10,7 @@ interface AssetsState {
   count: number;
   next: string | null;
   previous: string | null;
+  currentPage: number;
 }
 
 const initialState: AssetsState = {
@@ -20,16 +21,17 @@ const initialState: AssetsState = {
   count: 0,
   next: null,
   previous: null,
+  currentPage: 1,
 };
 
 export const fetchAssets = createAsyncThunk(
   'assets/fetchAssets',
-  async (filters: AssetFilters = {}, { rejectWithValue }) => {
+  async (filters: AssetFilters & { page?: number } = {}, { rejectWithValue }) => {
     try {
       const response = await api.get<PaginatedResponse<Asset>>('/assets/', { 
         params: filters 
       });
-      return response.data;
+      return { data: response.data, page: filters.page || 1 };
     } catch (error: unknown) {
       const axiosError = error as { response?: { data?: { message?: string } } };
       return rejectWithValue(axiosError.response?.data?.message || 'Failed to fetch assets');
@@ -114,13 +116,19 @@ const assetsSlice = createSlice({
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(fetchAssets.fulfilled, (state, action: PayloadAction<PaginatedResponse<Asset>>) => {
+      .addCase(fetchAssets.fulfilled, (state, action: PayloadAction<{ data: PaginatedResponse<Asset>; page: number }>) => {
         state.isLoading = false;
-        // Defensive: ensure results is an array
-        state.assets = action.payload.results || [];
-        state.count = action.payload.count || 0;
-        state.next = action.payload.next || null;
-        state.previous = action.payload.previous || null;
+        const { data, page } = action.payload;
+        // If page is 1, replace assets; otherwise append
+        if (page === 1) {
+          state.assets = data.results || [];
+        } else {
+          state.assets = [...state.assets, ...(data.results || [])];
+        }
+        state.count = data.count || 0;
+        state.next = data.next || null;
+        state.previous = data.previous || null;
+        state.currentPage = page;
       })
       .addCase(fetchAssets.rejected, (state, action) => {
         state.isLoading = false;

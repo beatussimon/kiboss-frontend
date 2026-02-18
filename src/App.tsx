@@ -19,14 +19,17 @@ import AssetDetailPage from './pages/assets/AssetDetailPage';
 import CreateAssetPage from './pages/assets/CreateAssetPage';
 import BookingsPage from './pages/bookings/BookingsPage';
 import BookingDetailPage from './pages/bookings/BookingDetailPage';
+import CreateBookingPage from './pages/bookings/CreateBookingPage';
 import RidesPage from './pages/rides/RidesPage';
 import RideDetailPage from './pages/rides/RideDetailPage';
+import CreateRidePage from './pages/rides/CreateRidePage';
 import MessagesPage from './pages/messages/MessagesPage';
 import ThreadPage from './pages/messages/ThreadPage';
 import NotificationsPage from './pages/notifications/NotificationsPage';
 import ProfilePage from './pages/profile/ProfilePage';
 import PublicProfilePage from './pages/profile/PublicProfilePage';
 import SearchPage from './pages/search/SearchPage';
+import FAQPage from './pages/faq/FAQPage';
 
 // Protected Route Component
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -111,8 +114,10 @@ function App() {
         <Route path="/assets/:id" element={<AssetDetailPage />} />
         <Route path="/assets/create" element={<CreateAssetPage />} />
         <Route path="/bookings" element={<BookingsPage />} />
+        <Route path="/bookings/new" element={<CreateBookingPage />} />
         <Route path="/bookings/:id" element={<BookingDetailPage />} />
         <Route path="/rides" element={<RidesPage />} />
+        <Route path="/rides/create" element={<CreateRidePage />} />
         <Route path="/rides/:id" element={<RideDetailPage />} />
         <Route path="/messages" element={<MessagesPage />} />
         <Route path="/messages/:threadId" element={<ThreadPage />} />
@@ -120,6 +125,7 @@ function App() {
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/users/:userId" element={<PublicProfilePage />} />
         <Route path="/search" element={<SearchPage />} />
+        <Route path="/faq" element={<FAQPage />} />
       </Route>
 
       {/* Catch all - redirect to home */}

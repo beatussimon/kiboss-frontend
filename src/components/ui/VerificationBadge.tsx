@@ -3,7 +3,7 @@ import { Shield, ShieldCheck, Award } from 'lucide-react';
 interface VerificationBadgeProps {
   tier?: string;
   color?: string | null;
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'xs' | 'sm' | 'md' | 'lg';
   showLabel?: boolean;
 }
 
@@ -19,12 +19,14 @@ export default function VerificationBadge({
   }
 
   const sizeClasses = {
+    xs: 'h-2.5 w-2.5',
     sm: 'h-3 w-3',
     md: 'h-4 w-4',
     lg: 'h-5 w-5',
   };
 
   const labelSizeClasses = {
+    xs: 'text-[10px]',
     sm: 'text-xs',
     md: 'text-sm',
     lg: 'text-base',

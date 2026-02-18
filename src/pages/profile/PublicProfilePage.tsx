@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../app/store';
 import { fetchPublicProfile, followUser, unfollowUser } from '../../features/social/socialSlice';
-import { User, MapPin, Calendar, Star, MessageCircle } from 'lucide-react';
+import { User, MapPin, Calendar, Star, MessageCircle, Edit } from 'lucide-react';
 import { useState } from 'react';
 import { PublicUser } from '../../types';
 import VerificationBadge from '../../components/ui/VerificationBadge';
@@ -12,7 +12,11 @@ export default function PublicProfilePage() {
   const { userId } = useParams<{ userId: string }>();
   const dispatch = useDispatch<AppDispatch>();
   const { publicProfile: user, isLoading } = useSelector((state: RootState) => state.social);
+  const { isAuthenticated, user: currentUser } = useSelector((state: RootState) => state.auth);
   const [activeTab, setActiveTab] = useState<'listings' | 'rides' | 'reviews'>('listings');
+
+  // Check if viewing own profile
+  const isOwnProfile = isAuthenticated && currentUser?.id === userId;
 
   useEffect(() => {
     if (userId) {
@@ -59,12 +63,21 @@ export default function PublicProfilePage() {
                 </h1>
                 <p className="text-gray-500">@{user.username || user.email?.split('@')[0]}</p>
               </div>
-              <button
-                onClick={handleFollow}
-                className={user.is_following ? 'btn-secondary' : 'btn-primary'}
-              >
-                {user.is_following ? 'Following' : 'Follow'}
-              </button>
+              <div className="flex gap-2">
+                {isOwnProfile ? (
+                  <Link to="/profile" className="btn-primary">
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit Profile
+                  </Link>
+                ) : (
+                  <button
+                    onClick={handleFollow}
+                    className={user.is_following ? 'btn-secondary' : 'btn-primary'}
+                  >
+                    {user.is_following ? 'Following' : 'Follow'}
+                  </button>
+                )}
+              </div>
             </div>
 
             <div className="flex flex-wrap gap-4 mt-4 text-sm text-gray-600">
@@ -90,6 +103,15 @@ export default function PublicProfilePage() {
           </div>
         </div>
       </div>
+
+      {/* Own Profile Notice */}
+      {isOwnProfile && (
+        <div className="card p-4 mb-6 bg-blue-50 border-blue-200">
+          <p className="text-blue-800">
+            This is your public profile. Others will see this when they view your page.
+          </p>
+        </div>
+      )}
 
       <div className="card">
         <div className="border-b">

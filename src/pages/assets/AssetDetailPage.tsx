@@ -5,7 +5,7 @@ import { AppDispatch, RootState } from '../../app/store';
 import { fetchAsset } from '../../features/assets/assetsSlice';
 import ContactButton from '../../components/messaging/ContactButton';
 import InlineMessagingPanel from '../../components/messaging/InlineMessagingPanel';
-import { Home, MapPin, Star, Shield, Calendar, User, MessageCircle } from 'lucide-react';
+import { Home, MapPin, Star, Shield, Calendar, User, MessageCircle, Edit, Trash2, List } from 'lucide-react';
 import VerificationBadge from '../../components/ui/VerificationBadge';
 
 export default function AssetDetailPage() {
@@ -40,6 +40,9 @@ export default function AssetDetailPage() {
       </div>
     );
   }
+
+  // Check if current user is the owner
+  const isOwner = isAuthenticated && user?.id === asset.owner?.id;
 
   return (
     <div>
@@ -77,8 +80,21 @@ export default function AssetDetailPage() {
           </div>
         </div>
         <div className="flex items-center gap-4">
-          {/* Contact Owner Button */}
-          {isAuthenticated && user?.id !== asset.owner?.id && asset.owner?.id && (
+          {/* Owner Actions */}
+          {isOwner && (
+            <>
+              <Link to={`/assets/${asset.id}/edit`} className="btn-secondary">
+                <Edit className="h-4 w-4 mr-2" />
+                Edit
+              </Link>
+              <Link to={`/assets/${asset.id}/bookings`} className="btn-secondary">
+                <List className="h-4 w-4 mr-2" />
+                View Bookings
+              </Link>
+            </>
+          )}
+          {/* Contact Owner Button - only for non-owners */}
+          {isAuthenticated && !isOwner && asset.owner?.id && (
             <ContactButton
               targetUserId={asset.owner.id}
               label="Contact Owner"
@@ -152,21 +168,41 @@ export default function AssetDetailPage() {
         </div>
       </div>
 
-      {/* Book Now Button */}
-      <div className="card p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <span className="text-2xl font-bold text-gray-900">
-              ${asset.pricing_rules?.[0]?.price || '0'}
-            </span>
-            <span className="text-gray-500"> / {asset.pricing_rules?.[0]?.unit_type?.toLowerCase() || 'hour'}</span>
+      {/* Book Now Button - only for non-owners */}
+      {!isOwner && (
+        <div className="card p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <span className="text-2xl font-bold text-gray-900">
+                ${asset.pricing_rules?.[0]?.price || '0'}
+              </span>
+              <span className="text-gray-500"> / {asset.pricing_rules?.[0]?.unit_type?.toLowerCase() || 'hour'}</span>
+            </div>
+            <Link to={`/bookings/new?asset_id=${asset.id}`} className="btn-primary">
+              <Calendar className="h-4 w-4 mr-2" />
+              Book Now
+            </Link>
           </div>
-          <Link to={`/bookings/new?asset_id=${asset.id}`} className="btn-primary">
-            <Calendar className="h-4 w-4 mr-2" />
-            Book Now
-          </Link>
         </div>
-      </div>
+      )}
+
+      {/* Owner Info Card */}
+      {isOwner && (
+        <div className="card p-6 bg-blue-50 border-blue-200">
+          <h3 className="text-lg font-semibold text-blue-800 mb-2">This is your listing</h3>
+          <p className="text-blue-600 mb-4">You can edit this listing or view its bookings from the buttons above.</p>
+          <div className="flex gap-4">
+            <Link to={`/assets/${asset.id}/edit`} className="btn-primary">
+              <Edit className="h-4 w-4 mr-2" />
+              Edit Listing
+            </Link>
+            <Link to={`/assets/${asset.id}/bookings`} className="btn-secondary">
+              <List className="h-4 w-4 mr-2" />
+              View Bookings
+            </Link>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

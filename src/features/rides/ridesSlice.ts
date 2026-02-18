@@ -119,6 +119,37 @@ export const cancelSeatBooking = createAsyncThunk(
   }
 );
 
+export const createRide = createAsyncThunk(
+  'rides/createRide',
+  async (data: Partial<Ride>, { rejectWithValue }) => {
+    try {
+      const response = await api.post<Ride>('/rides/', data);
+      return response.data;
+    } catch (error: unknown) {
+      const axiosError = error as { response?: { data?: { message?: string; details?: Record<string, string[]> } } };
+      const details = axiosError.response?.data?.details;
+      let message = axiosError.response?.data?.message || 'Failed to create ride';
+      if (details) {
+        message = Object.entries(details).map(([field, errors]) => `${field}: ${errors.join(', ')}`).join('; ');
+      }
+      return rejectWithValue(message);
+    }
+  }
+);
+
+export const updateRide = createAsyncThunk(
+  'rides/updateRide',
+  async ({ id, data }: { id: string; data: Partial<Ride> }, { rejectWithValue }) => {
+    try {
+      const response = await api.patch<Ride>(`/rides/${id}/`, data);
+      return response.data;
+    } catch (error: unknown) {
+      const axiosError = error as { response?: { data?: { message?: string } } };
+      return rejectWithValue(axiosError.response?.data?.message || 'Failed to update ride');
+    }
+  }
+);
+
 const ridesSlice = createSlice({
   name: 'rides',
   initialState,
