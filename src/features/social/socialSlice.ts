@@ -145,9 +145,15 @@ const socialSlice = createSlice({
       })
       .addCase(followUser.fulfilled, (state, action) => {
         state.following.unshift(action.payload);
+        if (state.publicProfile && state.publicProfile.id === action.payload.following.id) {
+          state.publicProfile.is_following = true;
+        }
       })
       .addCase(unfollowUser.fulfilled, (state, action) => {
-        state.following = state.following.filter((f) => f.following.id !== action.payload);
+        state.following = state.following.filter((f) => (typeof f.following === 'string' ? f.following : f.following.id) !== action.payload);
+        if (state.publicProfile && state.publicProfile.id === action.payload) {
+          state.publicProfile.is_following = false;
+        }
       })
       .addCase(fetchFollowing.fulfilled, (state, action) => {
         state.following = action.payload;

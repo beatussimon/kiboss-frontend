@@ -5,6 +5,7 @@ import { AppDispatch, RootState } from '../../app/store';
 import { fetchRides } from '../../features/rides/ridesSlice';
 import { fetchAssets } from '../../features/assets/assetsSlice';
 import { Search, MapPin, Home, Car, User, Filter, X, DollarSign, Calendar, Sliders } from 'lucide-react';
+import { getMediaUrl } from '../../utils/media';
 
 interface SearchResult {
   type: 'asset' | 'ride' | 'user';
@@ -68,13 +69,12 @@ export default function SearchPage() {
       date_to: filters.dateTo || undefined,
     };
     
-    // Search assets
-    dispatch(fetchAssets(assetParams));
-    
-    // Search rides
-    dispatch(fetchRides(rideParams));
-    
-    setIsLoading(false);
+    Promise.all([
+      dispatch(fetchAssets(assetParams)),
+      dispatch(fetchRides(rideParams))
+    ]).finally(() => {
+      setIsLoading(false);
+    });
   }, [query, dispatch, filters]);
 
   useEffect(() => {
@@ -371,7 +371,7 @@ export default function SearchPage() {
               >
                 <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
                   {result.image ? (
-                    <img src={result.image} alt={result.title} className="w-full h-full object-cover" />
+                    <img src={getMediaUrl(result.image)} alt={result.title} className="w-full h-full object-cover" />
                   ) : (
                     <Icon className="h-8 w-8 text-gray-400" />
                   )}

@@ -9,6 +9,9 @@ import ratingsReducer from '../features/ratings/ratingsSlice';
 import socialReducer from '../features/social/socialSlice';
 import adminReducer from '../features/admin/adminSlice';
 import locationReducer from '../features/location/locationSlice';
+import paymentsReducer from '../features/payments/paymentsSlice';
+import contractsReducer from '../features/contracts/contractsSlice';
+import wishlistReducer from '../features/wishlist/wishlistSlice';
 
 export const store = configureStore({
   reducer: {
@@ -22,6 +25,9 @@ export const store = configureStore({
     social: socialReducer,
     admin: adminReducer,
     location: locationReducer,
+    payments: paymentsReducer,
+    contracts: contractsReducer,
+    wishlist: wishlistReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

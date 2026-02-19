@@ -20,6 +20,7 @@ import CreateAssetPage from './pages/assets/CreateAssetPage';
 import BookingsPage from './pages/bookings/BookingsPage';
 import BookingDetailPage from './pages/bookings/BookingDetailPage';
 import CreateBookingPage from './pages/bookings/CreateBookingPage';
+import ContractDetailPage from './pages/bookings/ContractDetailPage';
 import RidesPage from './pages/rides/RidesPage';
 import RideDetailPage from './pages/rides/RideDetailPage';
 import CreateRidePage from './pages/rides/CreateRidePage';
@@ -27,6 +28,8 @@ import MessagesPage from './pages/messages/MessagesPage';
 import ThreadPage from './pages/messages/ThreadPage';
 import NotificationsPage from './pages/notifications/NotificationsPage';
 import ProfilePage from './pages/profile/ProfilePage';
+import PaymentsPage from './pages/profile/PaymentsPage';
+import SettingsPage from './pages/profile/SettingsPage';
 import PublicProfilePage from './pages/profile/PublicProfilePage';
 import SearchPage from './pages/search/SearchPage';
 import FAQPage from './pages/faq/FAQPage';
@@ -71,13 +74,13 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
 
 function App() {
   const dispatch = useDispatch<AppDispatch>();
-  const { isAuthenticated, accessToken } = useSelector((state: RootState) => state.auth);
+  const { isAuthenticated, accessToken, user } = useSelector((state: RootState) => state.auth);
 
   useEffect(() => {
-    if (accessToken && !isAuthenticated) {
+    if (accessToken && !user) {
       dispatch(fetchCurrentUser());
     }
-  }, [dispatch, accessToken, isAuthenticated]);
+  }, [dispatch, accessToken, user]);
 
   return (
     <Routes>
@@ -116,6 +119,7 @@ function App() {
         <Route path="/bookings" element={<BookingsPage />} />
         <Route path="/bookings/new" element={<CreateBookingPage />} />
         <Route path="/bookings/:id" element={<BookingDetailPage />} />
+        <Route path="/contracts/:id" element={<ContractDetailPage />} />
         <Route path="/rides" element={<RidesPage />} />
         <Route path="/rides/create" element={<CreateRidePage />} />
         <Route path="/rides/:id" element={<RideDetailPage />} />
@@ -123,6 +127,8 @@ function App() {
         <Route path="/messages/:threadId" element={<ThreadPage />} />
         <Route path="/notifications" element={<NotificationsPage />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/payments" element={<PaymentsPage />} />
+        <Route path="/settings" element={<SettingsPage />} />
         <Route path="/users/:userId" element={<PublicProfilePage />} />
         <Route path="/search" element={<SearchPage />} />
         <Route path="/faq" element={<FAQPage />} />

@@ -192,7 +192,7 @@ export type PaymentStatus = 'PENDING' | 'ESCROW' | 'RELEASED' | 'REFUNDED' | 'FA
 
 export interface Payment {
   id: string;
-  booking_id: string;
+  booking: string;
   amount: string;
   currency: string;
   payment_method: string;
@@ -211,7 +211,7 @@ export type ContractStatus = 'PENDING' | 'ACCEPTED' | 'EXECUTED' | 'CANCELLED';
 
 export interface Contract {
   id: string;
-  booking_id: string;
+  booking: string;
   version: number;
   status: ContractStatus;
   snapshot: ContractSnapshot;
@@ -260,6 +260,7 @@ export interface Ride {
   vehicle_license_plate?: string;
   stops: RideStop[];
   stops_data?: Partial<RideStop>[]; // For creating rides with stops
+  photos: AssetPhoto[]; // Reuse AssetPhoto type for consistency
   confirmed_seats?: number;
   reserved_seats?: number;
   driver_notes?: string;

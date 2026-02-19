@@ -2,23 +2,45 @@ import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../app/store';
 import { logout } from '../../features/auth/authSlice';
+import { fetchThreads } from '../../features/messaging/messagingSlice';
+import { fetchNotifications } from '../../features/notifications/notificationsSlice';
 import { 
   MessageCircle, Bell, User, LogOut, Menu, X, 
   Home, Car, Briefcase, Plus, Search, Settings,
-  Calendar, Shield
+  Calendar, Shield, CreditCard, Globe, Facebook, Twitter, Instagram, Linkedin, CheckCircle, Heart
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import VerificationBadge from '../ui/VerificationBadge';
+import { getMediaUrl } from '../../utils/media';
+import NotificationDropdown from '../notifications/NotificationDropdown';
+import { useCurrency, CurrencyCode } from '../../context/CurrencyContext';
+import { useNotificationWebSocket } from '../../features/notifications/useNotificationWebSocket';
 
 export default function Layout() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
+  const { currency, setCurrency, availableCurrencies } = useCurrency();
+  
+  // Start notification WebSocket
+  useNotificationWebSocket();
+
   const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
   const { unreadCount: messageUnreadCount } = useSelector((state: RootState) => state.messaging);
   const { unreadCount: notificationUnreadCount } = useSelector((state: RootState) => state.notifications);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      // Initial fetch to get counts
+      dispatch(fetchThreads({}) as any);
+      dispatch(fetchNotifications({}) as any);
+    }
+  }, [dispatch, isAuthenticated]);
+
+  const isMessagingPage = location.pathname.startsWith('/messages/');
 
   const handleLogout = () => {
     dispatch(logout());
@@ -104,23 +126,48 @@ export default function Layout() {
               {/* Desktop Secondary Navigation */}
               <div className="hidden md:flex items-center space-x-1">
                 {secondaryNav.map((item) => (
-                  <Link
-                    key={item.name}
-                    to={item.href}
-                    className={`relative inline-flex items-center p-2 rounded-lg transition-colors ${
-                      isActive(item.href)
-                        ? 'bg-primary-50 text-primary-700'
-                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                    }`}
-                    title={item.name}
-                  >
-                    <item.icon className="h-5 w-5" />
-                    {item.badge && item.badge > 0 && (
-                      <span className="absolute -top-1 -right-1 px-1.5 py-0.5 text-xs font-medium bg-red-500 text-white rounded-full min-w-[18px] text-center">
-                        {item.badge > 99 ? '99+' : item.badge}
-                      </span>
-                    )}
-                  </Link>
+                  item.name === 'Notifications' ? (
+                    <div key={item.name} className="relative">
+                      <button
+                        onClick={() => setIsNotificationOpen(!isNotificationOpen)}
+                        className={`relative inline-flex items-center p-2 rounded-lg transition-colors ${
+                          isActive(item.href) || isNotificationOpen
+                            ? 'bg-primary-50 text-primary-700'
+                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                        }`}
+                        title={item.name}
+                      >
+                        <item.icon className="h-5 w-5" />
+                        {item.badge !== undefined && item.badge > 0 && (
+                          <span className="absolute -top-1 -right-1 px-1.5 py-0.5 text-xs font-medium bg-red-500 text-white rounded-full min-w-[18px] text-center">
+                            {item.badge > 99 ? '99+' : item.badge}
+                          </span>
+                        )}
+                      </button>
+                      <NotificationDropdown 
+                        isOpen={isNotificationOpen} 
+                        onClose={() => setIsNotificationOpen(false)} 
+                      />
+                    </div>
+                  ) : (
+                    <Link
+                      key={item.name}
+                      to={item.href}
+                      className={`relative inline-flex items-center p-2 rounded-lg transition-colors ${
+                        isActive(item.href)
+                          ? 'bg-primary-50 text-primary-700'
+                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                      }`}
+                      title={item.name}
+                    >
+                      <item.icon className="h-5 w-5" />
+                      {item.badge !== undefined && item.badge > 0 && (
+                        <span className="absolute -top-1 -right-1 px-1.5 py-0.5 text-xs font-medium bg-red-500 text-white rounded-full min-w-[18px] text-center">
+                          {item.badge > 99 ? '99+' : item.badge}
+                        </span>
+                      )}
+                    </Link>
+                  )
                 ))}
               </div>
 
@@ -129,11 +176,12 @@ export default function Layout() {
                 <div className="relative">
                   <button
                     onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                    data-testid="user-menu-button"
                     className="flex items-center space-x-2 p-1.5 rounded-lg hover:bg-gray-50 transition-colors"
                   >
                     {user.profile?.avatar ? (
                       <img
-                        src={user.profile.avatar}
+                        src={getMediaUrl(user.profile.avatar)}
                         alt={user.first_name}
                         className="h-8 w-8 rounded-full object-cover"
                       />
@@ -166,6 +214,29 @@ export default function Layout() {
                         Profile
                       </Link>
                       <Link
+                        to="/profile"
+                        onClick={() => {
+                          setIsUserMenuOpen(false);
+                          // Scroll to wishlist section if already on profile
+                          setTimeout(() => {
+                            const wishlist = document.getElementById('wishlist-section');
+                            wishlist?.scrollIntoView({ behavior: 'smooth' });
+                          }, 100);
+                        }}
+                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                      >
+                        <Heart className="h-4 w-4 mr-2 text-red-500" />
+                        My Wishlist
+                      </Link>
+                      <Link
+                        to="/payments"
+                        onClick={() => setIsUserMenuOpen(false)}
+                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                      >
+                        <CreditCard className="h-4 w-4 mr-2" />
+                        Payments & Wallet
+                      </Link>
+                      <Link
                         to="/bookings"
                         onClick={() => setIsUserMenuOpen(false)}
                         className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
@@ -187,6 +258,7 @@ export default function Layout() {
                           setIsUserMenuOpen(false);
                           handleLogout();
                         }}
+                        title="Logout"
                         className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
                       >
                         <LogOut className="h-4 w-4 mr-2" />
@@ -301,11 +373,20 @@ export default function Layout() {
                   <User className="h-5 w-5 mr-3" />
                   Profile
                 </Link>
+                <Link
+                  to="/payments"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center px-3 py-2 rounded-lg text-base font-medium text-gray-600 hover:bg-gray-50"
+                >
+                  <CreditCard className="h-5 w-5 mr-3" />
+                  Payments
+                </Link>
                 <button
                   onClick={() => {
                     setIsMobileMenuOpen(false);
                     handleLogout();
                   }}
+                  title="Logout"
                   className="w-full flex items-center px-3 py-2 rounded-lg text-base font-medium text-red-600 hover:bg-red-50"
                 >
                   <LogOut className="h-5 w-5 mr-3" />
@@ -323,39 +404,81 @@ export default function Layout() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-white border-t border-gray-200 mt-auto">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="flex items-center mb-4 md:mb-0">
-              <div className="h-6 w-6 bg-primary-600 rounded flex items-center justify-center">
-                <span className="text-white font-bold text-sm">K</span>
+      {!isMessagingPage && (
+        <footer className="bg-white border-t border-gray-200 mt-auto py-12">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col items-center text-center space-y-10">
+              {/* Logo & Slogan */}
+              <div className="flex flex-col items-center">
+                <Link to="/" className="flex items-center mb-3">
+                  <div className="h-12 w-12 bg-primary-600 rounded-2xl flex items-center justify-center shadow-xl shadow-primary-200 rotate-3">
+                    <span className="text-white font-black text-2xl -rotate-3">K</span>
+                  </div>
+                  <span className="ml-4 text-3xl font-black tracking-tighter text-gray-900">KIBOSS</span>
+                </Link>
+                <p className="text-gray-500 text-sm max-w-sm font-medium leading-relaxed">
+                  Universal Rental & Sharing Operating System. <br />
+                  List anything, rent everything.
+                </p>
               </div>
-              <span className="ml-2 text-sm font-medium text-gray-900">KIBOSS</span>
-              <span className="ml-2 text-sm text-gray-500">© {new Date().getFullYear()}</span>
-            </div>
-            <div className="flex flex-wrap justify-center gap-4 md:gap-6">
-              <Link to="/about" className="text-sm text-gray-500 hover:text-gray-900">
-                About
-              </Link>
-              <Link to="/faq" className="text-sm text-gray-500 hover:text-gray-900">
-                FAQ
-              </Link>
-              <Link to="/help" className="text-sm text-gray-500 hover:text-gray-900">
-                Help Center
-              </Link>
-              <Link to="/privacy" className="text-sm text-gray-500 hover:text-gray-900">
-                Privacy
-              </Link>
-              <Link to="/terms" className="text-sm text-gray-500 hover:text-gray-900">
-                Terms
-              </Link>
-              <Link to="/contact" className="text-sm text-gray-500 hover:text-gray-900">
-                Contact
-              </Link>
+
+              {/* Main Divider Line */}
+              <div className="w-full max-w-lg h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
+
+              {/* Centered Links */}
+              <nav className="flex flex-wrap justify-center items-center gap-x-8 gap-y-4 text-xs font-black uppercase tracking-widest text-gray-400">
+                <Link to="/assets" className="hover:text-primary-600 transition-all hover:scale-105">Assets</Link>
+                <Link to="/rides" className="hover:text-primary-600 transition-all hover:scale-105">Rides</Link>
+                <Link to="/faq" className="hover:text-primary-600 transition-all hover:scale-105">How it works</Link>
+                <Link to="/privacy" className="hover:text-primary-600 transition-all hover:scale-105">Privacy</Link>
+                <Link to="/help" className="hover:text-primary-600 transition-all hover:scale-105">Support</Link>
+              </nav>
+
+              {/* Socials */}
+              <div className="flex space-x-8">
+                <a href="#" className="text-gray-300 hover:text-primary-600 transition-all transform hover:-translate-y-1"><Facebook className="h-5 w-5" /></a>
+                <a href="#" className="text-gray-300 hover:text-primary-600 transition-all transform hover:-translate-y-1"><Twitter className="h-5 w-5" /></a>
+                <a href="#" className="text-gray-300 hover:text-primary-600 transition-all transform hover:-translate-y-1"><Instagram className="h-5 w-5" /></a>
+                <a href="#" className="text-gray-300 hover:text-primary-600 transition-all transform hover:-translate-y-1"><Linkedin className="h-5 w-5" /></a>
+              </div>
+
+              {/* Bottom Section */}
+              <div className="w-full pt-10 border-t border-gray-50 flex flex-col items-center space-y-6">
+                <div className="flex flex-wrap justify-center items-center gap-6">
+                  <div className="flex items-center text-gray-500 text-[10px] font-black uppercase tracking-[0.2em]">
+                    <Globe className="h-4 w-4 mr-2 text-primary-500" />
+                    English (US)
+                  </div>
+                  <div className="w-px h-4 bg-gray-200 hidden sm:block" />
+                  <div className="relative group">
+                    <select 
+                      value={currency.code}
+                      onChange={(e) => setCurrency(e.target.value as CurrencyCode)}
+                      className="appearance-none bg-transparent text-gray-500 text-[10px] font-black uppercase tracking-[0.2em] focus:outline-none pr-4 cursor-pointer group-hover:text-primary-600 transition-colors"
+                    >
+                      {availableCurrencies.map(c => (
+                        <option key={c.code} value={c.code}>
+                          {c.code} ({c.symbol})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <p className="text-[10px] font-bold text-gray-300 uppercase tracking-widest">
+                  © {new Date().getFullYear()} KIBOSS Inc. Empowering the sharing economy.
+                </p>
+
+                <div className="flex items-center gap-8 opacity-30 grayscale hover:opacity-100 hover:grayscale-0 transition-all duration-500">
+                  <Shield className="h-5 w-5" />
+                  <CheckCircle className="h-5 w-5" />
+                  <CreditCard className="h-5 w-5" />
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </footer>
+        </footer>
+      )}
     </div>
   );
 }

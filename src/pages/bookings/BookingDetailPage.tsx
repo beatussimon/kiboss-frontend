@@ -4,8 +4,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../app/store';
 import { fetchBooking, fetchBookingTimeline, cancelBooking, clearCurrentBooking, clearError } from '../../features/bookings/bookingsSlice';
 import ContactButton from '../../components/messaging/ContactButton';
-import InlineMessagingPanel from '../../components/messaging/InlineMessagingPanel';
-import { Calendar, MapPin, Clock, User, Shield, CreditCard, ArrowLeft, MessageCircle } from 'lucide-react';
+import { Calendar, MapPin, Clock, User, Shield, CreditCard, ArrowLeft, MessageCircle, FileText, Star } from 'lucide-react';
+import { getMediaUrl } from '../../utils/media';
+import { createRating } from '../../features/ratings/ratingsSlice';
 import toast from 'react-hot-toast';
 
 export default function BookingDetailPage() {
@@ -13,8 +14,6 @@ export default function BookingDetailPage() {
   const dispatch = useDispatch<AppDispatch>();
   const { currentBooking: booking, timeline, isLoading, error } = useSelector((state: RootState) => state.bookings);
   const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
-  const [showMessaging, setShowMessaging] = useState(false);
-  const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
 
   // Validate booking ID
   if (id === 'new' || !id) {
@@ -30,11 +29,6 @@ export default function BookingDetailPage() {
       </div>
     );
   }
-
-  const handleThreadCreated = (threadId: string) => {
-    setActiveThreadId(threadId);
-    setShowMessaging(true);
-  };
 
   useEffect(() => {
     // Clear previous error and booking data when ID changes
@@ -94,6 +88,35 @@ export default function BookingDetailPage() {
     }
   };
 
+  const handleRate = async () => {
+    if (!booking) return;
+    const rating = prompt('Enter rating (1-5):');
+    const comment = prompt('Enter your review:');
+    
+    if (rating && comment) {
+      try {
+        const ratingVal = parseInt(rating);
+        if (isNaN(ratingVal) || ratingVal < 1 || ratingVal > 5) {
+          toast.error('Invalid rating. Must be 1-5.');
+          return;
+        }
+        
+        await dispatch(createRating({
+          booking_id: booking.id,
+          category: isOwnerView ? 'OWNER_TO_RENTER' : 'RENTER_TO_OWNER',
+          overall_rating: ratingVal,
+          reliability_rating: ratingVal,
+          communication_rating: ratingVal,
+          title: 'Booking Review',
+          comment: comment
+        })).unwrap();
+        toast.success('Review submitted successfully');
+      } catch (err: any) {
+        toast.error(err || 'Failed to submit review');
+      }
+    }
+  };
+
   if (isLoading || !booking || !booking.asset) {
     return <div className="animate-pulse card p-8 h-96" />;
   }
@@ -129,7 +152,7 @@ export default function BookingDetailPage() {
               <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
                 {booking.asset.photos?.[0] ? (
                   <img
-                    src={booking.asset.photos[0].url}
+                    src={getMediaUrl(booking.asset.photos[0].url)}
                     alt={booking.asset.name}
                     className="w-full h-full object-cover"
                   />
@@ -149,7 +172,6 @@ export default function BookingDetailPage() {
                     threadType="BOOKING"
                     bookingId={booking.id}
                     subject={`Booking #${booking.id} - ${booking.asset.name}`}
-                    onThreadCreated={handleThreadCreated}
                     variant="outline"
                     size="sm"
                     className="mt-2"
@@ -242,6 +264,29 @@ export default function BookingDetailPage() {
             </div>
           </div>
 
+          {/* Contract Status */}
+          {booking.contract && (
+            <div className="card p-6 border-l-4 border-l-primary-500">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold flex items-center">
+                  <FileText className="h-5 w-5 mr-2 text-primary-600" />
+                  Contract
+                </h2>
+                <span className={`badge ${booking.contract.status === 'EXECUTED' ? 'badge-success' : 'badge-info'}`}>
+                  {booking.contract.status}
+                </span>
+              </div>
+              <div className="space-y-2 mb-4">
+                <p className="text-sm text-gray-500">Version {booking.contract.version}</p>
+                <p className="text-xs text-gray-400 font-mono">ID: {booking.contract.id.split('-')[0]}...</p>
+              </div>
+              <Link to={`/contracts/${booking.contract.id}`} className="btn-outline w-full flex items-center justify-center text-sm">
+                <FileText className="h-4 w-4 mr-2" />
+                View Full Agreement
+              </Link>
+            </div>
+          )}
+
           {/* Actions */}
           {(booking.status === 'PENDING' || booking.status === 'CONFIRMED') && (
             <div className="card p-6">
@@ -251,14 +296,12 @@ export default function BookingDetailPage() {
             </div>
           )}
 
-          {/* Inline Messaging Panel */}
-          {showMessaging && activeThreadId && (
+          {booking.status === 'COMPLETED' && (
             <div className="card p-6">
-              <InlineMessagingPanel
-                threadId={activeThreadId}
-                onClose={() => setShowMessaging(false)}
-                height="400px"
-              />
+              <button onClick={handleRate} className="btn-primary w-full flex items-center justify-center">
+                <Star className="h-4 w-4 mr-2" />
+                Rate this Experience
+              </button>
             </div>
           )}
         </div>

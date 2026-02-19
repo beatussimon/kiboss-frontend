@@ -1,11 +1,14 @@
 import { useEffect, useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { Link } from 'react-router-dom';
 import { AppDispatch, RootState } from '../../app/store';
 import { fetchCurrentUser, updateProfile } from '../../features/auth/authSlice';
-import { User, Mail, Phone, Camera, Save, X, Shield, Award, MapPin, FileText } from 'lucide-react';
+import { getMediaUrl } from '../../utils/media';
+import { User, Mail, Phone, Camera, Save, X, Shield, Award, MapPin, FileText, Heart } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../services/api';
 import VerificationBadge from '../../components/ui/VerificationBadge';
+import { Price } from '../../context/CurrencyContext';
 
 export default function ProfilePage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -24,6 +27,8 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const wishlist = useSelector((state: RootState) => state.wishlist);
+  const wishlistItems = wishlist?.items || [];
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -48,7 +53,7 @@ export default function ProfilePage() {
         country: user.profile?.country || '',
       });
       if (user.profile?.avatar) {
-        setAvatarPreview(user.profile.avatar);
+        setAvatarPreview(getMediaUrl(user.profile.avatar));
       }
     }
   }, [user]);
@@ -98,11 +103,8 @@ export default function ProfilePage() {
       const formDataObj = new FormData();
       formDataObj.append('avatar', file);
       
-      const response = await api.patch('/users/me/', formDataObj, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      // Don't set Content-Type manually - axios will set it with correct boundary
+      const response = await api.patch('/users/me/', formDataObj);
       
       return response.data?.profile?.avatar || null;
     } catch (error) {
@@ -153,8 +155,24 @@ export default function ProfilePage() {
     setIsEditing(false);
   };
 
-  if (isLoading || (!user && !fetchError)) {
+  if (isLoading) {
     return <div className="animate-pulse card p-8 h-96" />;
+  }
+
+  if (!user && !fetchError) {
+    return (
+      <div className="max-w-2xl mx-auto">
+        <div className="card p-8 text-center">
+          <p className="text-gray-600 mb-4">Unable to load profile data.</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="btn-primary"
+          >
+            Reload Page
+          </button>
+        </div>
+      </div>
+    );
   }
 
   if (fetchError && !user) {
@@ -454,6 +472,55 @@ export default function ProfilePage() {
             </span>
           </div>
         </div>
+      </div>
+
+      {/* Wishlist Section */}
+      <div id="wishlist-section" className="card p-6 mt-6">
+        <div className="flex items-center gap-2 mb-6">
+          <Heart className="h-6 w-6 text-red-500 fill-current" />
+          <h2 className="text-xl font-bold text-gray-900">Your Wishlist</h2>
+        </div>
+        
+        {wishlistItems.length === 0 ? (
+          <div className="text-center py-12 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+            <Heart className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+            <p className="text-gray-500">Your wishlist is empty.</p>
+            <Link to="/assets" className="text-primary-600 font-bold hover:underline mt-2 inline-block">
+              Browse listings to save your favorites
+            </Link>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {wishlistItems.map((item) => (
+              <div key={item.id} className="flex gap-4 p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors border border-transparent hover:border-gray-200 group">
+                <div className="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
+                  <img 
+                    src={item.photos?.[0] ? getMediaUrl(item.photos[0].url) : ""} 
+                    alt={item.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-bold text-gray-900 truncate">{item.name}</h3>
+                  <p className="text-xs text-gray-500 flex items-center mb-2">
+                    <MapPin className="h-3 w-3 mr-1" /> {item.city}, {item.country}
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-bold text-primary-600">
+                      <Price amount={item.pricing_rules?.[0]?.price || '0'} />
+                    </span>
+                    <Link 
+                      to={`/assets/${item.id}`}
+                      className="text-[10px] font-bold uppercase tracking-wider bg-white px-3 py-1 rounded-full border border-gray-200 group-hover:bg-primary-600 group-hover:text-white group-hover:border-primary-600 transition-all"
+                    >
+                      View
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

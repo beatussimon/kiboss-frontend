@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../app/store';
 import { createBooking } from '../../features/bookings/bookingsSlice';
 import { fetchAsset } from '../../features/assets/assetsSlice';
+import { getMediaUrl } from '../../utils/media';
 import { Calendar, Clock, AlertCircle, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -13,7 +14,7 @@ export default function CreateBookingPage() {
   const dispatch = useDispatch<AppDispatch>();
   const { currentAsset: asset, isLoading: assetLoading } = useSelector((state: RootState) => state.assets);
   const { isLoading: bookingLoading } = useSelector((state: RootState) => state.bookings);
-  const { isAuthenticated } = useSelector((state: RootState) => state.auth);
+  const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
   
   const assetId = searchParams.get('asset_id');
   
@@ -22,6 +23,7 @@ export default function CreateBookingPage() {
     end_time: '',
     quantity: 1,
     renter_notes: '',
+    payment_method: 'CREDIT_CARD',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -74,10 +76,10 @@ export default function CreateBookingPage() {
     try {
       const result = await dispatch(createBooking({
         asset_id: assetId,
-        start_time: formData.start_time,
-        end_time: formData.end_time,
+        start_time: new Date(formData.start_time).toISOString(),
+        end_time: new Date(formData.end_time).toISOString(),
         quantity: formData.quantity,
-        payment_method: 'card',
+        payment_method: formData.payment_method,
         renter_notes: formData.renter_notes,
       })).unwrap();
       
@@ -121,6 +123,7 @@ export default function CreateBookingPage() {
   };
 
   const priceInfo = calculatePrice();
+  const isOwner = user?.id === asset?.owner?.id;
 
   if (assetLoading) {
     return (
@@ -145,6 +148,24 @@ export default function CreateBookingPage() {
     );
   }
 
+  if (isOwner) {
+    return (
+      <div className="max-w-2xl mx-auto">
+        <Link to={`/assets/${assetId}`} className="text-primary-600 hover:text-primary-700 mb-4 inline-block">
+          ← Back to Asset
+        </Link>
+        <div className="card p-8 text-center bg-yellow-50 border-yellow-100">
+          <AlertCircle className="h-12 w-12 text-yellow-600 mx-auto mb-4" />
+          <h2 className="text-xl font-bold text-gray-900 mb-2">This is your asset</h2>
+          <p className="text-gray-600 mb-6">You cannot book your own asset. You can manage availability and pricing from the dashboard.</p>
+          <Link to="/profile" className="btn-primary">
+            Go to Dashboard
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-2xl mx-auto">
       <Link to={`/assets/${assetId}`} className="text-primary-600 hover:text-primary-700 mb-4 inline-block">
@@ -159,7 +180,7 @@ export default function CreateBookingPage() {
           <div className="flex gap-4">
             <div className="w-24 h-24 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
               {asset.photos?.[0] ? (
-                <img src={asset.photos[0].url} alt={asset.name} className="w-full h-full object-cover" />
+                <img src={getMediaUrl(asset.photos[0].url)} alt={asset.name} className="w-full h-full object-cover" />
               ) : (
                 <Calendar className="h-8 w-8 text-gray-400" />
               )}
@@ -242,6 +263,63 @@ export default function CreateBookingPage() {
               rows={3}
               placeholder="Any special requests or notes for the owner..."
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Payment Method
+            </label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="space-y-3">
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Mobile Money (Zenopay)</p>
+                {['MPESA', 'TIGO_PESA', 'AIRTEL_MONEY', 'HALOPESA'].map((method) => (
+                  <label key={method} className={`flex items-center p-3 rounded-xl border-2 cursor-pointer transition-all ${formData.payment_method === method ? 'border-primary-600 bg-primary-50' : 'border-gray-100 hover:border-gray-200'}`}>
+                    <input
+                      type="radio"
+                      name="payment_method"
+                      value={method}
+                      checked={formData.payment_method === method}
+                      onChange={handleInputChange}
+                      className="hidden"
+                    />
+                    <div className="flex-1">
+                      <p className="text-sm font-bold text-gray-900">{method.replace('_', ' ')}</p>
+                      <p className="text-[10px] text-gray-500">Instant via Zenopay</p>
+                    </div>
+                    <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${formData.payment_method === method ? 'border-primary-600 bg-primary-600' : 'border-gray-300'}`}>
+                      {formData.payment_method === method && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
+                    </div>
+                  </label>
+                ))}
+              </div>
+              <div className="space-y-3">
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Cards & Banking</p>
+                {[
+                  { id: 'CREDIT_CARD', label: 'Credit/Debit Card' },
+                  { id: 'CRDB', label: 'CRDB Bank' },
+                  { id: 'NMB', label: 'NMB Bank' },
+                  { id: 'STANBIC', label: 'Stanbic Bank' }
+                ].map((method) => (
+                  <label key={method.id} className={`flex items-center p-3 rounded-xl border-2 cursor-pointer transition-all ${formData.payment_method === method.id ? 'border-primary-600 bg-primary-50' : 'border-gray-100 hover:border-gray-200'}`}>
+                    <input
+                      type="radio"
+                      name="payment_method"
+                      value={method.id}
+                      checked={formData.payment_method === method.id}
+                      onChange={handleInputChange}
+                      className="hidden"
+                    />
+                    <div className="flex-1">
+                      <p className="text-sm font-bold text-gray-900">{method.label}</p>
+                      <p className="text-[10px] text-gray-500">Secure Bank Transfer</p>
+                    </div>
+                    <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${formData.payment_method === method.id ? 'border-primary-600 bg-primary-600' : 'border-gray-300'}`}>
+                      {formData.payment_method === method.id && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </div>
           </div>
 
           {/* Price Estimate */}

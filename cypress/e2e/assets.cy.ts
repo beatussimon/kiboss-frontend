@@ -13,13 +13,27 @@ describe('Asset Management', () => {
   let authToken: string = '';
 
   beforeEach(() => {
+    // Ensure test user exists
+    cy.request({
+      method: 'POST',
+      url: `${API_BASE_URL}/users/register/`,
+      body: {
+        email: 'testuser@example.com',
+        password: 'testpass123',
+        password_confirm: 'testpass123',
+        first_name: 'Test',
+        last_name: 'User',
+      },
+      failOnStatusCode: false,
+    })
+
     // Get auth token for authenticated requests
     cy.request({
       method: 'POST',
-      url: `${API_BASE_URL}/auth/token/`,
+      url: `${API_BASE_URL}/users/token/`,
       body: {
-        email: 'admin@example.com',
-        password: 'admin123',
+        email: 'testuser@example.com',
+        password: 'testpass123',
       },
       failOnStatusCode: false,
     }).then((response) => {
@@ -40,10 +54,11 @@ describe('Asset Management', () => {
 
     it('should navigate to asset detail page', () => {
       cy.visit('/assets')
-      cy.wait(2000)
+      // Wait for assets to load
+      cy.get('a.card', { timeout: 10000 }).should('have.length.at.least', 1)
       // Click on the first asset card link
-      cy.get('.card').first().click()
-      cy.url().should('include', '/assets/')
+      cy.get('a.card').first().click({ force: true })
+      cy.url().should('match', /\/assets\/[0-9a-f-]+/)
     })
 
     it('should filter assets by type', () => {
@@ -61,13 +76,13 @@ describe('Asset Management', () => {
 
   describe('Create Asset', () => {
     it('should navigate to create asset page', () => {
-      cy.visit('/assets/new')
+      cy.visit('/assets/create')
       cy.contains('Create Asset').should('be.visible')
       cy.get('#name').should('be.visible')
     })
 
     it('should create new asset successfully', () => {
-      cy.visit('/assets/new')
+      cy.visit('/assets/create')
       cy.get('#name').type('Test Apartment')
       cy.get('#description').type('A beautiful test apartment')
       cy.get('#address').type('123 Test Street')
@@ -80,7 +95,7 @@ describe('Asset Management', () => {
     })
 
     it('should show validation errors for missing fields', () => {
-      cy.visit('/assets/new')
+      cy.visit('/assets/create')
       cy.get('button[type="submit"]').click()
       // Should show error (toast or form validation)
       cy.wait(1000)
@@ -91,15 +106,15 @@ describe('Asset Management', () => {
     it('should display all asset information', () => {
       cy.visit('/assets')
       cy.wait(2000)
-      cy.get('.card').first().click()
-      cy.url().should('include', '/assets/')
+      cy.get('a.card').first().click({ force: true })
+      cy.url().should('match', /\/assets\/[0-9a-f-]+/)
     })
 
     it('should allow booking from asset page', () => {
       cy.visit('/assets')
       cy.wait(2000)
-      cy.get('.card').first().click()
-      cy.url().should('include', '/assets/')
+      cy.get('a.card').first().click({ force: true })
+      cy.url().should('match', /\/assets\/[0-9a-f-]+/)
     })
   })
 })

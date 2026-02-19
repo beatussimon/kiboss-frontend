@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../app/store';
 import { fetchPublicProfile, followUser, unfollowUser } from '../../features/social/socialSlice';
+import { getMediaUrl } from '../../utils/media';
 import { User, MapPin, Calendar, Star, MessageCircle, Edit } from 'lucide-react';
 import { useState } from 'react';
 import { PublicUser } from '../../types';
@@ -43,7 +44,7 @@ export default function PublicProfilePage() {
         <div className="flex flex-col md:flex-row gap-6">
           <div className="w-32 h-32 bg-gray-200 rounded-full overflow-hidden flex-shrink-0">
             {user.avatar ? (
-              <img src={user.avatar} alt={user.first_name} className="w-full h-full object-cover" />
+              <img src={getMediaUrl(user.avatar)} alt={user.first_name} className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-primary-100">
                 <User className="h-16 w-16 text-primary-600" />

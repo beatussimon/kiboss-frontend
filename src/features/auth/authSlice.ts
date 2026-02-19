@@ -6,7 +6,7 @@ const initialState: AuthState = {
   user: null,
   accessToken: localStorage.getItem('accessToken'),
   refreshToken: localStorage.getItem('refreshToken'),
-  isAuthenticated: !!localStorage.getItem('accessToken'),
+  isAuthenticated: false,
   isLoading: false,
   error: null,
 };
@@ -16,7 +16,7 @@ export const login = createAsyncThunk(
   async (credentials: { email: string; password: string }, { rejectWithValue }) => {
     try {
       // Django SimpleJWT expects 'email' field for authentication
-      const response = await api.post<LoginResponse>('/auth/token/', {
+      const response = await api.post<LoginResponse>('/users/token/', {
         email: credentials.email,
         password: credentials.password,
       });
@@ -35,7 +35,7 @@ export const register = createAsyncThunk(
   'auth/register',
   async (data: { email: string; password: string; password_confirm: string; first_name: string; last_name: string }, { rejectWithValue }) => {
     try {
-      const response = await api.post('/auth/register/', data);
+      const response = await api.post('/users/register/', data);
       return response.data;
     } catch (error: unknown) {
       const axiosError = error as { response?: { data?: { message?: string } } };
@@ -126,13 +126,22 @@ const authSlice = createSlice({
       .addCase(refreshToken.fulfilled, (state, action) => {
         state.accessToken = action.payload.accessToken;
       })
+      .addCase(fetchCurrentUser.pending, (state) => {
+        state.isLoading = true;
+      })
       .addCase(fetchCurrentUser.fulfilled, (state, action) => {
+        state.isLoading = false;
         state.user = action.payload;
+        state.isAuthenticated = true;
       })
       .addCase(fetchCurrentUser.rejected, (state) => {
+        state.isLoading = false;
         state.user = null;
-        // Don't log out the user - just clear the user data
-        // This prevents profile page errors from logging users out
+        state.isAuthenticated = false;
+        state.accessToken = null;
+        state.refreshToken = null;
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
       })
       .addCase(updateProfile.fulfilled, (state, action) => {
         state.user = action.payload;

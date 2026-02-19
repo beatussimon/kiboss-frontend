@@ -10,7 +10,7 @@ interface AssetsState {
   count: number;
   next: string | null;
   previous: string | null;
-  currentPage: number;
+  currentPage: number; 
 }
 
 const initialState: AssetsState = {

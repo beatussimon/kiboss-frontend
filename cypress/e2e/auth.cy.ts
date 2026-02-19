@@ -13,12 +13,15 @@ describe('Authentication Flows', () => {
   const FRONTEND_URL = 'http://localhost:5173';
 
   beforeEach(() => {
+    cy.window().then((win) => {
+      win.localStorage.clear()
+    })
     cy.visit('/')
   })
 
   describe('Registration', () => {
     it('should display registration form', () => {
-      cy.contains('Sign up').click()
+      cy.contains('Sign Up').click()
       cy.url().should('include', '/register')
       cy.get('#email').should('be.visible')
       cy.get('#password').should('be.visible')
@@ -58,7 +61,7 @@ describe('Authentication Flows', () => {
       // First create a user via API
       cy.request({
         method: 'POST',
-        url: `${API_BASE_URL}/auth/register/`,
+        url: `${API_BASE_URL}/users/register/`,
         body: {
           email: 'existing@example.com',
           password: 'testpass123',
@@ -90,7 +93,7 @@ describe('Authentication Flows', () => {
       // Create test user via API using the correct register endpoint
       cy.request({
         method: 'POST',
-        url: `${API_BASE_URL}/auth/register/`,
+        url: `${API_BASE_URL}/users/register/`,
         body: {
           email: 'testuser@example.com',
           password: 'testpass123',
@@ -103,7 +106,7 @@ describe('Authentication Flows', () => {
     })
 
     it('should display login form', () => {
-      cy.contains('Sign in').click()
+      cy.contains('Login').click()
       cy.url().should('include', '/login')
       cy.get('#email').should('be.visible')
       cy.get('#password').should('be.visible')
@@ -154,14 +157,14 @@ describe('Authentication Flows', () => {
     })
 
     it('should logout user successfully', () => {
-      // Click on profile link which contains user name
-      cy.get('a[href="/profile"]').click()
+      // Open user menu
+      cy.get('[data-testid="user-menu-button"]').click()
       
-      // Click logout button (it's a button with LogOut icon in the header)
+      // Click logout button
       cy.get('button[title="Logout"]').click()
       
       cy.url().should('include', '/login')
-      cy.contains('Sign in').should('be.visible')
+      cy.contains('Login').should('be.visible')
     })
   })
 })

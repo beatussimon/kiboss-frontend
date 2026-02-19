@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../app/store';
 import { fetchThreadMessages, sendMessage, markThreadRead } from '../../features/messaging/messagingSlice';
 import { Send, Paperclip, X, Image, FileText, Loader2 } from 'lucide-react';
+import { getMediaUrl } from '../../utils/media';
 import { Message, MessageAttachment } from '../../types';
 
 interface InlineMessagingPanelProps {
@@ -130,7 +131,7 @@ export default function InlineMessagingPanel({
                     {msg.attachments.map((att) => (
                       <a
                         key={att.id}
-                        href={att.file}
+                        href={getMediaUrl(att.file)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className={`flex items-center gap-2 text-sm truncate ${

@@ -31,7 +31,7 @@ export default function CreateRidePage() {
     estimated_arrival: '',
     total_seats: 4,
     seat_price: '',
-    currency: 'KES',
+    currency: 'TZS',
     vehicle_description: '',
     vehicle_color: '',
     vehicle_license_plate: '',
@@ -77,9 +77,10 @@ export default function CreateRidePage() {
     });
 
     try {
-      await api.post(`/rides/${rideId}/images/`, formData, {
+      // Allow the browser to set Content-Type with the correct boundary for FormData
+      await api.post(`/rides/${rideId}/upload_photos/`, formData, {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          'Content-Type': null as unknown as string,
         },
       });
     } catch (error) {
@@ -180,10 +181,11 @@ export default function CreateRidePage() {
           </h2>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="route_name" className="block text-sm font-medium text-gray-700 mb-1">
                 Route Name <span className="text-gray-400">(optional)</span>
               </label>
               <input
+                id="route_name"
                 type="text"
                 name="route_name"
                 value={formData.route_name}
@@ -194,10 +196,11 @@ export default function CreateRidePage() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="origin" className="block text-sm font-medium text-gray-700 mb-1">
                   Origin <span className="text-red-500">*</span>
                 </label>
                 <input
+                  id="origin"
                   type="text"
                   name="origin"
                   value={formData.origin}
@@ -208,10 +211,11 @@ export default function CreateRidePage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="destination" className="block text-sm font-medium text-gray-700 mb-1">
                   Destination <span className="text-red-500">*</span>
                 </label>
                 <input
+                  id="destination"
                   type="text"
                   name="destination"
                   value={formData.destination}
@@ -234,10 +238,11 @@ export default function CreateRidePage() {
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="departure_time" className="block text-sm font-medium text-gray-700 mb-1">
                   Departure Time <span className="text-red-500">*</span>
                 </label>
                 <input
+                  id="departure_time"
                   type="datetime-local"
                   name="departure_time"
                   value={formData.departure_time}
@@ -247,10 +252,11 @@ export default function CreateRidePage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="estimated_arrival" className="block text-sm font-medium text-gray-700 mb-1">
                   Estimated Arrival <span className="text-gray-400">(optional)</span>
                 </label>
                 <input
+                  id="estimated_arrival"
                   type="datetime-local"
                   name="estimated_arrival"
                   value={formData.estimated_arrival}
@@ -363,9 +369,11 @@ export default function CreateRidePage() {
                   onChange={handleInputChange}
                   className="input"
                 >
+                  <option value="TZS">TZS (Tanzanian Shilling)</option>
                   <option value="KES">KES (Kenyan Shilling)</option>
                   <option value="USD">USD (US Dollar)</option>
                   <option value="EUR">EUR (Euro)</option>
+                  <option value="CNY">CNY (Chinese Yuan)</option>
                 </select>
               </div>
             </div>

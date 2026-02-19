@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { AppDispatch, RootState } from '../../app/store';
 import { fetchBookings } from '../../features/bookings/bookingsSlice';
+import { getMediaUrl } from '../../utils/media';
 import { Calendar, MapPin, Star, Clock } from 'lucide-react';
 
 export default function BookingsPage() {
@@ -62,7 +63,7 @@ export default function BookingsPage() {
                 <div className="w-24 h-24 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
                   {booking.asset.photos?.[0] ? (
                     <img
-                      src={booking.asset.photos[0].url}
+                      src={getMediaUrl(booking.asset.photos[0].url)}
                       alt={booking.asset.name}
                       className="w-full h-full object-cover"
                     />

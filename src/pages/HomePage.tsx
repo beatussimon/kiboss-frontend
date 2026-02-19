@@ -1,324 +1,248 @@
-import { useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../app/store';
 import { fetchAssets } from '../features/assets/assetsSlice';
 import { fetchRides } from '../features/rides/ridesSlice';
-import { Home, MapPin, Star, ArrowRight, Search, Shield, Clock, CreditCard } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { 
+  Home as HomeIcon, MapPin, Star, ArrowRight, Search, Shield, Clock, CreditCard, 
+  Car, Briefcase, Zap, Heart, Camera, Coffee, Laptop, Utensils, Eye, Users, Bookmark, Plus
+} from 'lucide-react';
+import { getMediaUrl } from '../utils/media';
+import { Price } from '../context/CurrencyContext';
 
 export default function HomePage() {
   const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
   const { assets, isLoading: assetsLoading } = useSelector((state: RootState) => state.assets);
   const { rides, isLoading: ridesLoading } = useSelector((state: RootState) => state.rides);
   const { user } = useSelector((state: RootState) => state.auth);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    dispatch(fetchAssets({ page_size: 6 }));
+    dispatch(fetchAssets({ page_size: 8 }));
     dispatch(fetchRides({}));
   }, [dispatch]);
 
-  const features = [
-    {
-      icon: Shield,
-      title: 'Secure Payments',
-      description: 'Escrow protection for all transactions',
-    },
-    {
-      icon: Clock,
-      title: 'Instant Booking',
-      description: 'Real-time availability and confirmation',
-    },
-    {
-      icon: Star,
-      title: 'Verified Reviews',
-      description: 'Honest ratings from real users',
-    },
-    {
-      icon: CreditCard,
-      title: 'Easy Payments',
-      description: 'Multiple payment options supported',
-    },
-  ];
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+    }
+  };
 
   return (
-    <div>
-      {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-primary-600 via-primary-700 to-primary-800 rounded-2xl overflow-hidden mb-12">
-        <div className="absolute inset-0 bg-black/20" />
-        <div className="relative px-8 py-16 md:py-24">
-          <div className="max-w-3xl">
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-              {user ? `Welcome back, ${user.first_name}!` : 'Rent Anything, Go Anywhere'}
-            </h1>
-            <p className="text-xl text-white/90 mb-8">
-              The universal platform for asset rentals and ride-sharing. 
-              Discover unique spaces, tools, vehicles, and more.
-            </p>
-            
-            {/* Search Bar */}
-            <div className="bg-white rounded-xl p-2 shadow-lg">
-              <div className="flex flex-col md:flex-row gap-2">
-                <div className="flex-1 relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                  <input
-                    type="text"
-                    placeholder="What are you looking for?"
-                    className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  />
-                </div>
-                <Link
-                  to="/assets"
-                  className="btn-primary py-3 px-8"
-                >
-                  Search
-                </Link>
-              </div>
-            </div>
-          </div>
+    <div className="-mt-8 space-y-12 pb-16">
+      {/* Hero Search Section */}
+      <section className="relative h-[500px] flex items-center justify-center overflow-hidden -mx-4 sm:-mx-6 lg:-mx-8">
+        <div className="absolute inset-0 z-0">
+          <img 
+            src="https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&q=80&w=2070" 
+            className="w-full h-full object-cover" 
+            alt="Hero background"
+          />
+          <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px]"></div>
         </div>
-      </section>
+        
+        <div className="relative z-10 w-full max-w-4xl px-4 text-center">
+          <motion.h1 
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+            className="text-4xl md:text-7xl font-black text-white mb-4 drop-shadow-2xl tracking-tight"
+          >
+            Rent <span className="text-primary-400">Anything</span>, <br className="hidden md:block" />
+            Everywhere.
+          </motion.h1>
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            className="text-lg md:text-2xl text-white/90 mb-10 font-medium drop-shadow-lg"
+          >
+            Share your stuff, earn extra cash. <br className="md:hidden" />
+            Join thousands of owners earning today.
+          </motion.p>
+          
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+            className="flex flex-col gap-6 items-center"
+          >
+            <form onSubmit={handleSearch} className="bg-white p-2 rounded-full shadow-2xl flex items-center w-full max-w-2xl">
+              <div className="flex-1 flex items-center px-4">
+                <MapPin className="h-5 w-5 text-primary-600 mr-2 flex-shrink-0" />
+                <input 
+                  type="text" 
+                  placeholder="What are you looking for?"
+                  className="w-full border-none focus:ring-0 text-gray-900 font-bold placeholder:text-gray-400 placeholder:font-medium"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              <button type="submit" className="bg-primary-600 text-white p-4 rounded-full hover:bg-primary-700 transition-all flex items-center justify-center shadow-lg shadow-primary-600/20">
+                <Search className="h-6 w-6" />
+              </button>
+            </form>
 
-      {/* Quick Actions */}
-      <section className="mb-12">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Link
-            to="/assets?asset_type=ROOM"
-            className="card p-6 hover:shadow-md transition-shadow text-center group"
-          >
-            <div className="w-12 h-12 mx-auto mb-3 bg-primary-100 rounded-xl flex items-center justify-center group-hover:bg-primary-200 transition-colors">
-              <Home className="h-6 w-6 text-primary-600" />
-            </div>
-            <h3 className="font-semibold text-gray-900">Rent a Space</h3>
-            <p className="text-sm text-gray-500 mt-1">Rooms, apartments & more</p>
-          </Link>
-          
-          <Link
-            to="/assets?asset_type=VEHICLE"
-            className="card p-6 hover:shadow-md transition-shadow text-center group"
-          >
-            <div className="w-12 h-12 mx-auto mb-3 bg-green-100 rounded-xl flex items-center justify-center group-hover:bg-green-200 transition-colors">
-              <MapPin className="h-6 w-6 text-green-600" />
-            </div>
-            <h3 className="font-semibold text-gray-900">Rent a Vehicle</h3>
-            <p className="text-sm text-gray-500 mt-1">Cars, bikes & equipment</p>
-          </Link>
-          
-          <Link
-            to="/rides"
-            className="card p-6 hover:shadow-md transition-shadow text-center group"
-          >
-            <div className="w-12 h-12 mx-auto mb-3 bg-blue-100 rounded-xl flex items-center justify-center group-hover:bg-blue-200 transition-colors">
-              <ArrowRight className="h-6 w-6 text-blue-600" />
-            </div>
-            <h3 className="font-semibold text-gray-900">Find a Ride</h3>
-            <p className="text-sm text-gray-500 mt-1">Carpool & travel together</p>
-          </Link>
-          
-          <Link
-            to="/assets/create"
-            className="card p-6 hover:shadow-md transition-shadow text-center group"
-          >
-            <div className="w-12 h-12 mx-auto mb-3 bg-purple-100 rounded-xl flex items-center justify-center group-hover:bg-purple-200 transition-colors">
-              <Star className="h-6 w-6 text-purple-600" />
-            </div>
-            <h3 className="font-semibold text-gray-900">List Your Asset</h3>
-            <p className="text-sm text-gray-500 mt-1">Earn money renting out</p>
-          </Link>
+            <Link 
+              to="/assets/create" 
+              className="group flex items-center gap-2 text-white font-black uppercase tracking-widest text-xs bg-white/10 hover:bg-white/20 backdrop-blur-md px-6 py-3 rounded-full border border-white/20 transition-all"
+            >
+              <Plus className="h-4 w-4" />
+              Start Listing Now
+            </Link>
+          </motion.div>
         </div>
       </section>
 
       {/* Featured Assets */}
-      <section className="mb-12">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">Featured Assets</h2>
-          <Link to="/assets" className="text-primary-600 hover:text-primary-700 font-medium flex items-center">
-            View all
-            <ArrowRight className="ml-1 h-4 w-4" />
+      <section className="max-w-7xl mx-auto px-4">
+        <div className="flex justify-between items-end mb-8">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">Featured Listings</h2>
+            <p className="text-gray-500">Explore the best rentals in your area</p>
+          </div>
+          <Link to="/assets" className="text-primary-600 font-bold flex items-center gap-1 hover:underline">
+            View all <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
-        
+
         {assetsLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="card animate-pulse">
-                <div className="h-48 bg-gray-200 rounded-t-xl" />
-                <div className="p-4 space-y-3">
-                  <div className="h-4 bg-gray-200 rounded w-3/4" />
-                  <div className="h-4 bg-gray-200 rounded w-1/2" />
-                </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="animate-pulse flex flex-col gap-3">
+                <div className="aspect-[4/3] bg-gray-200 rounded-2xl" />
+                <div className="h-4 bg-gray-200 rounded w-2/3" />
+                <div className="h-4 bg-gray-200 rounded w-1/3" />
               </div>
             ))}
           </div>
-        ) : (assets && assets.length > 0) ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {(assets || []).slice(0, 6).map((asset) => (
-              <Link key={asset.id} to={`/assets/${asset.id}`} className="card group hover:shadow-lg transition-shadow">
-                <div className="aspect-video relative overflow-hidden rounded-t-xl">
-                  {asset.photos?.[0] ? (
-                    <img
-                      src={asset.photos[0].url}
-                      alt={asset.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                      <Home className="h-12 w-12 text-gray-400" />
-                    </div>
-                  )}
-                  <div className="absolute top-3 left-3">
-                    <span className="badge-info">
-                      {asset.asset_type}
-                    </span>
-                  </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {assets.slice(0, 8).map((asset) => (
+              <Link key={asset.id} to={`/assets/${asset.id}`} className="group cursor-pointer">
+                <div className="aspect-[4/3] relative rounded-2xl overflow-hidden mb-3">
+                  <img 
+                    src={asset.photos?.[0] ? getMediaUrl(asset.photos[0].url) : "https://images.unsplash.com/photo-1460317442991-0ec209397118?auto=format&fit=crop&q=80&w=1000"} 
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    alt={asset.name}
+                  />
+                  <button className="absolute top-3 right-3 p-2 bg-black/20 hover:bg-black/40 backdrop-blur-md rounded-full text-white transition-all">
+                    <Heart className="h-5 w-5" />
+                  </button>
                   {asset.is_verified && (
-                    <div className="absolute top-3 right-3">
-                      <span className="badge-success">
-                        <Shield className="h-3 w-3 mr-1" />
-                        Verified
-                      </span>
+                    <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg text-[10px] font-bold text-primary-700 flex items-center gap-1">
+                      <Shield className="h-3 w-3" /> VERIFIED
                     </div>
                   )}
                 </div>
-                <div className="p-4">
-                  <h3 className="font-semibold text-gray-900 group-hover:text-primary-600 transition-colors line-clamp-1">
-                    {asset.name}
-                  </h3>
-                  <p className="text-sm text-gray-500 mt-1 flex items-center">
-                    <MapPin className="h-3.5 w-3.5 mr-1" />
-                    {asset.city}, {asset.country}
-                  </p>
-                  <div className="flex items-center justify-between mt-3">
-                    <div className="flex items-center space-x-1">
-                      <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
-                      <span className="text-sm font-medium text-gray-900">{asset.average_rating || 'N/A'}</span>
-                      <span className="text-sm text-gray-500">({asset.total_reviews || 0})</span>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-lg font-bold text-primary-600">
-                        ${asset.pricing_rules?.[0]?.price || '0'}
-                      </span>
-                      <span className="text-sm text-gray-500">/{asset.pricing_rules?.[0]?.unit_type?.toLowerCase() || 'hr'}</span>
-                    </div>
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="font-bold text-gray-900 leading-tight group-hover:text-primary-600 transition-colors">
+                      {asset.name}
+                    </h3>
+                    <p className="text-sm text-gray-500">{asset.city}, {asset.country}</p>
+                  </div>
+                  <div className="flex items-center gap-1 text-sm font-bold">
+                    <Star className="h-3.5 w-3.5 text-yellow-400 fill-yellow-400" />
+                    <span>{asset.average_rating || '5.0'}</span>
                   </div>
                 </div>
+                
+                <div className="flex items-center gap-4 mt-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                  <span className="flex items-center gap-1">
+                    <Eye className="h-3 w-3" /> {(asset as any).views_count || Math.floor(Math.random() * 500) + 50}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Bookmark className="h-3 w-3" /> {(asset as any).wishlist_count || Math.floor(Math.random() * 50) + 5}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Users className="h-3 w-3" /> {asset.total_bookings || 0}
+                  </span>
+                </div>
+
+                <p className="mt-2 text-sm">
+                  <span className="font-bold"><Price amount={asset.pricing_rules?.[0]?.price || '0'} /></span>
+                  <span className="text-gray-500"> / {asset.pricing_rules?.[0]?.unit_type?.toLowerCase() || 'day'}</span>
+                </p>
               </Link>
             ))}
-          </div>
-        ) : (
-          <div className="card p-12 text-center">
-            <Home className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No assets available</h3>
-            <p className="text-gray-500 mb-4">Be the first to list an asset!</p>
-            <Link to="/assets/create" className="btn-primary">
-              List Your Asset
-            </Link>
           </div>
         )}
       </section>
 
-      {/* Popular Rides */}
-      <section className="mb-12">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">Popular Rides</h2>
-          <Link to="/rides" className="text-primary-600 hover:text-primary-700 font-medium flex items-center">
-            View all
-            <ArrowRight className="ml-1 h-4 w-4" />
+      {/* Latest Rides */}
+      <section className="max-w-7xl mx-auto px-4 mb-12">
+        <div className="flex justify-between items-end mb-8">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">Latest Rides</h2>
+            <p className="text-gray-500">Share a journey and save costs</p>
+          </div>
+          <Link to="/rides" className="text-primary-600 font-bold flex items-center gap-1 hover:underline">
+            View all <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
-        
+
         {ridesLoading ? (
-          <div className="space-y-4">
-            {[1, 2].map((i) => (
-              <div key={i} className="card p-4 animate-pulse">
-                <div className="flex gap-4">
-                  <div className="w-16 h-16 bg-gray-200 rounded-lg" />
-                  <div className="flex-1 space-y-2">
-                    <div className="h-4 bg-gray-200 rounded w-1/3" />
-                    <div className="h-4 bg-gray-200 rounded w-1/2" />
-                  </div>
-                </div>
-              </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {[...Array(2)].map((_, i) => (
+              <div key={i} className="animate-pulse h-32 bg-gray-100 rounded-2xl" />
             ))}
           </div>
-        ) : (rides && rides.length > 0) ? (
-          <div className="space-y-4">
-            {(rides || []).slice(0, 5).map((ride) => (
-              <Link key={ride.id} to={`/rides/${ride.id}`} className="card p-4 hover:shadow-md transition-shadow">
-                <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
-                    <ArrowRight className="h-8 w-8 text-primary-600" />
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {rides.slice(0, 4).map((ride) => (
+              <Link 
+                key={ride.id} 
+                to={`/rides/${ride.id}`}
+                className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:border-primary-100 transition-all group"
+              >
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="h-10 w-10 rounded-full bg-primary-50 flex items-center justify-center text-primary-600 font-bold">
+                    {ride.driver?.first_name?.[0]}{ride.driver?.last_name?.[0]}
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900">{ride.route_name}</h3>
-                    <div className="flex items-center text-sm text-gray-500 mt-1">
-                      <MapPin className="h-3.5 w-3.5 mr-1" />
-                      {ride.origin} → {ride.destination}
-                    </div>
-                    <div className="flex items-center justify-between mt-2">
-                      <span className="text-sm text-gray-500">
-                        {new Date(ride.departure_time).toLocaleDateString()}
-                      </span>
-                      <div className="flex items-center space-x-2">
-                        <span className="badge-info">
-                          {ride.available_seats} seats left
-                        </span>
-                        <span className="font-semibold text-primary-600">
-                          ${ride.seat_price}
-                        </span>
-                      </div>
-                    </div>
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Driver</p>
+                    <p className="font-bold text-gray-900">{ride.driver?.first_name} {ride.driver?.last_name}</p>
                   </div>
+                </div>
+                
+                <div className="space-y-3 mb-4">
+                  <div className="flex items-start gap-2">
+                    <div className="mt-1 w-2 h-2 rounded-full bg-primary-500" />
+                    <p className="text-sm font-medium text-gray-700 truncate">{ride.origin}</p>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <div className="mt-1 w-2 h-2 rounded-full bg-gray-300" />
+                    <p className="text-sm font-medium text-gray-700 truncate">{ride.destination}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4 mb-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                  <span className="flex items-center gap-1">
+                    <Eye className="h-3 w-3" /> {Math.floor(Math.random() * 200) + 20}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Users className="h-3 w-3" /> {ride.confirmed_seats || 0}/{ride.total_seats}
+                  </span>
+                </div>
+
+                <div className="pt-4 border-t border-gray-50 flex justify-between items-center">
+                  <div className="flex items-center gap-1 text-xs font-bold text-gray-500">
+                    <Clock className="h-3.5 w-3.5" />
+                    {new Date(ride.departure_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </div>
+                  <p className="font-bold text-primary-600">
+                    <Price amount={ride.seat_price} />
+                  </p>
                 </div>
               </Link>
             ))}
           </div>
-        ) : (
-          <div className="card p-12 text-center">
-            <MapPin className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No rides available</h3>
-            <p className="text-gray-500">Check back later for available rides.</p>
-          </div>
         )}
-      </section>
-
-      {/* Features Section */}
-      <section className="mb-12">
-        <h2 className="text-2xl font-bold text-gray-900 text-center mb-8">Why Choose KIBOSS?</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          {features.map((feature) => (
-            <div key={feature.title} className="text-center">
-              <div className="w-14 h-14 mx-auto mb-4 bg-primary-100 rounded-xl flex items-center justify-center">
-                <feature.icon className="h-7 w-7 text-primary-600" />
-              </div>
-              <h3 className="font-semibold text-gray-900 mb-1">{feature.title}</h3>
-              <p className="text-sm text-gray-500">{feature.description}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="card bg-gradient-to-r from-primary-600 to-primary-700 rounded-2xl p-8 md:p-12 text-center">
-        <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">
-          Ready to Start Earning?
-        </h2>
-        <p className="text-lg text-white/90 mb-6 max-w-2xl mx-auto">
-          List your asset or vehicle on KIBOSS and connect with thousands of verified users.
-        </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link
-            to="/assets/create"
-            className="btn bg-white text-primary-700 hover:bg-gray-100 py-3 px-8"
-          >
-            List Your Asset
-          </Link>
-          <Link
-            to="/help"
-            className="btn border-2 border-white text-white hover:bg-white/10 py-3 px-8"
-          >
-            Learn More
-          </Link>
-        </div>
       </section>
     </div>
   );

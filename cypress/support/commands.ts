@@ -7,7 +7,7 @@
 Cypress.Commands.add('getAuthToken', (email, password) => {
   return cy.request({
     method: 'POST',
-    url: `${Cypress.env('apiBaseUrl')}/auth/token/`,
+    url: `${Cypress.env('apiBaseUrl')}/users/token/`,
     body: {
       email,
       password,
@@ -32,7 +32,7 @@ Cypress.Commands.add('setAuthToken', (token) => {
 // Command to check if backend API is running
 Cypress.Commands.add('checkBackendHealth', () => {
   cy.request({
-    url: `${Cypress.env('apiBaseUrl')}/api/v1/`,
+    url: `${Cypress.env('apiBaseUrl')}/`,
     failOnStatusCode: false,
   }).then((response) => {
     expect(response.status).to.eq(200);
@@ -64,7 +64,7 @@ Cypress.Commands.add('createAssetViaApi', (assetData, token) => {
 
   return cy.request({
     method: 'POST',
-    url: `${Cypress.env('apiBaseUrl')}/api/v1/assets/`,
+    url: `${Cypress.env('apiBaseUrl')}/assets/`,
     body: finalAsset,
     headers: {
       'Content-Type': 'application/json',
@@ -96,7 +96,7 @@ Cypress.Commands.add('createRideViaApi', (rideData, token) => {
 
   return cy.request({
     method: 'POST',
-    url: `${Cypress.env('apiBaseUrl')}/api/v1/rides/`,
+    url: `${Cypress.env('apiBaseUrl')}/rides/`,
     body: finalRide,
     headers: {
       'Content-Type': 'application/json',
@@ -111,14 +111,14 @@ Cypress.Commands.add('clearTestData', (token) => {
   
   cy.request({
     method: 'DELETE',
-    url: `${Cypress.env('apiBaseUrl')}/api/v1/assets/`,
+    url: `${Cypress.env('apiBaseUrl')}/assets/`,
     failOnStatusCode: false,
     headers: authHeader,
   });
 
   cy.request({
     method: 'DELETE',
-    url: `${Cypress.env('apiBaseUrl')}/api/v1/rides/`,
+    url: `${Cypress.env('apiBaseUrl')}/rides/`,
     failOnStatusCode: false,
     headers: authHeader,
   });
@@ -175,7 +175,7 @@ Cypress.Commands.add('reloadAndVerify', (verificationFn) => {
 Cypress.Commands.add('login', (email, password) => {
   cy.request({
     method: 'POST',
-    url: `${Cypress.env('apiBaseUrl')}/auth/token/`,
+    url: `${Cypress.env('apiBaseUrl')}/users/token/`,
     body: {
       email,
       password,
@@ -215,7 +215,7 @@ Cypress.Commands.add('register', (userData) => {
 
   return cy.request({
     method: 'POST',
-    url: `${Cypress.env('apiBaseUrl')}/auth/register/`,
+    url: `${Cypress.env('apiBaseUrl')}/users/register/`,
     body: finalUser,
     failOnStatusCode: false,
   });

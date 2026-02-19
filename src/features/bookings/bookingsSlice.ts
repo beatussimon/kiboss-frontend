@@ -53,8 +53,10 @@ export const createBooking = createAsyncThunk(
       const response = await api.post<Booking>('/bookings/', data);
       return response.data;
     } catch (error: unknown) {
-      const axiosError = error as { response?: { data?: { message?: string } } };
-      return rejectWithValue(axiosError.response?.data?.message || 'Failed to create booking');
+      const axiosError = error as { response?: { data?: { error?: string; message?: string } } };
+      const errorMessage = axiosError.response?.data?.error || axiosError.response?.data?.message || 'Failed to create booking';
+      console.error('Booking creation error:', axiosError.response?.data);
+      return rejectWithValue(errorMessage);
     }
   }
 );

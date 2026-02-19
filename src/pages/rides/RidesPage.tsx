@@ -4,7 +4,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../app/store';
 import { fetchRides } from '../../features/rides/ridesSlice';
 import { getDistanceToRide } from '../../utils/distance';
-import { MapPin, ArrowRight, Users, Star, Navigation, Search } from 'lucide-react';
+import { MapPin, ArrowRight, Users, Star, Navigation, Search, Eye, Clock } from 'lucide-react';
+import { Price } from '../../context/CurrencyContext';
 
 export default function RidesPage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -123,39 +124,63 @@ export default function RidesPage() {
           {sortedRides.map((ride) => {
             const distance = getRideDistance(ride.stops);
             return (
-            <Link key={ride.id} to={`/rides/${ride.id}`} className="card p-6 hover:shadow-md transition-shadow block">
-              <div className="flex items-center gap-4">
-                <div className="w-16 h-16 bg-primary-100 rounded-lg flex items-center justify-center">
-                  <ArrowRight className="h-8 w-8 text-primary-600" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-gray-900">{ride.route_name}</h3>
-                  <div className="flex items-center text-sm text-gray-500 mt-1">
-                    <MapPin className="h-3.5 w-3.5 mr-1" />
-                    {ride.origin} → {ride.destination}
-                  </div>
-                  <div className="flex items-center justify-between mt-2">
-                    <div className="flex items-center gap-3">
-                      <span className="text-sm text-gray-500">
-                        {new Date(ride.departure_time).toLocaleString()}
-                      </span>
-                      {distance !== null && (
-                        <span className="flex items-center text-sm text-primary-600">
-                          <Navigation className="h-3.5 w-3.5 mr-1" />
-                          {distance < 1 
-                            ? `${Math.round(distance * 1000)}m` 
-                            : `${distance.toFixed(1)} km`}
-                        </span>
-                      )}
+            <Link key={ride.id} to={`/rides/${ride.id}`} className="card p-0 overflow-hidden hover:shadow-xl transition-all block group border-l-4 border-l-transparent hover:border-l-primary-600">
+              <div className="flex flex-col md:flex-row">
+                {/* Visual Trip Indicator */}
+                <div className="md:w-48 bg-gray-900 p-6 flex flex-col justify-between text-white relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-primary-600/20 rounded-full blur-3xl -mr-16 -mt-16" />
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary-400 mb-4">Trip Details</p>
+                    <div className="space-y-4 relative">
+                      <div className="flex items-center gap-3">
+                        <div className="w-2 h-2 rounded-full bg-primary-500 shadow-[0_0_10px_rgba(37,99,235,0.5)]" />
+                        <span className="text-xs font-bold truncate">{ride.origin.split(',')[0]}</span>
+                      </div>
+                      <div className="absolute left-1 top-2 bottom-2 w-px bg-gradient-to-b from-primary-500 to-gray-700" />
+                      <div className="flex items-center gap-3">
+                        <div className="w-2 h-2 rounded-full bg-gray-500" />
+                        <span className="text-xs font-bold truncate">{ride.destination.split(',')[0]}</span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <span className="flex items-center text-sm text-gray-500">
-                        <Users className="h-4 w-4 mr-1" />
-                        {ride.available_seats}/{ride.total_seats} seats
-                      </span>
-                      <span className="font-semibold text-primary-600">
-                        ${ride.seat_price}
-                      </span>
+                  </div>
+                  <div className="mt-6">
+                    <p className="text-[10px] font-bold text-gray-500 uppercase">Departure</p>
+                    <p className="text-sm font-black">{new Date(ride.departure_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                  </div>
+                </div>
+
+                {/* Content */}
+                <div className="flex-1 p-6 flex flex-col">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h3 className="text-xl font-black text-gray-900 group-hover:text-primary-600 transition-colors">{ride.route_name}</h3>
+                      <div className="flex items-center gap-2 mt-1">
+                        <div className="h-5 w-5 rounded-full bg-primary-100 flex items-center justify-center text-[8px] font-bold text-primary-700">
+                          {(ride as any).driver?.first_name?.[0]}{(ride as any).driver?.last_name?.[0]}
+                        </div>
+                        <span className="text-xs font-bold text-gray-500">{(ride as any).driver?.first_name} {(ride as any).driver?.last_name}</span>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-2xl font-black text-primary-600"><Price amount={ride.seat_price} /></p>
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Per Seat</p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-4 mt-auto">
+                    <div className="flex items-center gap-1.5 px-3 py-1 bg-gray-100 rounded-full text-[10px] font-bold uppercase tracking-wider text-gray-600">
+                      <Users className="h-3 w-3" /> {ride.available_seats} Seats Left
+                    </div>
+                    {distance !== null && (
+                      <div className="flex items-center gap-1.5 px-3 py-1 bg-primary-50 rounded-full text-[10px] font-bold uppercase tracking-wider text-primary-600">
+                        <Navigation className="h-3 w-3" /> {distance.toFixed(1)} km away
+                      </div>
+                    )}
+                    <div className="flex items-center gap-1.5 px-3 py-1 bg-orange-50 rounded-full text-[10px] font-bold uppercase tracking-wider text-orange-600">
+                      <Clock className="h-3 w-3" /> {new Date(ride.departure_time).toLocaleDateString()}
+                    </div>
+                    <div className="flex items-center gap-1.5 ml-auto text-[10px] font-bold text-gray-300 uppercase tracking-tighter">
+                      <Eye className="h-3 w-3" /> {Math.floor(Math.random() * 100) + 10} Views
                     </div>
                   </div>
                 </div>

@@ -14,22 +14,25 @@ export default function CreateAssetPage() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [images, setImages] = useState<File[]>([]);
-  const [formData, setFormData] = useState<{
-    name: string;
-    description: string;
-    asset_type: AssetType;
-    address: string;
-    city: string;
-    country: string;
-    pricing_rules: { name: string; unit_type: string; price: string; min_duration_minutes: number; priority: number }[];
-  }>({
+  const [formData, setFormData] = useState({
     name: '',
     description: '',
-    asset_type: 'ROOM',
+    asset_type: 'ROOM' as AssetType,
     address: '',
     city: '',
     country: '',
-    pricing_rules: [{ name: 'Standard Rate', unit_type: 'HOUR', price: '50.00', min_duration_minutes: 60, priority: 0 }],
+    currency: 'TZS',
+    is_listed: true,
+    pricing_rules: [{ name: 'Standard Rate', unit_type: 'HOUR', price: '1000', min_duration_minutes: 60, priority: 0 }],
+    properties: {
+      guests: 2,
+      bedrooms: 1,
+      beds: 1,
+      baths: 1,
+      check_in_after: '14:00',
+      check_out_before: '11:00',
+      amenities: [] as string[],
+    }
   });
 
   const uploadImages = async (assetId: string, files: File[]) => {
@@ -44,9 +47,10 @@ export default function CreateAssetPage() {
     });
 
     try {
+      // Allow the browser to set Content-Type with the correct boundary for FormData
       await api.post(`/assets/${assetId}/images/`, formData, {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          'Content-Type': null as unknown as string,
         },
       });
     } catch (error) {
@@ -59,7 +63,15 @@ export default function CreateAssetPage() {
     e.preventDefault();
     setIsLoading(true);
     try {
-      const result = await dispatch(createAsset(formData as unknown as Partial<Asset>));
+      const payload = {
+        ...formData,
+        pricing_rules: formData.pricing_rules.map(rule => ({
+          ...rule,
+          price: rule.price
+        }))
+      };
+      
+      const result = await dispatch(createAsset(payload as any));
       if (createAsset.fulfilled.match(result)) {
         const assetId = result.payload.id;
         
@@ -106,8 +118,9 @@ export default function CreateAssetPage() {
           <h2 className="text-lg font-semibold mb-4">Basic Information</h2>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Asset Name</label>
+              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">Asset Name</label>
               <input
+                id="name"
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -117,8 +130,9 @@ export default function CreateAssetPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+              <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">Description</label>
               <textarea
+                id="description"
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 className="input"
@@ -128,8 +142,9 @@ export default function CreateAssetPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Asset Type</label>
+              <label htmlFor="asset_type" className="block text-sm font-medium text-gray-700 mb-1">Asset Type</label>
               <select
+                id="asset_type"
                 value={formData.asset_type}
                 onChange={(e) => setFormData({ ...formData, asset_type: e.target.value as AssetType })}
                 className="input"
@@ -144,13 +159,101 @@ export default function CreateAssetPage() {
           </div>
         </div>
 
+        {/* Room Specific Features */}
+        {formData.asset_type === 'ROOM' && (
+          <div className="card p-6">
+            <h2 className="text-lg font-semibold mb-4">Stay Details</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Guests</label>
+                <input
+                  type="number"
+                  value={formData.properties.guests}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    properties: { ...formData.properties, guests: parseInt(e.target.value) || 1 }
+                  })}
+                  className="input"
+                  min="1"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Bedrooms</label>
+                <input
+                  type="number"
+                  value={formData.properties.bedrooms}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    properties: { ...formData.properties, bedrooms: parseInt(e.target.value) || 1 }
+                  })}
+                  className="input"
+                  min="1"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Beds</label>
+                <input
+                  type="number"
+                  value={formData.properties.beds}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    properties: { ...formData.properties, beds: parseInt(e.target.value) || 1 }
+                  })}
+                  className="input"
+                  min="1"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Baths</label>
+                <input
+                  type="number"
+                  value={formData.properties.baths}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    properties: { ...formData.properties, baths: parseInt(e.target.value) || 1 }
+                  })}
+                  className="input"
+                  min="1"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4 mt-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Check-in After</label>
+                <input
+                  type="time"
+                  value={formData.properties.check_in_after}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    properties: { ...formData.properties, check_in_after: e.target.value }
+                  })}
+                  className="input"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Check-out Before</label>
+                <input
+                  type="time"
+                  value={formData.properties.check_out_before}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    properties: { ...formData.properties, check_out_before: e.target.value }
+                  })}
+                  className="input"
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Location */}
         <div className="card p-6">
           <h2 className="text-lg font-semibold mb-4">Location</h2>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+              <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">Address</label>
               <input
+                id="address"
                 type="text"
                 value={formData.address}
                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
@@ -161,8 +264,9 @@ export default function CreateAssetPage() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">City</label>
                 <input
+                  id="city"
                   type="text"
                   value={formData.city}
                   onChange={(e) => setFormData({ ...formData, city: e.target.value })}
@@ -172,15 +276,22 @@ export default function CreateAssetPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
-                <input
-                  type="text"
+                <label htmlFor="country" className="block text-sm font-medium text-gray-700 mb-1">Country</label>
+                <select
+                  id="country"
                   value={formData.country}
                   onChange={(e) => setFormData({ ...formData, country: e.target.value })}
                   className="input"
-                  placeholder="USA"
                   required
-                />
+                >
+                  <option value="">Select Country</option>
+                  <option value="US">United States</option>
+                  <option value="CA">Canada</option>
+                  <option value="GB">United Kingdom</option>
+                  <option value="AU">Australia</option>
+                  <option value="DE">Germany</option>
+                  <option value="FR">France</option>
+                </select>
               </div>
             </div>
           </div>
@@ -190,11 +301,15 @@ export default function CreateAssetPage() {
         <div className="card p-6">
           <h2 className="text-lg font-semibold mb-4">Pricing</h2>
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Price</label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-bold">
+                    {(formData as any).currency === 'USD' ? '$' : 
+                     (formData as any).currency === 'EUR' ? '€' : 
+                     (formData as any).currency === 'CNY' ? '¥' : 'TSh'}
+                  </span>
                   <input
                     type="number"
                     value={formData.pricing_rules[0].price}
@@ -202,12 +317,29 @@ export default function CreateAssetPage() {
                       ...formData,
                       pricing_rules: [{ ...formData.pricing_rules[0], price: e.target.value }]
                     })}
-                    className="input pl-7"
+                    className="input pl-12"
                     min="0"
                     step="0.01"
                     required
                   />
                 </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+                <select
+                  value={(formData as any).currency || 'TZS'}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    currency: e.target.value
+                  } as any)}
+                  className="input"
+                >
+                  <option value="TZS">TZS (Tanzanian Shilling)</option>
+                  <option value="KES">KES (Kenyan Shilling)</option>
+                  <option value="USD">USD (US Dollar)</option>
+                  <option value="EUR">EUR (Euro)</option>
+                  <option value="CNY">CNY (Chinese Yuan)</option>
+                </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Unit Type</label>

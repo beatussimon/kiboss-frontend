@@ -10,6 +10,7 @@ interface MessagingState {
   isLoading: boolean;
   isLoadingMessages: boolean;
   error: string | null;
+  typingStatus: Record<string, Record<string, boolean>>; // threadId -> { userId: isTyping }
   pagination: {
     page: number;
     pageSize: number;
@@ -26,6 +27,7 @@ const initialState: MessagingState = {
   isLoading: false,
   isLoadingMessages: false,
   error: null,
+  typingStatus: {},
   pagination: {
     page: 1,
     pageSize: 20,
@@ -111,17 +113,30 @@ export const createContextualThread = createAsyncThunk(
       const axiosError = error as { 
         response?: { 
           data?: { 
-            error?: string; 
+            error?: string | { message?: string; code?: string }; 
             message?: string;
             code?: string;
           } 
         } 
       };
       // Extract error message from various response formats
-      const errorMessage = 
-        axiosError.response?.data?.error || 
-        axiosError.response?.data?.message ||
-        'Failed to create contextual thread';
+      // Backend can return: {error: {message: ...}} or {error: ...} or {message: ...}
+      const errorData = axiosError.response?.data;
+      let errorMessage = 'Failed to create contextual thread';
+      
+      if (errorData) {
+        // Handle custom exception handler format: {error: {message: ..., code: ...}}
+        if (typeof errorData.error === 'object' && errorData.error !== null) {
+          const nestedError = errorData.error as { message?: string; code?: string };
+          errorMessage = nestedError.message || nestedError.code || 'Failed to create contextual thread';
+        } else if (typeof errorData.error === 'string') {
+          // Handle simple string format: {error: "message"}
+          errorMessage = errorData.error;
+        } else if (typeof errorData.message === 'string') {
+          // Handle message format: {message: "message"}
+          errorMessage = errorData.message;
+        }
+      }
       return rejectWithValue(errorMessage);
     }
   }
@@ -135,9 +150,10 @@ export const uploadAttachment = createAsyncThunk(
       formData.append('message', messageId);
       formData.append('file', file);
       
+      // Don't set Content-Type manually - axios will set it with correct boundary
       const response = await api.post('/messaging/attachments/', formData, {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          'Content-Type': null as unknown as string,
         },
       });
       return response.data;
@@ -165,8 +181,11 @@ export const sendMessage = createAsyncThunk(
             const formData = new FormData();
             formData.append('message', message.id);
             formData.append('file', file);
+            // Don't set Content-Type manually - axios will set it with correct boundary
             return api.post('/messaging/attachments/', formData, {
-              headers: { 'Content-Type': 'multipart/form-data' },
+              headers: {
+                'Content-Type': null as unknown as string,
+              },
             });
           })
         );
@@ -177,15 +196,26 @@ export const sendMessage = createAsyncThunk(
       const axiosError = error as { 
         response?: { 
           data?: { 
-            error?: string; 
+            error?: string | { message?: string; code?: string }; 
             message?: string 
           } 
         } 
       };
-      const errorMessage = 
-        axiosError.response?.data?.error || 
-        axiosError.response?.data?.message ||
-        'Failed to send message';
+      // Extract error message from various response formats
+      const errorData = axiosError.response?.data;
+      let errorMessage = 'Failed to send message';
+      
+      if (errorData) {
+        // Handle custom exception handler format: {error: {message: ..., code: ...}}
+        if (typeof errorData.error === 'object' && errorData.error !== null) {
+          const nestedError = errorData.error as { message?: string; code?: string };
+          errorMessage = nestedError.message || nestedError.code || 'Failed to send message';
+        } else if (typeof errorData.error === 'string') {
+          errorMessage = errorData.error;
+        } else if (typeof errorData.message === 'string') {
+          errorMessage = errorData.message;
+        }
+      }
       return rejectWithValue(errorMessage);
     }
   }
@@ -234,23 +264,44 @@ const messagingSlice = createSlice({
     clearError: (state) => {
       state.error = null;
     },
-    addMessage: (state, action: { payload: { threadId: string; message: Message } }) => {
-      const { threadId, message } = action.payload;
+    addMessage: (state, action: { payload: { threadId: string; message: Message; isMine?: boolean } }) => {
+      const { threadId, message, isMine } = action.payload;
+      
+      // Update thread list
       const thread = state.threads.find((t) => t.id === threadId);
       if (thread) {
         thread.messages = [...(thread.messages || []), message];
         thread.message_count += 1;
+        
+        // If message is not mine and we are not currently viewing this thread, increment unread
+        if (!isMine && state.currentThread?.id !== threadId) {
+          (thread as any).unread_count = ((thread as any).unread_count || 0) + 1;
+          state.unreadCount += 1;
+        }
       }
+      
+      // Update current thread object if active
       if (state.currentThread?.id === threadId) {
         state.currentThread.messages = [...(state.currentThread.messages || []), message];
         state.currentThread.message_count += 1;
+      }
+      
+      // Update messages list (used by ThreadPage)
+      if (state.currentThread?.id === threadId) {
+        if (!state.messages.some(m => m.id === message.id)) {
+          state.messages.push(message);
+        }
       }
     },
     appendMessages: (state, action: { payload: Message[] }) => {
       state.messages = [...state.messages, ...action.payload];
     },
-    setTyping: (state, action: { payload: { threadId: string; userId: string } }) => {
-      // Handle typing indicator
+    setTyping: (state, action: { payload: { threadId: string; userId: string; isTyping: boolean } }) => {
+      const { threadId, userId, isTyping } = action.payload;
+      if (!state.typingStatus[threadId]) {
+        state.typingStatus[threadId] = {};
+      }
+      state.typingStatus[threadId][userId] = isTyping;
     },
   },
   extraReducers: (builder) => {
@@ -265,10 +316,7 @@ const messagingSlice = createSlice({
         const payload = action.payload as unknown;
         const threads = Array.isArray(payload) ? payload : ((payload as { results?: unknown[] })?.results || []);
         state.threads = threads as Thread[];
-        state.unreadCount = (threads as Thread[]).filter((t) => t.status === 'OPEN').reduce((sum, t) => {
-          const unread = t.messages?.filter((m) => m.status !== 'READ').length || 0;
-          return sum + unread;
-        }, 0);
+        state.unreadCount = (threads as any[]).reduce((sum, t) => sum + (t.unread_count || 0), 0);
       })
       .addCase(fetchThreads.rejected, (state, action) => {
         state.isLoading = false;
@@ -309,10 +357,30 @@ const messagingSlice = createSlice({
         if (state.currentThread?.id === threadId) {
           state.currentThread.messages = [...(state.currentThread.messages || []), message];
           state.currentThread.message_count += 1;
+          
+          // Also update the main messages list
+          if (!state.messages.some(m => m.id === message.id)) {
+            state.messages.push(message);
+          }
         }
       })
       .addCase(createContextualThread.rejected, (state, action) => {
         state.error = action.payload as string;
+      })
+      .addCase(markThreadRead.fulfilled, (state, action) => {
+        const threadId = action.payload;
+        const thread = state.threads.find(t => t.id === threadId);
+        
+        if (thread) {
+          // Decrement unreadCount by the thread's unread count before clearing it
+          const threadUnread = (thread as any).unread_count || 0;
+          state.unreadCount = Math.max(0, state.unreadCount - threadUnread);
+          (thread as any).unread_count = 0;
+        }
+        
+        if (state.currentThread?.id === threadId) {
+          (state.currentThread as any).unread_count = 0;
+        }
       });
   },
 });
