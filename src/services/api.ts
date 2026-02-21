@@ -8,9 +8,6 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
 const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 30000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
 });
 
 // Helper to get auth state - lazy import to avoid circular dependency
@@ -95,9 +92,29 @@ api.interceptors.response.use(
     }
     
     // Handle other errors
-    let message = (error.response?.data as any)?.error?.message || 
-                  error.response?.data?.message || 
-                  'An unexpected error occurred';
+    let message = 'An unexpected error occurred';
+    const data = error.response?.data as any;
+    
+    if (data) {
+      if (typeof data.error === 'string') {
+        message = data.error;
+      } else if (data.error?.message) {
+        message = data.error.message;
+      } else if (data.detail) {
+        message = data.detail;
+      } else if (data.message) {
+        message = data.message;
+      } else if (typeof data === 'object' && !Array.isArray(data)) {
+        // Handle field-level errors
+        const firstErrorKey = Object.keys(data)[0];
+        const firstErrorValue = data[firstErrorKey];
+        if (Array.isArray(firstErrorValue)) {
+          message = `${firstErrorKey}: ${firstErrorValue[0]}`;
+        } else if (typeof firstErrorValue === 'string') {
+          message = firstErrorValue;
+        }
+      }
+    }
     
     // Log detailed error information for debugging
     if (error.response) {
@@ -112,19 +129,12 @@ api.interceptors.response.use(
       console.error('API Error:', error.message);
     }
     
-    // Handle Django SimpleJWT specific errors or other common detail patterns
-    if (error.response?.status === 401) {
-      message = (error.response?.data as any)?.error?.message || 
-                error.response?.data?.detail || 
-                'Invalid credentials';
-    } else if (error.response?.status === 400) {
-      message = (error.response?.data as any)?.error?.message || 
-                error.response?.data?.detail || 
-                error.response?.data?.message || 
-                'Invalid request';
+    // Additional special case for 401
+    if (error.response?.status === 401 && !message) {
+      message = 'Invalid credentials';
     }
     
-    console.error('API Error:', message);
+    console.error('API Error Final Message:', message);
     
     return Promise.reject(error);
   }

@@ -36,9 +36,10 @@ import FAQPage from './pages/faq/FAQPage';
 
 // Protected Route Component
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, isLoading } = useSelector((state: RootState) => state.auth);
+  const { isAuthenticated, isLoading, user } = useSelector((state: RootState) => state.auth);
 
-  if (isLoading) {
+  // Only show full-screen loading if we are authenticated but don't have user data yet
+  if (isLoading && !user && isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>

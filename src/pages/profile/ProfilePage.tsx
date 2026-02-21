@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { AppDispatch, RootState } from '../../app/store';
-import { fetchCurrentUser, updateProfile } from '../../features/auth/authSlice';
+import { fetchCurrentUser, updateProfile, updateUser } from '../../features/auth/authSlice';
 import { getMediaUrl } from '../../utils/media';
 import { User, Mail, Phone, Camera, Save, X, Shield, Award, MapPin, FileText, Heart } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -97,44 +97,43 @@ export default function ProfilePage() {
     }
   };
 
-  const uploadAvatar = async (file: File): Promise<string | null> => {
-    try {
-      setIsUploading(true);
-      const formDataObj = new FormData();
-      formDataObj.append('avatar', file);
-      
-      // Don't set Content-Type manually - axios will set it with correct boundary
-      const response = await api.patch('/users/me/', formDataObj);
-      
-      return response.data?.profile?.avatar || null;
-    } catch (error) {
-      console.error('Failed to upload avatar:', error);
-      toast.error('Failed to upload avatar');
-      return null;
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     try {
-      // Upload avatar first if changed
+      setIsUploading(true);
+      
+      // We'll use a single PATCH request for everything
+      // If there's an avatar file, we use FormData
       if (avatarFile) {
-        const avatarUrl = await uploadAvatar(avatarFile);
-        if (avatarUrl) {
-          setAvatarPreview(avatarUrl);
-        }
+        const formDataObj = new FormData();
+        formDataObj.append('avatar', avatarFile);
+        
+        // Add all other fields to FormData
+        Object.entries(formData).forEach(([key, value]) => {
+          formDataObj.append(key, value);
+        });
+        
+        const response = await api.patch('/users/me/', formDataObj);
+        dispatch(updateUser(response.data));
+        setAvatarPreview(getMediaUrl(response.data?.profile?.avatar));
+      } else {
+        // Just JSON for regular data
+        await dispatch(updateProfile(formData)).unwrap();
       }
       
-      // Update profile data
-      await dispatch(updateProfile(formData)).unwrap();
       toast.success('Profile updated successfully');
       setIsEditing(false);
       setAvatarFile(null);
-    } catch (error) {
-      toast.error('Failed to update profile');
+    } catch (error: any) {
+      console.error('Failed to update profile:', error);
+      // Detailed error from our improved api.ts
+      const message = error.response?.data?.details 
+        ? Object.entries(error.response.data.details).map(([k, v]) => `${k}: ${v}`).join(', ')
+        : 'Failed to update profile';
+      toast.error(message);
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -155,7 +154,7 @@ export default function ProfilePage() {
     setIsEditing(false);
   };
 
-  if (isLoading) {
+  if (isLoading && !user) {
     return <div className="animate-pulse card p-8 h-96" />;
   }
 

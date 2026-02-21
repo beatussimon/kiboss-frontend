@@ -8,6 +8,7 @@ class WebSocketManager {
   private static instance: WebSocketManager;
   private sockets: Map<string, WebSocket> = new Map();
   private reconnectTimers: Map<string, ReturnType<typeof setTimeout>> = new Map();
+  private connectionTimers: Map<string, ReturnType<typeof setTimeout>> = new Map();
   private isConnecting: Map<string, boolean> = new Map();
   private activeThreadId: string | null = null;
 
@@ -30,9 +31,11 @@ class WebSocketManager {
     this.isConnecting.set(key, true);
     
     // 100ms delay to handle rapid React remounts
-    setTimeout(() => {
-      // Check if already handled while we were waiting
-      if (this.sockets.has(key)) {
+    const timer = setTimeout(() => {
+      this.connectionTimers.delete(key);
+      
+      // Check if already handled or cancelled while we were waiting
+      if (this.sockets.has(key) || !this.isConnecting.get(key)) {
         this.isConnecting.set(key, false);
         return;
       }
@@ -76,6 +79,8 @@ class WebSocketManager {
 
       this.sockets.set(key, socket);
     }, 100);
+
+    this.connectionTimers.set(key, timer);
   }
 
   public disconnect(type: WebSocketType, threadId?: string) {
@@ -84,6 +89,11 @@ class WebSocketManager {
     if (this.reconnectTimers.has(key)) {
       clearTimeout(this.reconnectTimers.get(key)!);
       this.reconnectTimers.delete(key);
+    }
+
+    if (this.connectionTimers.has(key)) {
+      clearTimeout(this.connectionTimers.get(key)!);
+      this.connectionTimers.delete(key);
     }
 
     const socket = this.sockets.get(key);
