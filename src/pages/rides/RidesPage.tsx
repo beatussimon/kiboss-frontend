@@ -1,15 +1,15 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useRef, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../app/store';
 import { fetchRides } from '../../features/rides/ridesSlice';
 import { getDistanceToRide } from '../../utils/distance';
-import { MapPin, ArrowRight, Users, Star, Navigation, Search, Eye, Clock } from 'lucide-react';
+import { MapPin, ArrowRight, Users, Star, Navigation, Search, Eye, Clock, Loader2 } from 'lucide-react';
 import { Price } from '../../context/CurrencyContext';
 
 export default function RidesPage() {
   const dispatch = useDispatch<AppDispatch>();
-  const { rides, isLoading } = useSelector((state: RootState) => state.rides);
+  const { rides, isLoading, count, next } = useSelector((state: RootState) => state.rides);
   const { userLocation } = useSelector((state: RootState) => state.location);
   
   const [searchParams, setSearchParams] = useState({
@@ -17,21 +17,73 @@ export default function RidesPage() {
     destination: '',
     departure_date: '',
   });
+  const [page, setPage] = useState(1);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
   // Handle search form submission
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
+    setPage(1);
     dispatch(fetchRides({
       origin: searchParams.origin || undefined,
       destination: searchParams.destination || undefined,
       departure_date: searchParams.departure_date || undefined,
-    }));
+      page: 1
+    } as any));
   };
 
   // Initial load
   useEffect(() => {
-    dispatch(fetchRides({}));
+    setPage(1);
+    dispatch(fetchRides({ page: 1 }));
   }, [dispatch]);
+
+  // Infinite scroll observer
+  const handleLoadMore = useCallback(async () => {
+    if (isLoadingMore || !next) return;
+    
+    setIsLoadingMore(true);
+    const nextPage = page + 1;
+    
+    try {
+      await dispatch(fetchRides({
+        origin: searchParams.origin || undefined,
+        destination: searchParams.destination || undefined,
+        departure_date: searchParams.departure_date || undefined,
+        page: nextPage
+      } as any));
+      setPage(nextPage);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [dispatch, searchParams, page, isLoadingMore, next]);
+
+  useEffect(() => {
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+    }
+
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && next && !isLoadingMore) {
+          handleLoadMore();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (loadMoreRef.current) {
+      observerRef.current.observe(loadMoreRef.current);
+    }
+
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, [handleLoadMore, next, isLoadingMore]);
 
   // Sort rides by proximity if user location is available
   const sortedRides = useMemo(() => {
@@ -187,6 +239,15 @@ export default function RidesPage() {
               </div>
             </Link>
           )})}
+          {/* Load more trigger */}
+          <div ref={loadMoreRef} className="flex justify-center py-8">
+            {isLoadingMore && (
+              <div className="flex items-center gap-2 text-gray-500">
+                <Loader2 className="h-5 w-5 animate-spin" />
+                <span>Loading more rides...</span>
+              </div>
+            )}
+          </div>
         </div>
       ) : (
         <div className="card p-12 text-center">

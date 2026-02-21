@@ -13,6 +13,9 @@ describe('Asset Management', () => {
   let authToken: string = '';
 
   beforeEach(() => {
+    // Dismiss location modal
+    window.localStorage.setItem('locationModalDismissed', 'true');
+
     // Ensure test user exists
     cy.request({
       method: 'POST',

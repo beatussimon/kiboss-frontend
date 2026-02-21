@@ -15,24 +15,24 @@ describe('Authentication Flows', () => {
   beforeEach(() => {
     cy.window().then((win) => {
       win.localStorage.clear()
+      win.localStorage.setItem('locationModalDismissed', 'true')
     })
-    cy.visit('/')
   })
 
   describe('Registration', () => {
     it('should display registration form', () => {
-      cy.contains('Sign Up').click()
+      cy.visit('/register')
       cy.url().should('include', '/register')
+      cy.get('#first_name', { timeout: 10000 }).should('be.visible')
       cy.get('#email').should('be.visible')
       cy.get('#password').should('be.visible')
-      cy.get('#password_confirm').should('be.visible')
     })
 
     it('should register new user successfully', () => {
       const testEmail = `test_${Date.now()}@example.com`
       
       cy.visit('/register')
-      cy.get('#first_name').type('Test')
+      cy.get('#first_name', { timeout: 10000 }).should('be.visible').type('Test')
       cy.get('#last_name').type('User')
       cy.get('#email').type(testEmail)
       cy.get('#password').type('SecurePass123!')
@@ -46,7 +46,7 @@ describe('Authentication Flows', () => {
 
     it('should show error for mismatched passwords', () => {
       cy.visit('/register')
-      cy.get('#first_name').type('Test')
+      cy.get('#first_name', { timeout: 10000 }).should('be.visible').type('Test')
       cy.get('#last_name').type('User')
       cy.get('#email').type('test@example.com')
       cy.get('#password').type('Password123!')
@@ -54,37 +54,43 @@ describe('Authentication Flows', () => {
       cy.get('#terms').check()
       cy.get('button[type="submit"]').click()
       
-      cy.contains('Passwords do not match').should('be.visible')
+      cy.contains('Passwords do not match', { timeout: 10000 }).should('be.visible')
     })
 
     it('should show error for existing email', () => {
+      const existingEmail = `existing_${Date.now()}@example.com`
       // First create a user via API
       cy.request({
         method: 'POST',
         url: `${API_BASE_URL}/users/register/`,
         body: {
-          email: 'existing@example.com',
+          email: existingEmail,
           password: 'testpass123',
           password_confirm: 'testpass123',
           first_name: 'Test',
           last_name: 'User',
         },
         failOnStatusCode: false,
-      }).then(() => {
-        // User created or already exists, try to register again
       })
       
       cy.visit('/register')
-      cy.get('#first_name').type('Test')
+      cy.get('#first_name', { timeout: 10000 }).should('be.visible').type('Test')
       cy.get('#last_name').type('User')
-      cy.get('#email').type('existing@example.com')
+      cy.get('#email').type(existingEmail)
       cy.get('#password').type('Password123!')
       cy.get('#password_confirm').type('Password123!')
       cy.get('#terms').check()
       cy.get('button[type="submit"]').click()
       
-      // Should show some error message
-      cy.wait(1000)
+      // Check for error message
+      cy.get('body').should((body) => {
+        const text = body.text().toLowerCase();
+        const hasError = text.includes('exists') || 
+                         text.includes('failed') || 
+                         text.includes('error') ||
+                         text.includes('already');
+        expect(hasError, 'Body should contain an error message for existing email').to.be.true;
+      });
     })
   })
 
@@ -106,37 +112,38 @@ describe('Authentication Flows', () => {
     })
 
     it('should display login form', () => {
-      cy.contains('Login').click()
+      cy.visit('/login')
       cy.url().should('include', '/login')
-      cy.get('#email').should('be.visible')
+      cy.get('#email', { timeout: 10000 }).should('be.visible')
       cy.get('#password').should('be.visible')
     })
 
     it('should login successfully with valid credentials', () => {
       cy.visit('/login')
-      cy.get('#email').type('testuser@example.com')
+      cy.get('#email', { timeout: 10000 }).should('be.visible').type('testuser@example.com')
       cy.get('#password').type('testpass123')
       cy.get('button[type="submit"]').click()
       
       // Wait for redirect after login
-      cy.url().should('not.include', '/login')
+      cy.url({ timeout: 15000 }).should('not.include', '/login')
       cy.contains('Test').should('be.visible')
     })
 
     it('should show error for invalid credentials', () => {
       cy.visit('/login')
-      cy.get('#email').type('testuser@example.com')
+      cy.get('#email', { timeout: 10000 }).should('be.visible').type('testuser@example.com')
       cy.get('#password').type('wrongpassword')
       cy.get('button[type="submit"]').click()
       
-      // Wait for error to appear
-      cy.wait(1000)
-      // Check for error message in the page
-      cy.get('body').then(($body) => {
-        const hasError = $body.text().toLowerCase().includes('invalid') || 
-                         $body.text().toLowerCase().includes('failed') ||
-                         $body.text().toLowerCase().includes('error');
-        expect(hasError).to.be.true;
+      // Wait for error message to appear in the UI
+      cy.get('body', { timeout: 10000 }).should((body) => {
+        const text = body.text().toLowerCase();
+        const hasError = text.includes('invalid') || 
+                         text.includes('failed') || 
+                         text.includes('error') || 
+                         text.includes('credentials') ||
+                         text.includes('no active account');
+        expect(hasError, 'Body should contain an error message').to.be.true;
       });
     })
 
@@ -150,21 +157,21 @@ describe('Authentication Flows', () => {
     beforeEach(() => {
       // Login via the UI
       cy.visit('/login')
-      cy.get('#email').type('testuser@example.com')
+      cy.get('#email', { timeout: 10000 }).should('be.visible').type('testuser@example.com')
       cy.get('#password').type('testpass123')
       cy.get('button[type="submit"]').click()
-      cy.url().should('not.include', '/login')
+      cy.url({ timeout: 15000 }).should('not.include', '/login')
     })
 
     it('should logout user successfully', () => {
       // Open user menu
-      cy.get('[data-testid="user-menu-button"]').click()
+      cy.get('[data-testid="user-menu-button"]', { timeout: 10000 }).should('be.visible').click()
       
       // Click logout button
-      cy.get('button[title="Logout"]').click()
+      cy.get('button[title="Logout"]').should('be.visible').click()
       
       cy.url().should('include', '/login')
-      cy.contains('Login').should('be.visible')
+      cy.contains('Welcome to KIBOSS').should('be.visible')
     })
   })
 })

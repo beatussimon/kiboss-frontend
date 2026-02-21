@@ -2,7 +2,7 @@ import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../app/store';
 import { logout } from '../../features/auth/authSlice';
-import { fetchThreads } from '../../features/messaging/messagingSlice';
+import { fetchThreads, fetchUnreadCount } from '../../features/messaging/messagingSlice';
 import { fetchNotifications } from '../../features/notifications/notificationsSlice';
 import { 
   MessageCircle, Bell, User, LogOut, Menu, X, 
@@ -37,6 +37,7 @@ export default function Layout() {
       // Initial fetch to get counts
       dispatch(fetchThreads({}) as any);
       dispatch(fetchNotifications({}) as any);
+      dispatch(fetchUnreadCount() as any);
     }
   }, [dispatch, isAuthenticated]);
 

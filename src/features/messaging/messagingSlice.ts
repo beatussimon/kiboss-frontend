@@ -11,6 +11,7 @@ interface MessagingState {
   isLoadingMessages: boolean;
   error: string | null;
   typingStatus: Record<string, Record<string, boolean>>; // threadId -> { userId: isTyping }
+  processedMessageIds: string[]; // Keep track of last ~100 processed message IDs for global deduplication
   pagination: {
     page: number;
     pageSize: number;
@@ -28,6 +29,7 @@ const initialState: MessagingState = {
   isLoadingMessages: false,
   error: null,
   typingStatus: {},
+  processedMessageIds: [],
   pagination: {
     page: 1,
     pageSize: 20,
@@ -142,6 +144,19 @@ export const createContextualThread = createAsyncThunk(
   }
 );
 
+export const fetchUnreadCount = createAsyncThunk(
+  'messaging/fetchUnreadCount',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await api.get<{ count: number }>('/messaging/threads/unread_count/');
+      return response.data.count;
+    } catch (error: unknown) {
+      const axiosError = error as { response?: { data?: { message?: string } } };
+      return rejectWithValue(axiosError.response?.data?.message || 'Failed to fetch unread count');
+    }
+  }
+);
+
 export const uploadAttachment = createAsyncThunk(
   'messaging/uploadAttachment',
   async ({ messageId, file }: { messageId: string; file: File }, { rejectWithValue }) => {
@@ -170,7 +185,7 @@ export const uploadAttachment = createAsyncThunk(
 // Removed createThread - not used for contextual messaging
 export const sendMessage = createAsyncThunk(
   'messaging/sendMessage',
-  async ({ threadId, content, attachments }: { threadId: string; content: string; attachments?: File[] }, { rejectWithValue }) => {
+  async ({ threadId, content, attachments, optimisticId }: { threadId: string; content: string; attachments?: File[], optimisticId?: string }, { rejectWithValue }) => {
     try {
       const response = await api.post<Message>(`/messaging/threads/${threadId}/messages/`, { content });
       const message = response.data;
@@ -225,8 +240,8 @@ export const markThreadRead = createAsyncThunk(
   'messaging/markThreadRead',
   async (threadId: string, { rejectWithValue }) => {
     try {
-      await api.post(`/messaging/threads/${threadId}/read/`);
-      return threadId;
+      const response = await api.post<{ count?: number }>(`/messaging/threads/${threadId}/read/`);
+      return { threadId, count: response.data.count || 0 };
     } catch (error: unknown) {
       const axiosError = error as { response?: { data?: { message?: string } } };
       return rejectWithValue(axiosError.response?.data?.message || 'Failed to mark as read');
@@ -251,9 +266,16 @@ const messagingSlice = createSlice({
   name: 'messaging',
   initialState,
   reducers: {
-    clearCurrentThread: (state) => {
+    clearCurrentThread: (state, action: { payload?: { isSwitching?: boolean } } = {}) => {
       state.currentThread = null;
       state.messages = [];
+      
+      // If we are just switching threads, we might want to keep processedMessageIds 
+      // to avoid double-processing WS events that arrive during the transition.
+      if (!action.payload?.isSwitching) {
+        state.processedMessageIds = [];
+      }
+      
       state.pagination = {
         page: 1,
         pageSize: 20,
@@ -267,29 +289,55 @@ const messagingSlice = createSlice({
     addMessage: (state, action: { payload: { threadId: string; message: Message; isMine?: boolean } }) => {
       const { threadId, message, isMine } = action.payload;
       
-      // Update thread list
       const thread = state.threads.find((t) => t.id === threadId);
-      if (thread) {
-        thread.messages = [...(thread.messages || []), message];
-        thread.message_count += 1;
-        
-        // If message is not mine and we are not currently viewing this thread, increment unread
-        if (!isMine && state.currentThread?.id !== threadId) {
-          (thread as any).unread_count = ((thread as any).unread_count || 0) + 1;
+      const inCurrentThread = state.currentThread?.id === threadId;
+
+      // 1. Logic for global unread count (once per message ID)
+      if (!state.processedMessageIds.includes(message.id)) {
+        state.processedMessageIds.push(message.id);
+        if (state.processedMessageIds.length > 100) {
+          state.processedMessageIds.shift();
+        }
+
+        // Increment global unread count
+        if (!isMine && !inCurrentThread) {
           state.unreadCount += 1;
+        }
+
+        // Increment thread-specific unread count
+        if (thread && !isMine && !inCurrentThread) {
+          (thread as any).unread_count = ((thread as any).unread_count || 0) + 1;
         }
       }
       
-      // Update current thread object if active
-      if (state.currentThread?.id === threadId) {
-        state.currentThread.messages = [...(state.currentThread.messages || []), message];
-        state.currentThread.message_count += 1;
+      // 2. Logic for updating message lists (Idempotent)
+      // Update thread list entry if exists
+      if (thread) {
+        if (!thread.messages) thread.messages = [];
+        if (!thread.messages.some(m => m.id === message.id)) {
+          thread.messages.push(message);
+          thread.message_count = (thread.message_count || 0) + 1;
+        }
       }
       
-      // Update messages list (used by ThreadPage)
-      if (state.currentThread?.id === threadId) {
+      // Update current thread view if active
+      if (inCurrentThread) {
+        if (state.currentThread) {
+          if (!state.currentThread.messages) state.currentThread.messages = [];
+          if (!state.currentThread.messages.some(m => m.id === message.id)) {
+            state.currentThread.messages.push(message);
+            state.currentThread.message_count = (state.currentThread.message_count || 0) + 1;
+          }
+        }
+        
         if (!state.messages.some(m => m.id === message.id)) {
           state.messages.push(message);
+          // Failsafe sort: Use current time as fallback if created_at is somehow missing
+          state.messages.sort((a, b) => {
+            const timeA = a.created_at ? new Date(a.created_at).getTime() : Date.now();
+            const timeB = b.created_at ? new Date(b.created_at).getTime() : Date.now();
+            return timeA - timeB;
+          });
         }
       }
     },
@@ -303,9 +351,68 @@ const messagingSlice = createSlice({
       }
       state.typingStatus[threadId][userId] = isTyping;
     },
+    markMessagesRead: (state, action: { payload: { threadId: string; messageIds: string[] } }) => {
+      const { threadId, messageIds } = action.payload;
+      
+      // Update thread messages in list
+      const thread = state.threads.find(t => t.id === threadId);
+      if (thread && thread.messages) {
+        thread.messages.forEach(msg => {
+          if (messageIds.includes(msg.id)) {
+            msg.status = 'READ';
+          }
+        });
+      }
+      
+      // Update current thread messages
+      if (state.currentThread?.id === threadId && state.currentThread.messages) {
+        state.currentThread.messages.forEach(msg => {
+          if (messageIds.includes(msg.id)) {
+            msg.status = 'READ';
+          }
+        });
+      }
+      
+      // Update the main messages list
+      if (state.currentThread?.id === threadId) {
+        state.messages.forEach(msg => {
+          if (messageIds.includes(msg.id)) {
+            msg.status = 'READ';
+          }
+        });
+      }
+    },
+    addOptimisticMessage: (state, action: { payload: { threadId: string; message: Message } }) => {
+      const { threadId, message } = action.payload;
+      const inCurrentThread = state.currentThread?.id === threadId;
+      
+      if (inCurrentThread) {
+        // Ensure optimistic message has a timestamp for sorting
+        const msgWithTime = {
+          ...message,
+          created_at: message.created_at || new Date().toISOString()
+        };
+
+        state.messages.push(msgWithTime);
+        if (state.currentThread) {
+          if (!state.currentThread.messages) state.currentThread.messages = [];
+          state.currentThread.messages.push(msgWithTime);
+        }
+        
+        // Robust sort
+        state.messages.sort((a, b) => {
+          const timeA = a.created_at ? new Date(a.created_at).getTime() : Date.now();
+          const timeB = b.created_at ? new Date(b.created_at).getTime() : Date.now();
+          return timeA - timeB;
+        });
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
+      .addCase(fetchUnreadCount.fulfilled, (state, action) => {
+        state.unreadCount = action.payload;
+      })
       .addCase(fetchThreads.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -316,7 +423,8 @@ const messagingSlice = createSlice({
         const payload = action.payload as unknown;
         const threads = Array.isArray(payload) ? payload : ((payload as { results?: unknown[] })?.results || []);
         state.threads = threads as Thread[];
-        state.unreadCount = (threads as any[]).reduce((sum, t) => sum + (t.unread_count || 0), 0);
+        // Removed: state.unreadCount = (threads as any[]).reduce((sum, t) => sum + (t.unread_count || 0), 0);
+        // We now rely on fetchUnreadCount and real-time updates for global unreadCount accuracy.
       })
       .addCase(fetchThreads.rejected, (state, action) => {
         state.isLoading = false;
@@ -324,7 +432,28 @@ const messagingSlice = createSlice({
       })
       .addCase(fetchThread.fulfilled, (state, action) => {
         state.isLoading = false;
+        if (!action.payload) return;
+
+        // If loading a DIFFERENT thread, clear existing data immediately to prevent cross-pollination
+        if (state.currentThread?.id !== action.payload.id) {
+          state.messages = [];
+          state.processedMessageIds = [];
+        }
+
+        // Set current thread metadata
         state.currentThread = action.payload;
+        
+        // Use thread detail messages ONLY as an initial fallback
+        if (state.messages.length === 0 && action.payload.messages) {
+           state.messages = [...action.payload.messages];
+        }
+
+        // Register IDs
+        action.payload.messages?.forEach((m: Message) => {
+          if (!state.processedMessageIds.includes(m.id)) {
+            state.processedMessageIds.push(m.id);
+          }
+        });
       })
       .addCase(fetchThread.pending, (state) => {
         state.isLoading = true;
@@ -337,11 +466,55 @@ const messagingSlice = createSlice({
       })
       .addCase(fetchThreadMessages.pending, (state) => {
         state.isLoadingMessages = true;
+        // Removed: state.messages = [] or similar if it was here. 
+        // Keep existing messages during refresh for a seamless experience.
       })
       .addCase(fetchThreadMessages.fulfilled, (state, action) => {
         state.isLoadingMessages = false;
-        state.messages = action.payload.messages;
+        
+        const { threadId, page = 1 } = action.meta.arg;
+        const fetchedMessages = action.payload.messages || [];
+        
+        // Update pagination state
+        state.pagination.page = page;
         state.pagination.hasMore = !!action.payload.next;
+
+        // API returns newest first, so we reverse for chronological display [Oldest -> Newest]
+        const chronologicalFetched = [...fetchedMessages].reverse();
+
+        // Register all fetched IDs in processedMessageIds to prevent redundant WS processing
+        chronologicalFetched.forEach(m => {
+          if (!state.processedMessageIds.includes(m.id)) {
+            state.processedMessageIds.push(m.id);
+          }
+        });
+        if (state.processedMessageIds.length > 300) {
+          state.processedMessageIds = state.processedMessageIds.slice(-200);
+        }
+        
+        if (page === 1) {
+          // Server-Wins Strategy for Page 1 refresh:
+          // We trust the server for confirmed messages, but MUST keep local optimistic ones.
+          const optimisticMessages = state.messages.filter(m => m.id.startsWith('temp-'));
+          
+          // Deduplicate: If an optimistic message was confirmed, the server version wins.
+          // (Though usually optimisticIds are unique and replaced via sendMessage.fulfilled)
+          
+          state.messages = [...chronologicalFetched, ...optimisticMessages];
+          
+          // Final failsafe sort to keep optimistic at bottom and history chronological
+          state.messages.sort((a, b) => {
+            const timeA = a.created_at ? new Date(a.created_at).getTime() : Date.now();
+            const timeB = b.created_at ? new Date(b.created_at).getTime() : Date.now();
+            return timeA - timeB;
+          });
+        } else {
+          // For Page > 1 (loading history), prepend unique older messages
+          const existingIds = new Set(state.messages.map(m => m.id));
+          const newUniqueMessages = chronologicalFetched.filter(m => !existingIds.has(m.id));
+          
+          state.messages = [...newUniqueMessages, ...state.messages];
+        }
       })
       .addCase(fetchThreadMessages.rejected, (state, action) => {
         state.isLoadingMessages = false;
@@ -349,18 +522,77 @@ const messagingSlice = createSlice({
       })
       .addCase(sendMessage.fulfilled, (state, action) => {
         const { threadId, message } = action.payload;
+        const { optimisticId } = action.meta.arg;
+        
         const thread = state.threads.find((t) => t.id === threadId);
-        if (thread) {
-          thread.messages = [...(thread.messages || []), message];
-          thread.message_count += 1;
+        const inCurrentThread = state.currentThread?.id === threadId;
+
+        // 1. Remove specific optimistic message from all locations
+        if (optimisticId) {
+          if (thread && thread.messages) {
+            thread.messages = thread.messages.filter(m => m.id !== optimisticId);
+          }
+          if (inCurrentThread) {
+            state.messages = state.messages.filter(m => m.id !== optimisticId);
+            if (state.currentThread && state.currentThread.messages) {
+              state.currentThread.messages = state.currentThread.messages.filter(m => m.id !== optimisticId);
+            }
+          }
         }
-        if (state.currentThread?.id === threadId) {
-          state.currentThread.messages = [...(state.currentThread.messages || []), message];
-          state.currentThread.message_count += 1;
+        
+        // 2. Add to processed IDs (idempotent unread count logic not needed for SENT messages)
+        if (!state.processedMessageIds.includes(message.id)) {
+          state.processedMessageIds.push(message.id);
+          if (state.processedMessageIds.length > 100) {
+            state.processedMessageIds.shift();
+          }
+        }
+        
+        // 3. Update thread list entry (Idempotent)
+        if (thread) {
+          if (!thread.messages) thread.messages = [];
+          if (!thread.messages.some(m => m.id === message.id)) {
+            thread.messages.push(message);
+            thread.message_count = (thread.message_count || 0) + 1;
+          }
+        }
+        
+        // 4. Update current thread view (Idempotent)
+        if (inCurrentThread) {
+          if (state.currentThread) {
+            if (!state.currentThread.messages) state.currentThread.messages = [];
+            if (!state.currentThread.messages.some(m => m.id === message.id)) {
+              state.currentThread.messages.push(message);
+              state.currentThread.message_count = (state.currentThread.message_count || 0) + 1;
+            }
+          }
           
-          // Also update the main messages list
           if (!state.messages.some(m => m.id === message.id)) {
             state.messages.push(message);
+            // Failsafe sort
+            state.messages.sort((a, b) => {
+              const timeA = a.created_at ? new Date(a.created_at).getTime() : Date.now();
+              const timeB = b.created_at ? new Date(b.created_at).getTime() : Date.now();
+              return timeA - timeB;
+            });
+          }
+        }
+      })
+      .addCase(sendMessage.rejected, (state, action) => {
+        const { threadId, optimisticId } = action.meta.arg;
+        state.error = action.payload as string;
+        
+        // Remove the failed optimistic message so it doesn't stay stuck in "sending" state forever
+        if (optimisticId) {
+          const thread = state.threads.find((t) => t.id === threadId);
+          if (thread && thread.messages) {
+            thread.messages = thread.messages.filter(m => m.id !== optimisticId);
+          }
+          if (state.currentThread?.id === threadId) {
+            state.messages = state.messages.filter(m => m.id !== optimisticId);
+            if (state.currentThread.messages) {
+              state.currentThread.messages = state.currentThread.messages.filter(m => m.id !== optimisticId);
+            }
           }
         }
       })
@@ -368,13 +600,14 @@ const messagingSlice = createSlice({
         state.error = action.payload as string;
       })
       .addCase(markThreadRead.fulfilled, (state, action) => {
-        const threadId = action.payload;
-        const thread = state.threads.find(t => t.id === threadId);
+        const { threadId, count } = action.payload;
         
+        // Decrement global unread count using the backend's returned count
+        // This is more reliable than local state, especially if thread not in list
+        state.unreadCount = Math.max(0, state.unreadCount - count);
+        
+        const thread = state.threads.find(t => t.id === threadId);
         if (thread) {
-          // Decrement unreadCount by the thread's unread count before clearing it
-          const threadUnread = (thread as any).unread_count || 0;
-          state.unreadCount = Math.max(0, state.unreadCount - threadUnread);
           (thread as any).unread_count = 0;
         }
         
@@ -385,5 +618,5 @@ const messagingSlice = createSlice({
   },
 });
 
-export const { clearCurrentThread, clearError, addMessage, appendMessages, setTyping } = messagingSlice.actions;
+export const { clearCurrentThread, clearError, addMessage, appendMessages, setTyping, markMessagesRead, addOptimisticMessage } = messagingSlice.actions;
 export default messagingSlice.reducer;

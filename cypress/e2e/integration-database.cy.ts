@@ -16,6 +16,9 @@ describe('KIBOSS E2E Integration Tests', () => {
   let authToken: string = '';
 
   beforeEach(() => {
+    // Set location modal as dismissed to prevent it from covering elements
+    window.localStorage.setItem('locationModalDismissed', 'true');
+
     // Get auth token for authenticated requests
     cy.request({
       method: 'POST',
@@ -105,7 +108,7 @@ describe('KIBOSS E2E Integration Tests', () => {
         route_name: `E2E Test Route ${Date.now()}`,
         origin: 'E2E Origin',
         destination: 'E2E Destination',
-        departure_time: new Date(Date.now() + 86400000).toISOString(),
+        departure_time: new Date(Date.now() + 315360000000).toISOString(), // 10 years from now
         total_seats: 4,
         seat_price: 35.00,
         currency: 'USD',
@@ -198,7 +201,7 @@ describe('KIBOSS E2E Integration Tests', () => {
         route_name: `Persistence Test Ride ${Date.now()}`,
         origin: 'Persistence Origin',
         destination: 'Persistence Destination',
-        departure_time: new Date(Date.now() + 172800000).toISOString(),
+        departure_time: new Date(Date.now() + 315360000000).toISOString(), // 10 years from now
         total_seats: 3,
         seat_price: 45.00,
         currency: 'USD',
@@ -326,7 +329,7 @@ describe('KIBOSS E2E Integration Tests', () => {
         route_name: `Contract Ride Test ${Date.now()}`,
         origin: 'Contract Origin',
         destination: 'Contract Destination',
-        departure_time: new Date(Date.now() + 259200000).toISOString(),
+        departure_time: new Date(Date.now() + 315360000000).toISOString(), // 10 years from now
         total_seats: 2,
         seat_price: 55.00,
         currency: 'USD',

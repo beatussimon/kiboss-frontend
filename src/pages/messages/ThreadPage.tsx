@@ -2,7 +2,14 @@ import { useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../app/store';
-import { fetchThread, fetchThreadMessages, sendMessage, markThreadRead } from '../../features/messaging/messagingSlice';
+import { 
+  fetchThread, 
+  fetchThreadMessages, 
+  sendMessage, 
+  markThreadRead, 
+  addOptimisticMessage,
+  clearCurrentThread 
+} from '../../features/messaging/messagingSlice';
 import { useChatWebSocket } from '../../features/messaging/useChatWebSocket';
 import { getMediaUrl } from '../../utils/media';
 import { useState } from 'react';
@@ -27,21 +34,31 @@ export default function ThreadPage() {
   const otherUser = getOtherParticipant();
   const isOtherTyping = !!(threadId && typingStatus[threadId] && otherUser && typingStatus[threadId][otherUser.id]);
 
+  const prevThreadIdRef = useRef<string | undefined>(threadId);
+
   useEffect(() => {
     if (threadId) {
       dispatch(fetchThread(threadId));
+      // Force fetch the latest page of messages to ensure most recent content is visible
       dispatch(fetchThreadMessages({ threadId, page: 1 }));
+      // Mark as read only once on mount to clear history
       dispatch(markThreadRead(threadId));
     }
+
+    // Cleanup when threadId changes or component unmounts
+    return () => {
+      const isActuallySwitching = prevThreadIdRef.current !== undefined && prevThreadIdRef.current !== threadId;
+      dispatch(clearCurrentThread());
+      prevThreadIdRef.current = threadId;
+    };
   }, [dispatch, threadId]);
 
   useEffect(() => {
-    if (messages.length > 0 && threadId) {
-      // Mark as read whenever new messages arrive and we are in the thread
-      dispatch(markThreadRead(threadId));
-    }
+    // We still want to scroll to bottom on new messages,
+    // but we don't need to call the markThreadRead API here
+    // because useChatWebSocket.ts already sends a real-time read receipt.
     scrollToBottom();
-  }, [messages, isOtherTyping, threadId, dispatch]);
+  }, [messages, isOtherTyping]);
 
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
@@ -52,16 +69,40 @@ export default function ThreadPage() {
   const handleSend = async () => {
     if (!message.trim() && !attachment) return;
     
-    if (attachment) {
-      const attachments = [attachment];
-      await dispatch(sendMessage({ threadId: threadId!, content: message, attachments }));
-    } else {
-      await dispatch(sendMessage({ threadId: threadId!, content: message }));
-    }
+    const content = message;
+    const files = attachment ? [attachment] : undefined;
     
+    // Create optimistic message
+    const tempId = `temp-${Date.now()}`;
+    const optimisticMsg = {
+      id: tempId,
+      thread: threadId!,
+      sender: {
+        id: user!.id,
+        email: user!.email,
+        first_name: user!.first_name,
+        last_name: user!.last_name,
+      },
+      content: content,
+      content_type: 'text/plain',
+      status: 'SENT',
+      attachments: [],
+      created_at: new Date().toISOString(),
+    } as any;
+
+    // Dispatch optimistic update
+    dispatch(addOptimisticMessage({ threadId: threadId!, message: optimisticMsg }));
+    
+    // Clear input immediately for better UX
     setMessage('');
     setAttachment(null);
     sendTyping(false);
+    
+    if (files) {
+      await dispatch(sendMessage({ threadId: threadId!, content, attachments: files, optimisticId: tempId }));
+    } else {
+      await dispatch(sendMessage({ threadId: threadId!, content, optimisticId: tempId }));
+    }
   };
 
   const handleTyping = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -161,7 +202,7 @@ export default function ThreadPage() {
           </div>
         )}
         
-        {messages.length === 0 && !isLoadingMessages && (
+        {messages.length === 0 && !isLoading && !isLoadingMessages && (
           <div className="flex flex-col items-center justify-center h-full text-center space-y-3 opacity-60">
             <div className="bg-white p-4 rounded-full shadow-sm">
               <Send className="h-8 w-8 text-primary-200" />

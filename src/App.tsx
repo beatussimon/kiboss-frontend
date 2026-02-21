@@ -74,7 +74,7 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
 
 function App() {
   const dispatch = useDispatch<AppDispatch>();
-  const { isAuthenticated, accessToken, user } = useSelector((state: RootState) => state.auth);
+  const { accessToken, user } = useSelector((state: RootState) => state.auth);
 
   useEffect(() => {
     if (accessToken && !user) {
@@ -84,7 +84,7 @@ function App() {
 
   return (
     <Routes>
-      {/* Public Routes */}
+      {/* Auth Routes */}
       <Route element={<AuthLayout />}>
         <Route
           path="/login"

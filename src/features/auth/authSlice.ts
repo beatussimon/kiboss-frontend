@@ -6,7 +6,7 @@ const initialState: AuthState = {
   user: null,
   accessToken: localStorage.getItem('accessToken'),
   refreshToken: localStorage.getItem('refreshToken'),
-  isAuthenticated: false,
+  isAuthenticated: !!localStorage.getItem('accessToken'),
   isLoading: false,
   error: null,
 };
@@ -110,9 +110,10 @@ const authSlice = createSlice({
         state.refreshToken = action.payload.refreshToken;
         state.user = action.payload.user;
       })
-      .addCase(login.rejected, (state) => {
+      .addCase(login.rejected, (state, action) => {
         state.isLoading = false;
         state.isAuthenticated = false;
+        state.error = action.payload as string;
       })
       .addCase(register.pending, (state) => {
         state.isLoading = true;

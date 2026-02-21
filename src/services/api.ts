@@ -85,12 +85,19 @@ api.interceptors.response.use(
       } else {
         // No refresh token - logout user
         storeRef?.dispatch({ type: 'auth/logout' });
-        window.location.href = '/login';
+        
+        // Only redirect if not already on an auth page
+        const currentPath = window.location.pathname;
+        if (currentPath !== '/login' && currentPath !== '/register') {
+          window.location.href = '/login';
+        }
       }
     }
     
     // Handle other errors
-    let message = error.response?.data?.message || 'An unexpected error occurred';
+    let message = (error.response?.data as any)?.error?.message || 
+                  error.response?.data?.message || 
+                  'An unexpected error occurred';
     
     // Log detailed error information for debugging
     if (error.response) {
@@ -105,11 +112,16 @@ api.interceptors.response.use(
       console.error('API Error:', error.message);
     }
     
-    // Handle Django SimpleJWT specific errors
+    // Handle Django SimpleJWT specific errors or other common detail patterns
     if (error.response?.status === 401) {
-      message = error.response?.data?.detail || 'Invalid credentials';
+      message = (error.response?.data as any)?.error?.message || 
+                error.response?.data?.detail || 
+                'Invalid credentials';
     } else if (error.response?.status === 400) {
-      message = error.response?.data?.detail || error.response?.data?.message || 'Invalid request';
+      message = (error.response?.data as any)?.error?.message || 
+                error.response?.data?.detail || 
+                error.response?.data?.message || 
+                'Invalid request';
     }
     
     console.error('API Error:', message);
