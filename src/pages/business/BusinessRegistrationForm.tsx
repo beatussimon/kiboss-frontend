@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Building2, 
-  FileText, 
-  CheckCircle, 
-  CreditCard, 
-  ChevronRight, 
-  ChevronLeft, 
-  Upload, 
+import {
+  Building2,
+  FileText,
+  CheckCircle,
+  CreditCard,
+  ChevronRight,
+  ChevronLeft,
+  Upload,
   ShieldCheck,
   Zap,
   Star,
@@ -37,7 +37,7 @@ export default function BusinessRegistrationForm({ initialPlan = 'MONTHLY', onCa
   const [isLoading, setIsLoading] = useState(false);
   const [isConfigLoading, setIsConfigLoading] = useState(true);
   const [config, setConfig] = useState<BusinessConfig | null>(null);
-  
+
   const [formData, setFormData] = useState({
     company_name: '',
     registration_number: '',
@@ -98,16 +98,14 @@ export default function BusinessRegistrationForm({ initialPlan = 'MONTHLY', onCa
       finalFormData.append('country', formData.country);
       finalFormData.append('plan_type', formData.plan_type);
       finalFormData.append('payment_reference', formData.payment_reference);
-      
+
       documents.forEach(doc => {
         finalFormData.append('documents', doc);
       });
 
       // 2. Submit everything in one atomic request
-      await api.post('/users/business/register/', finalFormData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-      
+      await api.post('/users/business/register/', finalFormData);
+
       toast.success('Business application submitted successfully!');
       // Navigate to dashboard where they can see the pending status
       navigate('/business/dashboard');
@@ -139,14 +137,12 @@ export default function BusinessRegistrationForm({ initialPlan = 'MONTHLY', onCa
         ].map((item, idx) => (
           <div key={item.s} className="flex items-center flex-shrink-0">
             <div className={`flex flex-col items-center group`}>
-              <div className={`h-9 w-9 md:h-12 md:w-12 rounded-xl md:rounded-2xl flex items-center justify-center transition-all ${
-                step >= item.s ? 'bg-primary-600 text-white shadow-lg md:shadow-xl shadow-primary-200' : 'bg-white text-gray-300 border-2 border-gray-100'
-              }`}>
+              <div className={`h-9 w-9 md:h-12 md:w-12 rounded-xl md:rounded-2xl flex items-center justify-center transition-all ${step >= item.s ? 'bg-primary-600 text-white shadow-lg md:shadow-xl shadow-primary-200' : 'bg-white text-gray-300 border-2 border-gray-100'
+                }`}>
                 <item.icon className="h-4 w-4 md:h-5 md:w-5" />
               </div>
-              <span className={`text-[7px] md:text-[10px] font-black uppercase mt-1.5 tracking-widest ${
-                step >= item.s ? 'text-gray-900' : 'text-gray-300'
-              }`}>{item.label}</span>
+              <span className={`text-[7px] md:text-[10px] font-black uppercase mt-1.5 tracking-widest ${step >= item.s ? 'text-gray-900' : 'text-gray-300'
+                }`}>{item.label}</span>
             </div>
             {idx < 3 && <div className={`w-6 md:w-24 h-0.5 md:h-1 mx-2 md:mx-4 rounded-full ${step > item.s ? 'bg-primary-600' : 'bg-gray-100'}`} />}
           </div>
@@ -163,23 +159,23 @@ export default function BusinessRegistrationForm({ initialPlan = 'MONTHLY', onCa
                   <h2 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tighter mb-1">Terms of Business</h2>
                   <p className="text-gray-500 text-xs md:text-sm font-medium">Accept policies before proceeding.</p>
                 </div>
-                
+
                 <div className="bg-gray-50 p-4 md:p-6 rounded-xl md:rounded-2xl border-2 border-gray-100 h-48 md:h-64 overflow-y-auto text-[11px] md:text-sm text-gray-600 leading-relaxed space-y-3 font-medium custom-scrollbar">
-                   <p className="font-bold text-gray-900 uppercase">1. Verification Standard</p>
-                   <p>{config?.terms}</p>
-                   <p className="font-bold text-gray-900 uppercase">2. Service Continuity</p>
-                   <p>Business accounts require an active subscription. Interruption in payment may lead to immediate delisting of corporate assets.</p>
-                   <p className="font-bold text-gray-900 uppercase">3. Legal Responsibility</p>
-                   <p>The business entity assumes full legal liability for all services listed. All documentation provided must be authentic.</p>
+                  <p className="font-bold text-gray-900 uppercase">1. Verification Standard</p>
+                  <p>{config?.terms}</p>
+                  <p className="font-bold text-gray-900 uppercase">2. Service Continuity</p>
+                  <p>Business accounts require an active subscription. Interruption in payment may lead to immediate delisting of corporate assets.</p>
+                  <p className="font-bold text-gray-900 uppercase">3. Legal Responsibility</p>
+                  <p>The business entity assumes full legal liability for all services listed. All documentation provided must be authentic.</p>
                 </div>
 
                 <div className="flex items-start gap-2 p-4 md:p-6 bg-primary-50 rounded-xl md:rounded-2xl border border-primary-100">
-                  <input 
-                    type="checkbox" 
-                    id="terms" 
-                    className="mt-0.5 md:mt-1 h-4 w-4 md:h-5 md:w-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500 cursor-pointer" 
+                  <input
+                    type="checkbox"
+                    id="terms"
+                    className="mt-0.5 md:mt-1 h-4 w-4 md:h-5 md:w-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
                     checked={formData.agreed_to_terms}
-                    onChange={(e) => setFormData({...formData, agreed_to_terms: e.target.checked})}
+                    onChange={(e) => setFormData({ ...formData, agreed_to_terms: e.target.checked })}
                   />
                   <label htmlFor="terms" className="text-xs md:text-sm text-primary-900 font-bold leading-tight cursor-pointer">
                     I agree to the Terms & Conditions and the manual verification protocol.
@@ -197,33 +193,33 @@ export default function BusinessRegistrationForm({ initialPlan = 'MONTHLY', onCa
                 <div className="space-y-4">
                   <div>
                     <label className="text-[9px] md:text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 block">Official Company Name</label>
-                    <input 
-                      type="text" 
-                      className="input py-3 md:py-4 font-bold text-base md:text-lg" 
+                    <input
+                      type="text"
+                      className="input py-3 md:py-4 font-bold text-base md:text-lg"
                       placeholder="e.g. Grand Plaza Hotels Ltd"
                       value={formData.company_name}
-                      onChange={(e) => setFormData({...formData, company_name: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, company_name: e.target.value })}
                     />
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="text-[9px] md:text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 block">Reg. Number</label>
-                      <input 
-                        type="text" 
-                        className="input font-bold" 
+                      <input
+                        type="text"
+                        className="input font-bold"
                         placeholder="Business License ID"
                         value={formData.registration_number}
-                        onChange={(e) => setFormData({...formData, registration_number: e.target.value})}
+                        onChange={(e) => setFormData({ ...formData, registration_number: e.target.value })}
                       />
                     </div>
                     <div>
                       <label className="text-[9px] md:text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 block">Tax ID / TIN</label>
-                      <input 
-                        type="text" 
-                        className="input font-bold" 
+                      <input
+                        type="text"
+                        className="input font-bold"
                         placeholder="VAT Number"
                         value={formData.tax_id}
-                        onChange={(e) => setFormData({...formData, tax_id: e.target.value})}
+                        onChange={(e) => setFormData({ ...formData, tax_id: e.target.value })}
                       />
                     </div>
                   </div>
@@ -239,11 +235,11 @@ export default function BusinessRegistrationForm({ initialPlan = 'MONTHLY', onCa
                 </div>
                 <div className="space-y-4">
                   <div className="p-6 md:p-8 border-4 border-dashed border-gray-100 rounded-2xl md:rounded-[2.5rem] bg-gray-50/50 text-center group hover:border-primary-200 transition-all">
-                    <input 
-                      type="file" 
-                      id="doc-upload" 
-                      multiple 
-                      className="hidden" 
+                    <input
+                      type="file"
+                      id="doc-upload"
+                      multiple
+                      className="hidden"
                       onChange={handleFileChange}
                     />
                     <label htmlFor="doc-upload" className="cursor-pointer flex flex-col items-center">
@@ -279,7 +275,7 @@ export default function BusinessRegistrationForm({ initialPlan = 'MONTHLY', onCa
                   <h2 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tighter mb-1">Payment Verification</h2>
                   <p className="text-gray-500 text-xs md:text-sm font-medium">Complete {formData.plan_type.toLowerCase()} plan via Zenopay.</p>
                 </div>
-                
+
                 <div className="p-5 md:p-8 bg-gray-900 rounded-2xl md:rounded-[2.5rem] text-white relative overflow-hidden shadow-2xl">
                   <div className="absolute top-0 right-0 w-40 h-40 bg-primary-600/20 rounded-full blur-3xl -mr-20 -mt-20" />
                   <div className="relative space-y-4 md:space-y-6">
@@ -302,12 +298,12 @@ export default function BusinessRegistrationForm({ initialPlan = 'MONTHLY', onCa
                       </p>
                       <div>
                         <label className="text-[9px] md:text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 block">Zenopay Transaction Reference</label>
-                        <input 
-                          type="text" 
-                          className="w-full bg-white/5 border border-white/10 rounded-xl md:rounded-2xl p-3 md:p-4 text-primary-400 font-black text-base md:text-lg focus:ring-2 focus:ring-primary-500 focus:outline-none placeholder:text-gray-700" 
+                        <input
+                          type="text"
+                          className="w-full bg-white/5 border border-white/10 rounded-xl md:rounded-2xl p-3 md:p-4 text-primary-400 font-black text-base md:text-lg focus:ring-2 focus:ring-primary-500 focus:outline-none placeholder:text-gray-700"
                           placeholder="e.g. ZNP-882-991-X"
                           value={formData.payment_reference}
-                          onChange={(e) => setFormData({...formData, payment_reference: e.target.value})}
+                          onChange={(e) => setFormData({ ...formData, payment_reference: e.target.value })}
                         />
                       </div>
                     </div>
@@ -317,15 +313,15 @@ export default function BusinessRegistrationForm({ initialPlan = 'MONTHLY', onCa
             )}
 
             <div className="mt-auto pt-8 flex gap-3 flex-col sm:flex-row">
-              <button 
+              <button
                 onClick={() => step === 1 ? (onCancel ? onCancel() : navigate(-1)) : setStep(step - 1)}
                 className="order-2 sm:order-1 px-6 py-3 md:py-4 bg-white border-2 border-gray-100 rounded-xl md:rounded-2xl font-black text-gray-400 uppercase tracking-widest hover:bg-gray-50 transition-all flex items-center justify-center gap-2 text-xs"
               >
                 <ChevronLeft className="h-3 w-3 md:h-4 md:w-4" /> {step === 1 ? 'Cancel' : 'Back'}
               </button>
-              
+
               {step < 4 ? (
-                <button 
+                <button
                   onClick={() => {
                     if (step === 1 && !formData.agreed_to_terms) {
                       toast.error('Please accept the terms to continue');
@@ -342,7 +338,7 @@ export default function BusinessRegistrationForm({ initialPlan = 'MONTHLY', onCa
                   Continue <ChevronRight className="h-3 w-3 md:h-4 md:w-4" />
                 </button>
               ) : (
-                <button 
+                <button
                   onClick={handleSubmit}
                   disabled={isLoading}
                   className="order-1 sm:order-2 btn-primary flex-1 py-3 md:py-4 text-xs md:text-sm font-black uppercase tracking-widest shadow-xl shadow-primary-500/20 flex items-center justify-center gap-3"

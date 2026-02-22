@@ -28,7 +28,7 @@ const initialState: RidesState = {
 
 export const fetchRides = createAsyncThunk(
   'rides/fetchRides',
-  async (params: { origin?: string; destination?: string; departure_date?: string; available_seats?: number } = {}, { rejectWithValue }) => {
+  async (params: { origin?: string; destination?: string; departure_date?: string; available_seats?: number; page?: number } = {}, { rejectWithValue }) => {
     try {
       const response = await api.get<PaginatedResponse<Ride>>('/rides/trips/', { params });
       return response.data;
@@ -43,8 +43,8 @@ export const fetchRideManifest = createAsyncThunk(
   'rides/fetchRideManifest',
   async (rideId: string, { rejectWithValue }) => {
     try {
-      const response = await api.get<PaginatedResponse<SeatBooking>>('/rides/bookings/', { 
-        params: { ride: rideId } 
+      const response = await api.get<PaginatedResponse<SeatBooking>>('/rides/bookings/', {
+        params: { ride: rideId }
       });
       // Return only the results array to the reducer if expected
       return response.data.results || (response.data as any);
@@ -98,8 +98,8 @@ export const fetchMyBookings = createAsyncThunk(
   'rides/fetchMyBookings',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await api.get<SeatBooking[]>('/rides/bookings/', { 
-        params: { passenger: 'me' } 
+      const response = await api.get<SeatBooking[]>('/rides/bookings/', {
+        params: { passenger: 'me' }
       });
       return response.data;
     } catch (error: unknown) {
@@ -113,8 +113,8 @@ export const fetchMyDrives = createAsyncThunk(
   'rides/fetchMyDrives',
   async (params: { status?: string } = {}, { rejectWithValue }) => {
     try {
-      const response = await api.get<PaginatedResponse<Ride>>('/rides/trips/', { 
-        params: { driver: 'me', ...params } 
+      const response = await api.get<PaginatedResponse<Ride>>('/rides/trips/', {
+        params: { driver: 'me', ...params }
       });
       return response.data;
     } catch (error: unknown) {
@@ -124,13 +124,13 @@ export const fetchMyDrives = createAsyncThunk(
   }
 );
 
-  export const cancelSeatBooking = createAsyncThunk(
-    'rides/cancelSeatBooking',
-    async ({ rideId, seatBookingId, reason }: { rideId: string; seatBookingId: string; reason?: string }, { rejectWithValue }) => {
-      try {
-        const response = await api.post(`/rides/bookings/${seatBookingId}/cancel/`, { reason });
-        return response.data;
-      } catch (error: unknown) {
+export const cancelSeatBooking = createAsyncThunk(
+  'rides/cancelSeatBooking',
+  async ({ rideId, seatBookingId, reason }: { rideId: string; seatBookingId: string; reason?: string }, { rejectWithValue }) => {
+    try {
+      const response = await api.post(`/rides/bookings/${seatBookingId}/cancel/`, { reason });
+      return response.data;
+    } catch (error: unknown) {
 
       const axiosError = error as { response?: { data?: { message?: string } } };
       return rejectWithValue(axiosError.response?.data?.message || 'Failed to cancel booking');
@@ -188,9 +188,16 @@ const ridesSlice = createSlice({
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(fetchRides.fulfilled, (state, action: PayloadAction<PaginatedResponse<Ride>>) => {
+      .addCase(fetchRides.fulfilled, (state, action: any) => {
         state.isLoading = false;
-        state.rides = action.payload.results || [];
+        const page = action.meta.arg?.page || 1;
+        if (page > 1) {
+          const newRides = action.payload.results || [];
+          const existingIds = new Set(state.rides.map(r => r.id));
+          state.rides = [...state.rides, ...newRides.filter((r: Ride) => !existingIds.has(r.id))];
+        } else {
+          state.rides = action.payload.results || [];
+        }
         state.count = action.payload.count || 0;
       })
       .addCase(fetchRides.rejected, (state, action) => {

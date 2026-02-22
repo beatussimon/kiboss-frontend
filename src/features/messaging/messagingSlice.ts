@@ -79,8 +79,8 @@ export const fetchThreadMessages = createAsyncThunk(
       const response = await api.get<PaginatedResponse<Message>>(`/messaging/threads/${threadId}/message_list/`, {
         params: { page, page_size: pageSize }
       });
-      return { 
-        messages: response.data.results, 
+      return {
+        messages: response.data.results,
         count: response.data.count,
         next: response.data.next,
         previous: response.data.previous
@@ -112,20 +112,20 @@ export const createContextualThread = createAsyncThunk(
       const response = await api.post<Thread>('/messaging/threads/create_contextual/', data);
       return response.data;
     } catch (error: unknown) {
-      const axiosError = error as { 
-        response?: { 
-          data?: { 
-            error?: string | { message?: string; code?: string }; 
+      const axiosError = error as {
+        response?: {
+          data?: {
+            error?: string | { message?: string; code?: string };
             message?: string;
             code?: string;
-          } 
-        } 
+          }
+        }
       };
       // Extract error message from various response formats
       // Backend can return: {error: {message: ...}} or {error: ...} or {message: ...}
       const errorData = axiosError.response?.data;
       let errorMessage = 'Failed to create contextual thread';
-      
+
       if (errorData) {
         // Handle custom exception handler format: {error: {message: ..., code: ...}}
         if (typeof errorData.error === 'object' && errorData.error !== null) {
@@ -164,13 +164,9 @@ export const uploadAttachment = createAsyncThunk(
       const formData = new FormData();
       formData.append('message', messageId);
       formData.append('file', file);
-      
+
       // Don't set Content-Type manually - axios will set it with correct boundary
-      const response = await api.post('/messaging/attachments/', formData, {
-        headers: {
-          'Content-Type': null as unknown as string,
-        },
-      });
+      const response = await api.post('/messaging/attachments/', formData);
       return response.data;
     } catch (error: unknown) {
       const axiosError = error as { response?: { data?: { message?: string } } };
@@ -197,29 +193,25 @@ export const sendMessage = createAsyncThunk(
             formData.append('message', message.id);
             formData.append('file', file);
             // Don't set Content-Type manually - axios will set it with correct boundary
-            return api.post('/messaging/attachments/', formData, {
-              headers: {
-                'Content-Type': null as unknown as string,
-              },
-            });
+            return api.post('/messaging/attachments/', formData);
           })
         );
       }
 
       return { threadId, message };
     } catch (error: unknown) {
-      const axiosError = error as { 
-        response?: { 
-          data?: { 
-            error?: string | { message?: string; code?: string }; 
-            message?: string 
-          } 
-        } 
+      const axiosError = error as {
+        response?: {
+          data?: {
+            error?: string | { message?: string; code?: string };
+            message?: string
+          }
+        }
       };
       // Extract error message from various response formats
       const errorData = axiosError.response?.data;
       let errorMessage = 'Failed to send message';
-      
+
       if (errorData) {
         // Handle custom exception handler format: {error: {message: ..., code: ...}}
         if (typeof errorData.error === 'object' && errorData.error !== null) {
@@ -269,13 +261,13 @@ const messagingSlice = createSlice({
     clearCurrentThread: (state, action: { payload?: { isSwitching?: boolean } } = {}) => {
       state.currentThread = null;
       state.messages = [];
-      
+
       // If we are just switching threads, we might want to keep processedMessageIds 
       // to avoid double-processing WS events that arrive during the transition.
       if (!action.payload?.isSwitching) {
         state.processedMessageIds = [];
       }
-      
+
       state.pagination = {
         page: 1,
         pageSize: 20,
@@ -288,7 +280,7 @@ const messagingSlice = createSlice({
     },
     addMessage: (state, action: { payload: { threadId: string; message: Message; isMine?: boolean } }) => {
       const { threadId, message, isMine } = action.payload;
-      
+
       const thread = state.threads.find((t) => t.id === threadId);
       const inCurrentThread = state.currentThread?.id === threadId;
 
@@ -309,7 +301,7 @@ const messagingSlice = createSlice({
           (thread as any).unread_count = ((thread as any).unread_count || 0) + 1;
         }
       }
-      
+
       // 2. Logic for updating message lists (Idempotent)
       // Update thread list entry if exists
       if (thread) {
@@ -319,7 +311,7 @@ const messagingSlice = createSlice({
           thread.message_count = (thread.message_count || 0) + 1;
         }
       }
-      
+
       // Update current thread view if active
       if (inCurrentThread) {
         if (state.currentThread) {
@@ -329,7 +321,7 @@ const messagingSlice = createSlice({
             state.currentThread.message_count = (state.currentThread.message_count || 0) + 1;
           }
         }
-        
+
         if (!state.messages.some(m => m.id === message.id)) {
           state.messages.push(message);
           // Failsafe sort: Use current time as fallback if created_at is somehow missing
@@ -353,7 +345,7 @@ const messagingSlice = createSlice({
     },
     markMessagesRead: (state, action: { payload: { threadId: string; messageIds: string[] } }) => {
       const { threadId, messageIds } = action.payload;
-      
+
       // Update thread messages in list
       const thread = state.threads.find(t => t.id === threadId);
       if (thread && thread.messages) {
@@ -363,7 +355,7 @@ const messagingSlice = createSlice({
           }
         });
       }
-      
+
       // Update current thread messages
       if (state.currentThread?.id === threadId && state.currentThread.messages) {
         state.currentThread.messages.forEach(msg => {
@@ -372,7 +364,7 @@ const messagingSlice = createSlice({
           }
         });
       }
-      
+
       // Update the main messages list
       if (state.currentThread?.id === threadId) {
         state.messages.forEach(msg => {
@@ -385,7 +377,7 @@ const messagingSlice = createSlice({
     addOptimisticMessage: (state, action: { payload: { threadId: string; message: Message } }) => {
       const { threadId, message } = action.payload;
       const inCurrentThread = state.currentThread?.id === threadId;
-      
+
       if (inCurrentThread) {
         // Ensure optimistic message has a timestamp for sorting
         const msgWithTime = {
@@ -398,7 +390,7 @@ const messagingSlice = createSlice({
           if (!state.currentThread.messages) state.currentThread.messages = [];
           state.currentThread.messages.push(msgWithTime);
         }
-        
+
         // Robust sort
         state.messages.sort((a, b) => {
           const timeA = a.created_at ? new Date(a.created_at).getTime() : Date.now();
@@ -442,10 +434,10 @@ const messagingSlice = createSlice({
 
         // Set current thread metadata
         state.currentThread = action.payload;
-        
+
         // Use thread detail messages ONLY as an initial fallback
         if (state.messages.length === 0 && action.payload.messages) {
-           state.messages = [...action.payload.messages];
+          state.messages = [...action.payload.messages];
         }
 
         // Register IDs
@@ -471,10 +463,10 @@ const messagingSlice = createSlice({
       })
       .addCase(fetchThreadMessages.fulfilled, (state, action) => {
         state.isLoadingMessages = false;
-        
+
         const { threadId, page = 1 } = action.meta.arg;
         const fetchedMessages = action.payload.messages || [];
-        
+
         // Update pagination state
         state.pagination.page = page;
         state.pagination.hasMore = !!action.payload.next;
@@ -491,17 +483,17 @@ const messagingSlice = createSlice({
         if (state.processedMessageIds.length > 300) {
           state.processedMessageIds = state.processedMessageIds.slice(-200);
         }
-        
+
         if (page === 1) {
           // Server-Wins Strategy for Page 1 refresh:
           // We trust the server for confirmed messages, but MUST keep local optimistic ones.
           const optimisticMessages = state.messages.filter(m => m.id.startsWith('temp-'));
-          
+
           // Deduplicate: If an optimistic message was confirmed, the server version wins.
           // (Though usually optimisticIds are unique and replaced via sendMessage.fulfilled)
-          
+
           state.messages = [...chronologicalFetched, ...optimisticMessages];
-          
+
           // Final failsafe sort to keep optimistic at bottom and history chronological
           state.messages.sort((a, b) => {
             const timeA = a.created_at ? new Date(a.created_at).getTime() : Date.now();
@@ -512,7 +504,7 @@ const messagingSlice = createSlice({
           // For Page > 1 (loading history), prepend unique older messages
           const existingIds = new Set(state.messages.map(m => m.id));
           const newUniqueMessages = chronologicalFetched.filter(m => !existingIds.has(m.id));
-          
+
           state.messages = [...newUniqueMessages, ...state.messages];
         }
       })
@@ -523,7 +515,7 @@ const messagingSlice = createSlice({
       .addCase(sendMessage.fulfilled, (state, action) => {
         const { threadId, message } = action.payload;
         const { optimisticId } = action.meta.arg;
-        
+
         const thread = state.threads.find((t) => t.id === threadId);
         const inCurrentThread = state.currentThread?.id === threadId;
 
@@ -539,7 +531,7 @@ const messagingSlice = createSlice({
             }
           }
         }
-        
+
         // 2. Add to processed IDs (idempotent unread count logic not needed for SENT messages)
         if (!state.processedMessageIds.includes(message.id)) {
           state.processedMessageIds.push(message.id);
@@ -547,7 +539,7 @@ const messagingSlice = createSlice({
             state.processedMessageIds.shift();
           }
         }
-        
+
         // 3. Update thread list entry (Idempotent)
         if (thread) {
           if (!thread.messages) thread.messages = [];
@@ -556,7 +548,7 @@ const messagingSlice = createSlice({
             thread.message_count = (thread.message_count || 0) + 1;
           }
         }
-        
+
         // 4. Update current thread view (Idempotent)
         if (inCurrentThread) {
           if (state.currentThread) {
@@ -566,7 +558,7 @@ const messagingSlice = createSlice({
               state.currentThread.message_count = (state.currentThread.message_count || 0) + 1;
             }
           }
-          
+
           if (!state.messages.some(m => m.id === message.id)) {
             state.messages.push(message);
             // Failsafe sort
@@ -581,7 +573,7 @@ const messagingSlice = createSlice({
       .addCase(sendMessage.rejected, (state, action) => {
         const { threadId, optimisticId } = action.meta.arg;
         state.error = action.payload as string;
-        
+
         // Remove the failed optimistic message so it doesn't stay stuck in "sending" state forever
         if (optimisticId) {
           const thread = state.threads.find((t) => t.id === threadId);
@@ -601,16 +593,16 @@ const messagingSlice = createSlice({
       })
       .addCase(markThreadRead.fulfilled, (state, action) => {
         const { threadId, count } = action.payload;
-        
+
         // Decrement global unread count using the backend's returned count
         // This is more reliable than local state, especially if thread not in list
         state.unreadCount = Math.max(0, state.unreadCount - count);
-        
+
         const thread = state.threads.find(t => t.id === threadId);
         if (thread) {
           (thread as any).unread_count = 0;
         }
-        
+
         if (state.currentThread?.id === threadId) {
           (state.currentThread as any).unread_count = 0;
         }

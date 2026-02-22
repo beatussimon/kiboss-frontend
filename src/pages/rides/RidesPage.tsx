@@ -20,13 +20,30 @@ export default function RidesPage() {
     departure_date: '',
   });
 
+  const [page, setPage] = useState(1);
+  const observer = useRef<IntersectionObserver | null>(null);
+  const hasMore = rides.length < count;
+
+  const lastRideElementRef = useCallback((node: HTMLAnchorElement | null) => {
+    if (isLoading) return;
+    if (observer.current) observer.current.disconnect();
+    observer.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && hasMore) {
+        setPage(prevPage => prevPage + 1);
+      }
+    });
+    if (node) observer.current.observe(node);
+  }, [isLoading, hasMore]);
+
   // Handle search form submission
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
+    setPage(1);
     dispatch(fetchRides({
       origin: searchParams.origin || undefined,
       destination: searchParams.destination || undefined,
       departure_date: searchParams.departure_date || undefined,
+      page: 1,
     } as any));
   };
 
@@ -35,11 +52,23 @@ export default function RidesPage() {
   // Initial load
   useEffect(() => {
     if (!fetched.current) {
-      dispatch(fetchRides({}));
+      dispatch(fetchRides({ page: 1 } as any));
       dispatch(fetchAssets({ asset_type: 'VEHICLE' }));
       fetched.current = true;
     }
   }, [dispatch]);
+
+  // Load next pages
+  useEffect(() => {
+    if (page > 1) {
+      dispatch(fetchRides({
+        origin: searchParams.origin || undefined,
+        destination: searchParams.destination || undefined,
+        departure_date: searchParams.departure_date || undefined,
+        page,
+      } as any));
+    }
+  }, [page, dispatch]);
 
   // Sort rides by proximity if user location is available
   const sortedRides = useMemo(() => {
@@ -123,7 +152,7 @@ export default function RidesPage() {
         </form>
       </div>
 
-      {isLoading ? (
+      {isLoading && page === 1 ? (
         <div className="space-y-4">
           {[1, 2, 3].map((i) => (
             <div key={i} className="card p-6 animate-pulse">
@@ -139,15 +168,30 @@ export default function RidesPage() {
         </div>
       ) : sortedRides && sortedRides.length > 0 ? (
         <div className="space-y-4">
-          {sortedRides.map((ride) => {
+          {sortedRides.map((ride, index) => {
             const distance = getRideDistance(ride.stops);
+            const isLastElement = index === sortedRides.length - 1;
             return (
-              <Link key={ride.id} to={`/rides/${ride.id}`} className="card p-0 overflow-hidden hover:shadow-xl transition-all block group border-l-4 border-l-transparent hover:border-l-primary-600">
+              <Link key={ride.id} ref={isLastElement ? lastRideElementRef : null} to={`/rides/${ride.id}`} className="card p-0 overflow-hidden hover:shadow-xl transition-all block group border-l-4 border-l-transparent hover:border-l-primary-600">
                 <div className="flex flex-col md:flex-row">
                   {/* Visual Trip Indicator */}
                   <div className="md:w-48 bg-gray-900 p-6 flex flex-col justify-between text-white relative overflow-hidden">
+                    {/* Background Image Logic */}
+                    {((ride as any).photos && (ride as any).photos.length > 0) ? (
+                      <img
+                        src={`http://localhost:8000${(ride as any).photos[0].url}`}
+                        alt="Ride Cover"
+                        className="absolute inset-0 w-full h-full object-cover opacity-40 mix-blend-overlay"
+                      />
+                    ) : ((ride as any).vehicle_asset?.photos && (ride as any).vehicle_asset.photos.length > 0) ? (
+                      <img
+                        src={`http://localhost:8000${(ride as any).vehicle_asset.photos[0].url}`}
+                        alt="Vehicle Cover"
+                        className="absolute inset-0 w-full h-full object-cover opacity-40 mix-blend-overlay"
+                      />
+                    ) : null}
                     <div className="absolute top-0 right-0 w-32 h-32 bg-primary-600/20 rounded-full blur-3xl -mr-16 -mt-16" />
-                    <div>
+                    <div className="relative z-10">
                       <p className="text-[10px] font-black  tracking-[0.2em] text-primary-400 mb-4">Trip Details</p>
                       <div className="space-y-4 relative">
                         <div className="flex items-center gap-3">
@@ -161,8 +205,8 @@ export default function RidesPage() {
                         </div>
                       </div>
                     </div>
-                    <div className="mt-6">
-                      <p className="text-[10px] font-bold text-gray-500 ">Departure</p>
+                    <div className="mt-6 relative z-10">
+                      <p className="text-[10px] font-bold text-gray-400">Departure</p>
                       <p className="text-sm font-black">{new Date(ride.departure_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                     </div>
                   </div>
@@ -206,6 +250,11 @@ export default function RidesPage() {
               </Link>
             )
           })}
+          {isLoading && page > 1 && (
+            <div className="flex justify-center p-4">
+              <Loader2 className="h-6 w-6 animate-spin text-primary-600" />
+            </div>
+          )}
         </div>
       ) : (
         <div className="card p-12 text-center">

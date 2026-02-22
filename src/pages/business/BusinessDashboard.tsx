@@ -3,14 +3,14 @@ import { useSelector, useDispatch } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import { RootState, AppDispatch } from '../../app/store';
 import { fetchAssets } from '../../features/assets/assetsSlice';
-import { 
-  Building2, 
-  Utensils, 
-  Plus, 
-  ShieldCheck, 
-  Clock, 
-  AlertCircle, 
-  ChevronRight, 
+import {
+  Building2,
+  Utensils,
+  Plus,
+  ShieldCheck,
+  Clock,
+  AlertCircle,
+  ChevronRight,
   LayoutDashboard,
   Hotel,
   Coffee,
@@ -42,7 +42,7 @@ export default function BusinessDashboard() {
   const [selectedPlan, setSelectedPlan] = useState<'MONTHLY' | 'YEARLY' | null>(null);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  
+
   // Registration Form State
   const [regData, setRegData] = useState({
     company_name: user?.corporate_profile?.company_name || '',
@@ -52,6 +52,7 @@ export default function BusinessDashboard() {
 
   const isCorporateVerified = user?.corporate_profile?.verification_status === 'VERIFIED';
   const isCorporatePending = user?.corporate_profile?.verification_status === 'PENDING';
+  const isCorporateRejected = user?.corporate_profile?.verification_status === 'REJECTED';
 
   useEffect(() => {
     if (user) {
@@ -70,12 +71,12 @@ export default function BusinessDashboard() {
     try {
       setIsLoading(true);
       // Fetch only parent properties (Hotels/Restaurants) owned by me
-      const res = await api.get('/assets/', { 
-        params: { 
-          owner: 'me', 
+      const res = await api.get('/assets/', {
+        params: {
+          owner: 'me',
           asset_type: 'HOTEL,RESTAURANT',
-          is_active: 'any' 
-        } 
+          is_active: 'any'
+        }
       });
       const data = res.data.results || res.data;
       setProperties(data);
@@ -90,9 +91,9 @@ export default function BusinessDashboard() {
     e.preventDefault();
     setIsLoading(true);
     try {
-      // Patch the profile via the users/me endpoint (which handles corporate profile updates)
-      await api.patch('/users/me/', regData);
-      toast.success('Company information updated!');
+      // Patch the profile via the corporate registration endpoint
+      await api.patch('/users/corporate/register/', regData);
+      toast.success('Company application resubmitted successfully!');
       setIsEditing(false);
       window.location.reload();
     } catch (error: any) {
@@ -109,7 +110,7 @@ export default function BusinessDashboard() {
       await api.post('/users/corporate/register/', regData);
       toast.success('Business registration submitted for verification!');
       // Refresh user data would be ideal here via dispatch
-      window.location.reload(); 
+      window.location.reload();
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Registration failed');
     } finally {
@@ -139,15 +140,15 @@ export default function BusinessDashboard() {
           <p className="text-gray-500 font-medium">
             Our team is currently reviewing your business credentials. You'll be notified via email once your account is activated.
           </p>
-          
+
           <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
-            <button 
+            <button
               onClick={() => setIsEditing(!isEditing)}
               className="px-6 py-3 bg-white border-2 border-gray-100 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-gray-50 transition-all"
             >
               {isEditing ? 'Cancel Editing' : 'Edit Application'}
             </button>
-            <button 
+            <button
               onClick={() => setIsFeedbackOpen(true)}
               className="px-6 py-3 bg-primary-50 text-primary-600 border-2 border-primary-100 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-primary-100 transition-all flex items-center gap-2"
             >
@@ -166,31 +167,31 @@ export default function BusinessDashboard() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="md:col-span-2">
                   <label className="label">Official Company Name</label>
-                  <input 
-                    type="text" 
-                    className="input" 
+                  <input
+                    type="text"
+                    className="input"
                     value={regData.company_name}
-                    onChange={e => setRegData({...regData, company_name: e.target.value})}
+                    onChange={e => setRegData({ ...regData, company_name: e.target.value })}
                     required
                   />
                 </div>
                 <div>
                   <label className="label">Registration Number</label>
-                  <input 
-                    type="text" 
-                    className="input" 
+                  <input
+                    type="text"
+                    className="input"
                     value={regData.registration_number}
-                    onChange={e => setRegData({...regData, registration_number: e.target.value})}
+                    onChange={e => setRegData({ ...regData, registration_number: e.target.value })}
                     required
                   />
                 </div>
                 <div>
                   <label className="label">Tax ID / TIN</label>
-                  <input 
-                    type="text" 
-                    className="input" 
+                  <input
+                    type="text"
+                    className="input"
                     value={regData.tax_id}
-                    onChange={e => setRegData({...regData, tax_id: e.target.value})}
+                    onChange={e => setRegData({ ...regData, tax_id: e.target.value })}
                   />
                 </div>
               </div>
@@ -204,29 +205,29 @@ export default function BusinessDashboard() {
         )}
 
         <div className="bg-gray-50 rounded-[2.5rem] p-8 border border-gray-100">
-           <div className="flex items-center gap-3 mb-4">
-             <AlertCircle className="h-5 w-5 text-gray-400" />
-             <h3 className="text-sm font-black text-gray-900 uppercase tracking-tight">What's next?</h3>
-           </div>
-           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-6">
-              <div className="space-y-2">
-                <p className="text-xs font-black text-gray-900 uppercase tracking-widest">1. Document Review</p>
-                <p className="text-[11px] text-gray-500 font-medium leading-relaxed">Our compliance team checks your registration documents against government records.</p>
-              </div>
-              <div className="space-y-2">
-                <p className="text-xs font-black text-gray-900 uppercase tracking-widest">2. Payment Confirmation</p>
-                <p className="text-[11px] text-gray-500 font-medium leading-relaxed">We verify the Zenopay reference provided to ensure your subscription is valid.</p>
-              </div>
-           </div>
+          <div className="flex items-center gap-3 mb-4">
+            <AlertCircle className="h-5 w-5 text-gray-400" />
+            <h3 className="text-sm font-black text-gray-900 uppercase tracking-tight">What's next?</h3>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-6">
+            <div className="space-y-2">
+              <p className="text-xs font-black text-gray-900 uppercase tracking-widest">1. Document Review</p>
+              <p className="text-[11px] text-gray-500 font-medium leading-relaxed">Our compliance team checks your registration documents against government records.</p>
+            </div>
+            <div className="space-y-2">
+              <p className="text-xs font-black text-gray-900 uppercase tracking-widest">2. Payment Confirmation</p>
+              <p className="text-[11px] text-gray-500 font-medium leading-relaxed">We verify the Zenopay reference provided to ensure your subscription is valid.</p>
+            </div>
+          </div>
         </div>
 
         <div className="text-center">
           <Link to="/" className="text-gray-400 font-bold hover:text-primary-600 text-xs uppercase tracking-widest transition-colors">Return to Home</Link>
         </div>
 
-        <FeedbackForm 
-          isOpen={isFeedbackOpen} 
-          onClose={() => setIsFeedbackOpen(false)} 
+        <FeedbackForm
+          isOpen={isFeedbackOpen}
+          onClose={() => setIsFeedbackOpen(false)}
           category="VERIFICATION"
           initialSubject="Inquiry about pending business verification"
         />
@@ -234,7 +235,102 @@ export default function BusinessDashboard() {
     );
   }
 
-  // 3. VERIFIED DASHBOARD
+  // 3. REJECTED VIEW
+  if (isCorporateRejected) {
+    return (
+      <div className="max-w-4xl mx-auto py-10 space-y-10 px-4">
+        <div className="max-w-2xl mx-auto text-center space-y-6">
+          <div className="h-24 w-24 bg-red-50 text-red-500 rounded-[2.5rem] flex items-center justify-center mx-auto">
+            <AlertCircle className="h-12 w-12" />
+          </div>
+          <h1 className="text-3xl font-black text-gray-900 tracking-tighter">Application Rejected</h1>
+          <p className="text-gray-500 font-medium leading-relaxed">
+            Our compliance team could not verify the provided credentials or the documents were invalid.
+            If you believe this is a mistake, you can adjust your application details below or contact support.
+          </p>
+
+          <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
+            <button
+              onClick={() => setIsEditing(!isEditing)}
+              className="px-6 py-3 bg-red-600 border border-red-700 rounded-2xl text-xs font-black uppercase tracking-widest text-white shadow-lg hover:bg-red-700 transition-all"
+            >
+              {isEditing ? 'Cancel Updating' : 'Update Credentials'}
+            </button>
+            <button
+              onClick={() => setIsFeedbackOpen(true)}
+              className="px-6 py-3 bg-white text-gray-700 border-2 border-gray-100 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-gray-50 transition-all flex items-center gap-2"
+            >
+              <MessageCircle className="h-4 w-4" /> Appeal Decision
+            </button>
+          </div>
+        </div>
+
+        {isEditing && (
+          <div className="card p-8 md:p-12 animate-in slide-in-from-top-4 duration-500 border-red-100 shadow-xl shadow-red-900/5">
+            <div className="mb-8 border-b border-red-100 pb-4">
+              <h2 className="text-2xl font-black text-red-900 tracking-tight flex items-center gap-2">
+                <ShieldCheck className="h-5 w-5 text-red-500" />
+                Resubmit Application
+              </h2>
+            </div>
+            <form onSubmit={handleUpdateProfile} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="md:col-span-2">
+                  <label htmlFor="company_name" className="label">Official Company Name</label>
+                  <input
+                    id="company_name"
+                    name="company_name"
+                    type="text"
+                    className="input border-red-200 focus:border-red-500 focus:ring-red-500/20"
+                    value={regData.company_name}
+                    onChange={e => setRegData({ ...regData, company_name: e.target.value })}
+                    required
+                  />
+                </div>
+                <div>
+                  <label htmlFor="registration_number" className="label">Registration Number</label>
+                  <input
+                    id="registration_number"
+                    name="registration_number"
+                    type="text"
+                    className="input border-red-200 focus:border-red-500 focus:ring-red-500/20"
+                    value={regData.registration_number}
+                    onChange={e => setRegData({ ...regData, registration_number: e.target.value })}
+                    required
+                  />
+                </div>
+                <div>
+                  <label htmlFor="tax_id" className="label">Tax ID / TIN</label>
+                  <input
+                    id="tax_id"
+                    name="tax_id"
+                    type="text"
+                    className="input border-red-200 focus:border-red-500 focus:ring-red-500/20"
+                    value={regData.tax_id}
+                    onChange={e => setRegData({ ...regData, tax_id: e.target.value })}
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end pt-4">
+                <button type="submit" disabled={isLoading} className="px-8 py-3 bg-red-600 hover:bg-red-700 text-white rounded-2xl shadow-xl shadow-red-500/20 font-black text-sm transition-colors uppercase tracking-widest">
+                  {isLoading ? 'Resubmitting...' : 'Submit for Re-verification'}
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        <FeedbackForm
+          isOpen={isFeedbackOpen}
+          onClose={() => setIsFeedbackOpen(false)}
+          category="VERIFICATION"
+          initialSubject={`Appeal for Corporate Profile: ${user?.corporate_profile?.company_name}`}
+        />
+      </div>
+    );
+  }
+
+  // 4. VERIFIED DASHBOARD
   return (
     <div className="max-w-6xl mx-auto space-y-10">
       {/* Header */}
@@ -255,8 +351,8 @@ export default function BusinessDashboard() {
           <p className="text-gray-500 font-medium max-w-md">Manage your properties, services, and inventory from one central hub.</p>
         </div>
         <div className="flex flex-wrap gap-3">
-          <ContactButton 
-            targetUserId="admin" 
+          <ContactButton
+            targetUserId="admin"
             label="Support / Platform Assistance"
             threadType="SUPPORT"
             subject="Corporate Support Request"
@@ -304,7 +400,7 @@ export default function BusinessDashboard() {
       {/* Property List */}
       <div className="space-y-6">
         <h2 className="text-2xl font-black text-gray-900 tracking-tight uppercase">My Properties</h2>
-        
+
         {properties.length === 0 ? (
           <div className="card p-20 text-center bg-gray-50 border-dashed border-2">
             <Building2 className="h-16 w-16 text-gray-200 mx-auto mb-4" />
@@ -323,9 +419,8 @@ export default function BusinessDashboard() {
                     </div>
                   )}
                   <div className="absolute top-4 left-4">
-                    <span className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border shadow-lg ${
-                      prop.verification_status === 'VERIFIED' ? 'bg-emerald-500 text-white border-emerald-400' : 'bg-orange-500 text-white border-orange-400'
-                    }`}>
+                    <span className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border shadow-lg ${prop.verification_status === 'VERIFIED' ? 'bg-emerald-500 text-white border-emerald-400' : 'bg-orange-500 text-white border-orange-400'
+                      }`}>
                       {prop.verification_status}
                     </span>
                   </div>
@@ -351,25 +446,25 @@ export default function BusinessDashboard() {
 
                   <div className="flex flex-wrap items-center justify-between gap-4 mt-8 pt-6 border-t border-gray-50">
                     <div className="flex gap-6">
-                       <div className="text-center">
-                         <p className="text-[8px] font-black text-gray-400 uppercase">Rooms</p>
-                         <p className="text-sm font-black text-gray-900">0</p>
-                       </div>
-                       <div className="text-center">
-                         <p className="text-[8px] font-black text-gray-400 uppercase">Staff</p>
-                         <p className="text-sm font-black text-gray-900">--</p>
-                       </div>
+                      <div className="text-center">
+                        <p className="text-[8px] font-black text-gray-400 uppercase">Rooms</p>
+                        <p className="text-sm font-black text-gray-900">0</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-[8px] font-black text-gray-400 uppercase">Staff</p>
+                        <p className="text-sm font-black text-gray-900">--</p>
+                      </div>
                     </div>
-                    
+
                     <div className="flex gap-2">
-                      <Link 
+                      <Link
                         to={`/assets/create?parent=${prop.id}&mode=service`}
                         className="px-4 py-2 bg-gray-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-black transition-all flex items-center gap-2"
                       >
                         <Plus className="h-3.5 w-3.5" />
                         Add Service
                       </Link>
-                      <Link 
+                      <Link
                         to={`/assets/${prop.id}`}
                         className="px-4 py-2 bg-primary-50 text-primary-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary-100 transition-all flex items-center gap-2"
                       >

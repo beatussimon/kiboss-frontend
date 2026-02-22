@@ -14,7 +14,7 @@ export default function CreateAssetPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useSelector((state: RootState) => state.auth);
-  
+
   const queryParams = new URLSearchParams(location.search);
   const parentId = queryParams.get('parent');
   const mode = queryParams.get('mode'); // 'business' (parent) or 'service' (child)
@@ -55,7 +55,7 @@ export default function CreateAssetPage() {
 
   const uploadImages = async (assetId: string, files: File[]) => {
     if (files.length === 0) return;
-    
+
     const formData = new FormData();
     files.forEach((file, index) => {
       formData.append('images', file);
@@ -66,11 +66,7 @@ export default function CreateAssetPage() {
 
     try {
       // Allow the browser to set Content-Type with the correct boundary for FormData
-      await api.post(`/assets/${assetId}/images/`, formData, {
-        headers: {
-          'Content-Type': null as unknown as string,
-        },
-      });
+      await api.post(`/assets/${assetId}/upload_photos/`, formData);
     } catch (error) {
       console.error('Failed to upload images:', error);
       toast.error('Asset created but image upload failed');
@@ -88,16 +84,16 @@ export default function CreateAssetPage() {
           price: rule.price
         }))
       };
-      
+
       const result = await dispatch(createAsset(payload as any));
       if (createAsset.fulfilled.match(result)) {
         const assetId = result.payload.id;
-        
+
         // Upload images if any
         if (images.length > 0) {
           await uploadImages(assetId, images);
         }
-        
+
         toast.success('Asset created successfully!');
         navigate(`/assets/${assetId}`);
       } else {
@@ -132,360 +128,384 @@ export default function CreateAssetPage() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Images Section */}
-        <div className="card p-6">
-          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Upload className="w-5 h-5" />
-            Images
-          </h2>
-          <p className="text-sm text-gray-500 mb-4">
-            Add up to 5 images. The first image will be used as the primary image.
-          </p>
-          <ImageUpload
-            images={images}
-            onChange={setImages}
-            maxImages={5}
-            maxSizeMB={5}
-          />
-        </div>
-
-        {/* Basic Information */}
-        <div className="card p-6">
-          <h2 className="text-lg font-semibold mb-4">Basic Information</h2>
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">Asset Name</label>
-              <input
-                id="name"
-                type="text"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="input"
-                placeholder="e.g., Modern Downtown Apartment"
-                required
-              />
-            </div>
-            <div>
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-              <textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="input"
-                rows={4}
-                placeholder="Describe your asset..."
-                required
-              />
-            </div>
-            <div>
-              <label htmlFor="asset_type" className="block text-sm font-medium text-gray-700 mb-1">Asset Type</label>
-              <select
-                id="asset_type"
-                value={formData.asset_type}
-                onChange={(e) => setFormData({ ...formData, asset_type: e.target.value as AssetType })}
-                className="input"
+      {user?.corporate_profile?.verification_status === 'REJECTED' && (
+        <div className="bg-red-50 border-2 border-red-100 rounded-3xl p-6 mb-8 flex gap-4 shadow-sm shadow-red-100/50">
+          <div className="h-12 w-12 bg-white rounded-2xl flex items-center justify-center shadow-sm flex-shrink-0">
+            <AlertCircle className="h-6 w-6 text-red-600" />
+          </div>
+          <div>
+            <p className="text-sm font-black text-red-900 uppercase tracking-tight mb-1">Corporate Account Rejected</p>
+            <p className="text-xs font-medium text-red-800 leading-relaxed">
+              Your business application was rejected by compliance. You cannot list new corporate properties until your business account is in good standing. Please return to the Business Dashboard to appeal or update your documents.
+            </p>
+            <div className="mt-4">
+              <button
+                onClick={() => navigate('/business/dashboard')}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-black uppercase tracking-widest rounded-xl transition-colors"
               >
-                <optgroup label="Individuals">
-                  <option value="ROOM">Individual Room/Space</option>
-                  <option value="TOOL">Tool/Equipment</option>
-                  <option value="VEHICLE">Vehicle</option>
-                  <option value="SEAT_SERVICE">Seat Service</option>
-                  <option value="TIME_SERVICE">Time Service</option>
-                </optgroup>
-                <optgroup label="Corporate Properties">
-                  <option value="HOTEL">Hotel Property</option>
-                  <option value="RESTAURANT">Restaurant Property</option>
-                </optgroup>
-                <optgroup label="Corporate Services">
-                  <option value="HOTEL_ROOM">Hotel Room</option>
-                  <option value="CONFERENCE_HALL">Conference Hall</option>
-                  <option value="DINING_TABLE">Dining Table</option>
-                </optgroup>
-              </select>
+                Go to Business Dashboard
+              </button>
             </div>
-
-            {formData.parent && (
-              <div className="p-4 bg-primary-50 rounded-2xl border border-primary-100 flex gap-3">
-                <Info className="h-5 w-5 text-primary-600 flex-shrink-0" />
-                <div>
-                  <p className="text-xs font-bold text-primary-900 uppercase">Service Context</p>
-                  <p className="text-[11px] text-primary-700 font-medium leading-relaxed">
-                    This service will be automatically linked to your parent property. Verification status will be inherited.
-                  </p>
-                </div>
-              </div>
-            )}
           </div>
         </div>
+      )}
 
-        {/* Room / Hall Specific Features */}
-        {(formData.asset_type === 'ROOM' || formData.asset_type === 'HOTEL_ROOM' || formData.asset_type === 'CONFERENCE_HALL') && (
+      {user?.corporate_profile?.verification_status !== 'REJECTED' && (
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Images Section */}
           <div className="card p-6">
-            <h2 className="text-lg font-semibold mb-4">{formData.asset_type === 'CONFERENCE_HALL' ? 'Venue Capacity' : 'Stay Details'}</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Max Guests</label>
-                <input
-                  type="number"
-                  value={formData.properties.guests}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    properties: { ...formData.properties, guests: parseInt(e.target.value) || 1 }
-                  })}
-                  className="input"
-                  min="1"
-                />
-              </div>
-              {formData.asset_type !== 'CONFERENCE_HALL' && (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Bedrooms</label>
-                    <input
-                      type="number"
-                      value={formData.properties.bedrooms}
-                      onChange={(e) => setFormData({
-                        ...formData,
-                        properties: { ...formData.properties, bedrooms: parseInt(e.target.value) || 1 }
-                      })}
-                      className="input"
-                      min="1"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Beds</label>
-                    <input
-                      type="number"
-                      value={formData.properties.beds}
-                      onChange={(e) => setFormData({
-                        ...formData,
-                        properties: { ...formData.properties, beds: parseInt(e.target.value) || 1 }
-                      })}
-                      className="input"
-                      min="1"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Baths</label>
-                    <input
-                      type="number"
-                      value={formData.properties.baths}
-                      onChange={(e) => setFormData({
-                        ...formData,
-                        properties: { ...formData.properties, baths: parseInt(e.target.value) || 1 }
-                      })}
-                      className="input"
-                      min="1"
-                    />
-                  </div>
-                </>
-              )}
-            </div>
-            <div className="grid grid-cols-2 gap-4 mt-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Available From</label>
-                <input
-                  type="time"
-                  value={formData.properties.check_in_after}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    properties: { ...formData.properties, check_in_after: e.target.value }
-                  })}
-                  className="input"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Available Until</label>
-                <input
-                  type="time"
-                  value={formData.properties.check_out_before}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    properties: { ...formData.properties, check_out_before: e.target.value }
-                  })}
-                  className="input"
-                />
-              </div>
-            </div>
+            <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <Upload className="w-5 h-5" />
+              Images
+            </h2>
+            <p className="text-sm text-gray-500 mb-4">
+              Add up to 5 images. The first image will be used as the primary image.
+            </p>
+            <ImageUpload
+              images={images}
+              onChange={setImages}
+              maxImages={5}
+              maxSizeMB={5}
+            />
           </div>
-        )}
 
-        {/* Restaurant Specific Features */}
-        {formData.asset_type === 'DINING_TABLE' && (
+          {/* Basic Information */}
           <div className="card p-6">
-            <h2 className="text-lg font-semibold mb-4">Dining Details</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <h2 className="text-lg font-semibold mb-4">Basic Information</h2>
+            <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Seating Capacity</label>
+                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">Asset Name</label>
                 <input
-                  type="number"
-                  value={formData.properties.guests}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    properties: { ...formData.properties, guests: parseInt(e.target.value) || 1 }
-                  })}
-                  className="input"
-                  min="1"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Table Number/Location</label>
-                <input
+                  id="name"
                   type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className="input"
-                  placeholder="e.g., Table 5, Terrace"
-                />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Location */}
-        <div className="card p-6">
-          <h2 className="text-lg font-semibold mb-4">Location</h2>
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">Address</label>
-              <input
-                id="address"
-                type="text"
-                value={formData.address}
-                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                className="input"
-                placeholder="123 Main St"
-                required
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">City</label>
-                <input
-                  id="city"
-                  type="text"
-                  value={formData.city}
-                  onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                  className="input"
-                  placeholder="New York"
+                  placeholder="e.g., Modern Downtown Apartment"
                   required
                 />
               </div>
               <div>
-                <label htmlFor="country" className="block text-sm font-medium text-gray-700 mb-1">Country</label>
+                <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className="input"
+                  rows={4}
+                  placeholder="Describe your asset..."
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="asset_type" className="block text-sm font-medium text-gray-700 mb-1">Asset Type</label>
                 <select
-                  id="country"
-                  value={formData.country}
-                  onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                  id="asset_type"
+                  value={formData.asset_type}
+                  onChange={(e) => setFormData({ ...formData, asset_type: e.target.value as AssetType })}
                   className="input"
-                  required
                 >
-                  <option value="">Select Country</option>
-                  <option value="US">United States</option>
-                  <option value="CA">Canada</option>
-                  <option value="GB">United Kingdom</option>
-                  <option value="AU">Australia</option>
-                  <option value="DE">Germany</option>
-                  <option value="FR">France</option>
+                  <optgroup label="Individuals">
+                    <option value="ROOM">Individual Room/Space</option>
+                    <option value="TOOL">Tool/Equipment</option>
+                    <option value="VEHICLE">Vehicle</option>
+                    <option value="SEAT_SERVICE">Seat Service</option>
+                    <option value="TIME_SERVICE">Time Service</option>
+                  </optgroup>
+                  <optgroup label="Corporate Properties">
+                    <option value="HOTEL">Hotel Property</option>
+                    <option value="RESTAURANT">Restaurant Property</option>
+                  </optgroup>
+                  <optgroup label="Corporate Services">
+                    <option value="HOTEL_ROOM" disabled={!formData.parent}>Hotel Room</option>
+                    <option value="CONFERENCE_HALL" disabled={!formData.parent}>Conference Hall</option>
+                    <option value="DINING_TABLE" disabled={!formData.parent}>Dining Table</option>
+                  </optgroup>
                 </select>
               </div>
+
+              {formData.parent && (
+                <div className="p-4 bg-primary-50 rounded-2xl border border-primary-100 flex gap-3">
+                  <Info className="h-5 w-5 text-primary-600 flex-shrink-0" />
+                  <div>
+                    <p className="text-xs font-bold text-primary-900 uppercase">Service Context</p>
+                    <p className="text-[11px] text-primary-700 font-medium leading-relaxed">
+                      This service will be automatically linked to your parent property. Verification status will be inherited.
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
-        </div>
 
-        {/* Pricing */}
-        <div className="card p-6">
-          <h2 className="text-lg font-semibold mb-4">Pricing</h2>
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Price</label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-bold">
-                    {(formData as any).currency === 'USD' ? '$' : 
-                     (formData as any).currency === 'EUR' ? '€' : 
-                     (formData as any).currency === 'CNY' ? '¥' : 'TSh'}
-                  </span>
+          {/* Room / Hall Specific Features */}
+          {(formData.asset_type === 'ROOM' || formData.asset_type === 'HOTEL_ROOM' || formData.asset_type === 'CONFERENCE_HALL') && (
+            <div className="card p-6">
+              <h2 className="text-lg font-semibold mb-4">{formData.asset_type === 'CONFERENCE_HALL' ? 'Venue Capacity' : 'Stay Details'}</h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Max Guests</label>
                   <input
                     type="number"
-                    value={formData.pricing_rules[0].price}
+                    value={formData.properties.guests}
                     onChange={(e) => setFormData({
                       ...formData,
-                      pricing_rules: [{ ...formData.pricing_rules[0], price: e.target.value }]
+                      properties: { ...formData.properties, guests: parseInt(e.target.value) || 1 }
                     })}
-                    className="input pl-12"
-                    min="0"
-                    step="0.01"
-                    required
+                    className="input"
+                    min="1"
+                  />
+                </div>
+                {formData.asset_type !== 'CONFERENCE_HALL' && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Bedrooms</label>
+                      <input
+                        type="number"
+                        value={formData.properties.bedrooms}
+                        onChange={(e) => setFormData({
+                          ...formData,
+                          properties: { ...formData.properties, bedrooms: parseInt(e.target.value) || 1 }
+                        })}
+                        className="input"
+                        min="1"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Beds</label>
+                      <input
+                        type="number"
+                        value={formData.properties.beds}
+                        onChange={(e) => setFormData({
+                          ...formData,
+                          properties: { ...formData.properties, beds: parseInt(e.target.value) || 1 }
+                        })}
+                        className="input"
+                        min="1"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Baths</label>
+                      <input
+                        type="number"
+                        value={formData.properties.baths}
+                        onChange={(e) => setFormData({
+                          ...formData,
+                          properties: { ...formData.properties, baths: parseInt(e.target.value) || 1 }
+                        })}
+                        className="input"
+                        min="1"
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
+              <div className="grid grid-cols-2 gap-4 mt-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Available From</label>
+                  <input
+                    type="time"
+                    value={formData.properties.check_in_after}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      properties: { ...formData.properties, check_in_after: e.target.value }
+                    })}
+                    className="input"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Available Until</label>
+                  <input
+                    type="time"
+                    value={formData.properties.check_out_before}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      properties: { ...formData.properties, check_out_before: e.target.value }
+                    })}
+                    className="input"
                   />
                 </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Currency</label>
-                <select
-                  value={(formData as any).currency || 'TZS'}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    currency: e.target.value
-                  } as any)}
-                  className="input"
-                >
-                  <option value="TZS">TZS (Tanzanian Shilling)</option>
-                  <option value="KES">KES (Kenyan Shilling)</option>
-                  <option value="USD">USD (US Dollar)</option>
-                  <option value="EUR">EUR (Euro)</option>
-                  <option value="CNY">CNY (Chinese Yuan)</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Unit Type</label>
-                <select
-                  value={formData.pricing_rules[0].unit_type}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    pricing_rules: [{ ...formData.pricing_rules[0], unit_type: e.target.value }]
-                  })}
-                  className="input"
-                >
-                  <option value="HOUR">Per Hour</option>
-                  <option value="DAY">Per Day</option>
-                  <option value="WEEK">Per Week</option>
-                  <option value="MONTH">Per Month</option>
-                </select>
+            </div>
+          )}
+
+          {/* Restaurant Specific Features */}
+          {formData.asset_type === 'DINING_TABLE' && (
+            <div className="card p-6">
+              <h2 className="text-lg font-semibold mb-4">Dining Details</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Seating Capacity</label>
+                  <input
+                    type="number"
+                    value={formData.properties.guests}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      properties: { ...formData.properties, guests: parseInt(e.target.value) || 1 }
+                    })}
+                    className="input"
+                    min="1"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Table Number/Location</label>
+                  <input
+                    type="text"
+                    className="input"
+                    placeholder="e.g., Table 5, Terrace"
+                  />
+                </div>
               </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Minimum Duration (minutes)</label>
-              <input
-                type="number"
-                value={formData.pricing_rules[0].min_duration_minutes}
-                onChange={(e) => setFormData({
-                  ...formData,
-                  pricing_rules: [{ ...formData.pricing_rules[0], min_duration_minutes: parseInt(e.target.value) || 0 }]
-                })}
-                className="input"
-                min="0"
-                step="15"
-              />
+          )}
+
+          {/* Location */}
+          <div className="card p-6">
+            <h2 className="text-lg font-semibold mb-4">Location</h2>
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                <input
+                  id="address"
+                  type="text"
+                  value={formData.address}
+                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                  className="input"
+                  placeholder="123 Main St"
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                  <input
+                    id="city"
+                    type="text"
+                    value={formData.city}
+                    onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                    className="input"
+                    placeholder="New York"
+                    required
+                  />
+                </div>
+                <div>
+                  <label htmlFor="country" className="block text-sm font-medium text-gray-700 mb-1">Country</label>
+                  <select
+                    id="country"
+                    value={formData.country}
+                    onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                    className="input"
+                    required
+                  >
+                    <option value="">Select Country</option>
+                    <option value="US">United States</option>
+                    <option value="CA">Canada</option>
+                    <option value="GB">United Kingdom</option>
+                    <option value="AU">Australia</option>
+                    <option value="DE">Germany</option>
+                    <option value="FR">France</option>
+                  </select>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Submit Buttons */}
-        <div className="flex justify-end gap-4">
-          <button type="button" onClick={() => navigate(-1)} className="btn-secondary">
-            Cancel
-          </button>
-          <button type="submit" disabled={isLoading} className="btn-primary flex items-center gap-2">
-            {isLoading ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Creating...
-              </>
-            ) : (
-              'Create Asset'
-            )}
-          </button>
-        </div>
-      </form>
+          {/* Pricing */}
+          <div className="card p-6">
+            <h2 className="text-lg font-semibold mb-4">Pricing</h2>
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Price</label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-bold">
+                      {(formData as any).currency === 'USD' ? '$' :
+                        (formData as any).currency === 'EUR' ? '€' :
+                          (formData as any).currency === 'CNY' ? '¥' : 'TSh'}
+                    </span>
+                    <input
+                      type="number"
+                      value={formData.pricing_rules[0].price}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        pricing_rules: [{ ...formData.pricing_rules[0], price: e.target.value }]
+                      })}
+                      className="input pl-12"
+                      min="0"
+                      step="0.01"
+                      required
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+                  <select
+                    value={(formData as any).currency || 'TZS'}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      currency: e.target.value
+                    } as any)}
+                    className="input"
+                  >
+                    <option value="TZS">TZS (Tanzanian Shilling)</option>
+                    <option value="KES">KES (Kenyan Shilling)</option>
+                    <option value="USD">USD (US Dollar)</option>
+                    <option value="EUR">EUR (Euro)</option>
+                    <option value="CNY">CNY (Chinese Yuan)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Unit Type</label>
+                  <select
+                    value={formData.pricing_rules[0].unit_type}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      pricing_rules: [{ ...formData.pricing_rules[0], unit_type: e.target.value }]
+                    })}
+                    className="input"
+                  >
+                    <option value="HOUR">Per Hour</option>
+                    <option value="DAY">Per Day</option>
+                    <option value="WEEK">Per Week</option>
+                    <option value="MONTH">Per Month</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Minimum Duration (minutes)</label>
+                <input
+                  type="number"
+                  value={formData.pricing_rules[0].min_duration_minutes}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    pricing_rules: [{ ...formData.pricing_rules[0], min_duration_minutes: parseInt(e.target.value) || 0 }]
+                  })}
+                  className="input"
+                  min="0"
+                  step="15"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Submit Buttons */}
+          <div className="flex justify-end gap-4">
+            <button type="button" onClick={() => navigate(-1)} className="btn-secondary">
+              Cancel
+            </button>
+            <button type="submit" disabled={isLoading} className="btn-primary flex items-center gap-2">
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                'Create Asset'
+              )}
+            </button>
+          </div>
+        </form>
+      )}
     </div>
   );
 }

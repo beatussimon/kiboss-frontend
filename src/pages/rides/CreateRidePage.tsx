@@ -22,11 +22,11 @@ export default function CreateRidePage() {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const { user } = useSelector((state: RootState) => state.auth);
-  
+
   const [isLoading, setIsLoading] = useState(false);
   const [isCheckingVehicles, setIsCheckingVehicles] = useState(true);
   const [vehicles, setVehicles] = useState<Asset[]>([]);
-  
+
   const [images, setImages] = useState<File[]>([]);
   const [formData, setFormData] = useState({
     route_name: '',
@@ -47,11 +47,10 @@ export default function CreateRidePage() {
   useEffect(() => {
     const fetchUserVehicles = async () => {
       try {
-        // In a real app, the backend should support 'owner=me' or similar
-        // For now we'll filter assets where owner ID matches current user
-        const res = await api.get('/assets/', { params: { asset_type: 'VEHICLE' } });
+        // Use 'owner=me' to fetch from the user's vehicle pool rather than a global paginated list
+        const res = await api.get('/assets/', { params: { asset_type: 'VEHICLE', owner: 'me' } });
         const allAssets = res.data.results || res.data;
-        const myVehicles = allAssets.filter((a: any) => a.owner === user?.id || a.owner?.id === user?.id);
+        const myVehicles = allAssets;
         setVehicles(myVehicles);
       } catch (error) {
         console.error('Failed to fetch vehicles:', error);
@@ -73,7 +72,7 @@ export default function CreateRidePage() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    
+
     if (name === 'vehicle_asset_id') {
       setSelectedVehicleId(value);
       const vehicle = verifiedVehicles.find(v => v.id === value);
@@ -104,14 +103,14 @@ export default function CreateRidePage() {
   };
 
   const updateStop = (index: number, field: keyof StopFormData, value: string) => {
-    setStops(prev => prev.map((stop, i) => 
+    setStops(prev => prev.map((stop, i) =>
       i === index ? { ...stop, [field]: value } : stop
     ));
   };
 
   const uploadImages = async (rideId: string, files: File[]) => {
     if (files.length === 0) return;
-    
+
     const formData = new FormData();
     files.forEach((file, index) => {
       formData.append('images', file);
@@ -123,11 +122,7 @@ export default function CreateRidePage() {
     try {
       // Allow the browser to set Content-Type with the correct boundary for FormData
       // The backend router has RideViewSet registered under 'trips' within the rides app (prefix /api/v1/rides/)
-      await api.post(`/rides/trips/${rideId}/upload_photos/`, formData, {
-        headers: {
-          'Content-Type': null as unknown as string,
-        },
-      });
+      await api.post(`/rides/trips/${rideId}/upload_photos/`, formData);
     } catch (error) {
       console.error('Failed to upload images:', error);
       toast.error('Ride created but image upload failed');
@@ -136,7 +131,7 @@ export default function CreateRidePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!hasVerifiedVehicle) {
       toast.error('Vehicle verification required');
       return;
@@ -185,12 +180,12 @@ export default function CreateRidePage() {
       const result = await dispatch(createRide(rideData));
       if (createRide.fulfilled.match(result)) {
         const rideId = result.payload.id;
-        
+
         // Upload images if any
         if (images.length > 0) {
           await uploadImages(rideId, images);
         }
-        
+
         toast.success('Ride created successfully!');
         navigate(`/rides/${rideId}`);
       } else {
@@ -246,7 +241,7 @@ export default function CreateRidePage() {
           <span className="text-[10px] font-black uppercase tracking-widest">Verified Driver</span>
         </div>
       </div>
-      
+
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Images Section */}
         <div className="card p-6">
@@ -371,11 +366,11 @@ export default function CreateRidePage() {
               <Plus className="h-3 w-3" /> Add New Vehicle
             </Link>
           </div>
-          
+
           <div className="space-y-4">
             <div>
               <label className="label">Your Verified Vehicles <span className="text-red-500">*</span></label>
-              <select 
+              <select
                 name="vehicle_asset_id"
                 className="input"
                 value={selectedVehicleId}
@@ -487,7 +482,7 @@ export default function CreateRidePage() {
               Add Stop
             </button>
           </div>
-          
+
           {stops.length === 0 ? (
             <p className="text-sm text-gray-500 text-center py-4">
               No intermediate stops added. Add stops if your route has pickup/dropoff points along the way.
@@ -503,9 +498,9 @@ export default function CreateRidePage() {
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
-                  
+
                   <p className="text-sm font-medium text-gray-700 mb-3">Stop {index + 1}</p>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div>
                       <label className="block text-xs font-medium text-gray-600 mb-1">Name</label>
