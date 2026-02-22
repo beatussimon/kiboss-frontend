@@ -37,11 +37,11 @@ api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const auth = getAuthState();
     const accessToken = auth.accessToken;
-    
+
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`;
     }
-    
+
     return config;
   },
   (error: AxiosError) => {
@@ -54,23 +54,23 @@ api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError<ApiError>) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
-    
+
     // Handle 401 - Token expired or invalid
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
-      
+
       const auth = getAuthState();
       const refreshToken = auth.refreshToken;
-      
+
       if (refreshToken) {
         try {
           const response = await axios.post(`${API_BASE_URL}/auth/refresh/`, {
             refresh: refreshToken,
           });
-          
+
           const { access } = response.data;
           storeRef?.dispatch({ type: 'auth/refreshToken/fulfilled', payload: { accessToken: access } });
-          
+
           originalRequest.headers.Authorization = `Bearer ${access}`;
           return api(originalRequest);
         } catch (refreshError) {
@@ -82,7 +82,7 @@ api.interceptors.response.use(
       } else {
         // No refresh token - logout user
         storeRef?.dispatch({ type: 'auth/logout' });
-        
+
         // Only redirect if not already on an auth page
         const currentPath = window.location.pathname;
         if (currentPath !== '/login' && currentPath !== '/register') {
@@ -90,11 +90,11 @@ api.interceptors.response.use(
         }
       }
     }
-    
+
     // Handle other errors
     let message = 'An unexpected error occurred';
     const data = error.response?.data as any;
-    
+
     if (data) {
       if (typeof data.error === 'string') {
         message = data.error;
@@ -121,7 +121,7 @@ api.interceptors.response.use(
         }
       }
     }
-    
+
     // Log detailed error information for debugging
     if (error.response) {
       console.error('API Error Response:', {
@@ -134,14 +134,17 @@ api.interceptors.response.use(
     } else {
       console.error('API Error:', error.message);
     }
-    
+
     // Additional special case for 401
     if (error.response?.status === 401 && (!message || message === 'An unexpected error occurred')) {
       message = 'Invalid credentials';
     }
-    
+
     console.error('API Error Final Message:', message);
-    
+
+    // Attach the safe message to the error object so caught exceptions have a standardized .message property
+    error.message = message;
+
     return Promise.reject(error);
   }
 );

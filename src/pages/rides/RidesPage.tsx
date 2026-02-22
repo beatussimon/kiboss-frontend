@@ -13,7 +13,7 @@ export default function RidesPage() {
   const { user } = useSelector((state: RootState) => state.auth);
   const { rides, isLoading, count } = useSelector((state: RootState) => state.rides);
   const { userLocation } = useSelector((state: RootState) => state.location);
-  
+
   const [searchParams, setSearchParams] = useState({
     origin: '',
     destination: '',
@@ -30,16 +30,21 @@ export default function RidesPage() {
     } as any));
   };
 
+  const fetched = useRef(false);
+
   // Initial load
   useEffect(() => {
-    dispatch(fetchRides({}));
-    dispatch(fetchAssets({ asset_type: 'VEHICLE' }));
+    if (!fetched.current) {
+      dispatch(fetchRides({}));
+      dispatch(fetchAssets({ asset_type: 'VEHICLE' }));
+      fetched.current = true;
+    }
   }, [dispatch]);
 
   // Sort rides by proximity if user location is available
   const sortedRides = useMemo(() => {
     if (!userLocation || !rides) return rides;
-    
+
     return [...rides].sort((a, b) => {
       const distanceA = getDistanceToRide(
         userLocation.latitude,
@@ -86,9 +91,9 @@ export default function RidesPage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="relative">
               <MapPin className="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-              <input 
-                type="text" 
-                placeholder="From" 
+              <input
+                type="text"
+                placeholder="From"
                 className="input pl-10"
                 value={searchParams.origin}
                 onChange={(e) => setSearchParams({ ...searchParams, origin: e.target.value })}
@@ -96,16 +101,16 @@ export default function RidesPage() {
             </div>
             <div className="relative">
               <MapPin className="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-              <input 
-                type="text" 
-                placeholder="To" 
+              <input
+                type="text"
+                placeholder="To"
                 className="input pl-10"
                 value={searchParams.destination}
                 onChange={(e) => setSearchParams({ ...searchParams, destination: e.target.value })}
               />
             </div>
-            <input 
-              type="date" 
+            <input
+              type="date"
               className="input"
               value={searchParams.departure_date}
               onChange={(e) => setSearchParams({ ...searchParams, departure_date: e.target.value })}
@@ -137,69 +142,70 @@ export default function RidesPage() {
           {sortedRides.map((ride) => {
             const distance = getRideDistance(ride.stops);
             return (
-            <Link key={ride.id} to={`/rides/${ride.id}`} className="card p-0 overflow-hidden hover:shadow-xl transition-all block group border-l-4 border-l-transparent hover:border-l-primary-600">
-              <div className="flex flex-col md:flex-row">
-                {/* Visual Trip Indicator */}
-                <div className="md:w-48 bg-gray-900 p-6 flex flex-col justify-between text-white relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-primary-600/20 rounded-full blur-3xl -mr-16 -mt-16" />
-                  <div>
-                    <p className="text-[10px] font-black  tracking-[0.2em] text-primary-400 mb-4">Trip Details</p>
-                    <div className="space-y-4 relative">
-                      <div className="flex items-center gap-3">
-                        <div className="w-2 h-2 rounded-full bg-primary-500 shadow-[0_0_10px_rgba(37,99,235,0.5)]" />
-                        <span className="text-xs font-bold truncate">{ride.origin.split(',')[0]}</span>
-                      </div>
-                      <div className="absolute left-1 top-2 bottom-2 w-px bg-gradient-to-b from-primary-500 to-gray-700" />
-                      <div className="flex items-center gap-3">
-                        <div className="w-2 h-2 rounded-full bg-gray-500" />
-                        <span className="text-xs font-bold truncate">{ride.destination.split(',')[0]}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="mt-6">
-                    <p className="text-[10px] font-bold text-gray-500 ">Departure</p>
-                    <p className="text-sm font-black">{new Date(ride.departure_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
-                  </div>
-                </div>
-
-                {/* Content */}
-                <div className="flex-1 p-6 flex flex-col">
-                  <div className="flex justify-between items-start mb-4">
+              <Link key={ride.id} to={`/rides/${ride.id}`} className="card p-0 overflow-hidden hover:shadow-xl transition-all block group border-l-4 border-l-transparent hover:border-l-primary-600">
+                <div className="flex flex-col md:flex-row">
+                  {/* Visual Trip Indicator */}
+                  <div className="md:w-48 bg-gray-900 p-6 flex flex-col justify-between text-white relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-primary-600/20 rounded-full blur-3xl -mr-16 -mt-16" />
                     <div>
-                      <h3 className="text-xl font-black text-gray-900 group-hover:text-primary-600 transition-colors">{ride.route_name}</h3>
-                      <div className="flex items-center gap-2 mt-1">
-                        <div className="h-5 w-5 rounded-full bg-primary-100 flex items-center justify-center text-[8px] font-bold text-primary-700">
-                          {(ride as any).driver?.first_name?.[0]}{(ride as any).driver?.last_name?.[0]}
+                      <p className="text-[10px] font-black  tracking-[0.2em] text-primary-400 mb-4">Trip Details</p>
+                      <div className="space-y-4 relative">
+                        <div className="flex items-center gap-3">
+                          <div className="w-2 h-2 rounded-full bg-primary-500 shadow-[0_0_10px_rgba(37,99,235,0.5)]" />
+                          <span className="text-xs font-bold truncate">{ride.origin.split(',')[0]}</span>
                         </div>
-                        <span className="text-xs font-bold text-gray-500">{(ride as any).driver?.first_name} {(ride as any).driver?.last_name}</span>
+                        <div className="absolute left-1 top-2 bottom-2 w-px bg-gradient-to-b from-primary-500 to-gray-700" />
+                        <div className="flex items-center gap-3">
+                          <div className="w-2 h-2 rounded-full bg-gray-500" />
+                          <span className="text-xs font-bold truncate">{ride.destination.split(',')[0]}</span>
+                        </div>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-2xl font-black text-primary-600"><Price amount={ride.seat_price} /></p>
-                      <p className="text-[10px] font-bold text-gray-400  tracking-widest">Per Seat</p>
+                    <div className="mt-6">
+                      <p className="text-[10px] font-bold text-gray-500 ">Departure</p>
+                      <p className="text-sm font-black">{new Date(ride.departure_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                     </div>
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-4 mt-auto">
-                    <div className="flex items-center gap-1.5 px-3 py-1 bg-gray-100 rounded-full text-[10px] font-bold  tracking-wider text-gray-600">
-                      <Users className="h-3 w-3" /> {ride.available_seats} Seats Left
-                    </div>
-                    {distance !== null && (
-                      <div className="flex items-center gap-1.5 px-3 py-1 bg-primary-50 rounded-full text-[10px] font-bold  tracking-wider text-primary-600">
-                        <Navigation className="h-3 w-3" /> {distance.toFixed(1)} km away
+                  {/* Content */}
+                  <div className="flex-1 p-6 flex flex-col">
+                    <div className="flex justify-between items-start mb-4">
+                      <div>
+                        <h3 className="text-xl font-black text-gray-900 group-hover:text-primary-600 transition-colors">{ride.route_name}</h3>
+                        <div className="flex items-center gap-2 mt-1">
+                          <div className="h-5 w-5 rounded-full bg-primary-100 flex items-center justify-center text-[8px] font-bold text-primary-700">
+                            {(ride as any).driver?.first_name?.[0]}{(ride as any).driver?.last_name?.[0]}
+                          </div>
+                          <span className="text-xs font-bold text-gray-500">{(ride as any).driver?.first_name} {(ride as any).driver?.last_name}</span>
+                        </div>
                       </div>
-                    )}
-                    <div className="flex items-center gap-1.5 px-3 py-1 bg-orange-50 rounded-full text-[10px] font-bold  tracking-wider text-orange-600">
-                      <Clock className="h-3 w-3" /> {new Date(ride.departure_time).toLocaleDateString()}
+                      <div className="text-right">
+                        <p className="text-2xl font-black text-primary-600"><Price amount={ride.seat_price} /></p>
+                        <p className="text-[10px] font-bold text-gray-400  tracking-widest">Per Seat</p>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-1.5 ml-auto text-[10px] font-bold text-gray-300  tracking-tighter">
-                      <Eye className="h-3 w-3" /> {Math.floor(Math.random() * 100) + 10} Views
+
+                    <div className="flex flex-wrap items-center gap-4 mt-auto">
+                      <div className="flex items-center gap-1.5 px-3 py-1 bg-gray-100 rounded-full text-[10px] font-bold  tracking-wider text-gray-600">
+                        <Users className="h-3 w-3" /> {ride.available_seats} Seats Left
+                      </div>
+                      {distance !== null && (
+                        <div className="flex items-center gap-1.5 px-3 py-1 bg-primary-50 rounded-full text-[10px] font-bold  tracking-wider text-primary-600">
+                          <Navigation className="h-3 w-3" /> {distance.toFixed(1)} km away
+                        </div>
+                      )}
+                      <div className="flex items-center gap-1.5 px-3 py-1 bg-orange-50 rounded-full text-[10px] font-bold  tracking-wider text-orange-600">
+                        <Clock className="h-3 w-3" /> {new Date(ride.departure_time).toLocaleDateString()}
+                      </div>
+                      <div className="flex items-center gap-1.5 ml-auto text-[10px] font-bold text-gray-300  tracking-tighter">
+                        <Eye className="h-3 w-3" /> {Math.floor(Math.random() * 100) + 10} Views
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </Link>
-          )})}
+              </Link>
+            )
+          })}
         </div>
       ) : (
         <div className="card p-12 text-center">

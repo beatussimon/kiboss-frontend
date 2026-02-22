@@ -23,19 +23,25 @@ export default function AssetsPage() {
   const assetType = searchParams.get('asset_type') as AssetType | undefined;
   const city = searchParams.get('city') || undefined;
 
+  const fetchedDependencies = useRef('');
+
   // Reset page when filters change
   useEffect(() => {
-    setPage(1);
-    dispatch(fetchAssets({ asset_type: assetType, city, page: 1 }));
+    const currentDependencies = `${assetType}-${city}`;
+    if (fetchedDependencies.current !== currentDependencies) {
+      setPage(1);
+      dispatch(fetchAssets({ asset_type: assetType, city, page: 1 }));
+      fetchedDependencies.current = currentDependencies;
+    }
   }, [dispatch, assetType, city]);
 
   // Infinite scroll observer
   const handleLoadMore = useCallback(async () => {
     if (isLoadingMore || !next) return;
-    
+
     setIsLoadingMore(true);
     const nextPage = page + 1;
-    
+
     try {
       await dispatch(fetchAssets({ asset_type: assetType, city, page: nextPage }));
       setPage(nextPage);
@@ -115,7 +121,7 @@ export default function AssetsPage() {
             <option value="SEAT_SERVICE">Seat Services</option>
             <option value="TIME_SERVICE">Time Services</option>
           </select>
-          
+
           <input
             type="text"
             placeholder="Search by city..."
@@ -175,7 +181,7 @@ export default function AssetsPage() {
                       <MapPin className="h-3.5 w-3.5 mr-1" />
                       {asset.city}, {asset.country}
                     </p>
-                    
+
                     <div className="flex items-center gap-3 mt-3 text-[10px] font-bold text-gray-400  tracking-widest">
                       <span className="flex items-center gap-1">
                         <Eye className="h-3 w-3" /> {(asset as any).views_count || Math.floor(Math.random() * 500) + 50}
@@ -203,15 +209,14 @@ export default function AssetsPage() {
                     </div>
                   </div>
                 </Link>
-                <button 
+                <button
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
                     dispatch(toggleWishlist(asset));
                   }}
-                  className={`absolute top-3 right-3 p-2 backdrop-blur-md rounded-full transition-all z-10 ${
-                    isWishlisted ? 'bg-red-500 text-white' : 'bg-black/20 text-white hover:bg-black/40'
-                  }`}
+                  className={`absolute top-3 right-3 p-2 backdrop-blur-md rounded-full transition-all z-10 ${isWishlisted ? 'bg-red-500 text-white' : 'bg-black/20 text-white hover:bg-black/40'
+                    }`}
                 >
                   <Heart className={`h-4 w-4 ${isWishlisted ? 'fill-current' : ''}`} />
                 </button>

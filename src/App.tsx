@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from './app/store';
@@ -83,9 +83,12 @@ function App() {
   const dispatch = useDispatch<AppDispatch>();
   const { accessToken, isAuthenticated } = useSelector((state: RootState) => state.auth);
 
+  const authFetched = useRef(false);
+
   useEffect(() => {
-    if (accessToken || isAuthenticated) {
+    if ((accessToken || isAuthenticated) && !authFetched.current) {
       dispatch(fetchCurrentUser());
+      authFetched.current = true;
     }
   }, [dispatch, accessToken, isAuthenticated]);
 

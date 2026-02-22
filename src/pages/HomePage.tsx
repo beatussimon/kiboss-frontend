@@ -1,12 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../app/store';
 import { fetchAssets } from '../features/assets/assetsSlice';
 import { fetchRides } from '../features/rides/ridesSlice';
 import { motion } from 'framer-motion';
-import { 
-  Home as HomeIcon, MapPin, Star, ArrowRight, Search, Shield, Clock, CreditCard, 
+import {
+  Home as HomeIcon, MapPin, Star, ArrowRight, Search, Shield, Clock, CreditCard,
   Car, Briefcase, Zap, Heart, Camera, Coffee, Laptop, Utensils, Eye, Users, Bookmark, Plus
 } from 'lucide-react';
 import { getMediaUrl } from '../utils/media';
@@ -20,9 +20,14 @@ export default function HomePage() {
   const { user } = useSelector((state: RootState) => state.auth);
   const [searchQuery, setSearchQuery] = useState('');
 
+  const fetched = useRef(false);
+
   useEffect(() => {
-    dispatch(fetchAssets({ page_size: 8 }));
-    dispatch(fetchRides({}));
+    if (!fetched.current) {
+      dispatch(fetchAssets({ page_size: 8 }));
+      dispatch(fetchRides({}));
+      fetched.current = true;
+    }
   }, [dispatch]);
 
   const handleSearch = (e: React.FormEvent) => {
@@ -37,16 +42,16 @@ export default function HomePage() {
       {/* Hero Search Section */}
       <section className="relative h-[500px] flex items-center justify-center overflow-hidden -mx-4 sm:-mx-6 lg:-mx-8">
         <div className="absolute inset-0 z-0">
-          <img 
-            src="https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&q=80&w=2070" 
-            className="w-full h-full object-cover" 
+          <img
+            src="https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&q=80&w=2070"
+            className="w-full h-full object-cover"
             alt="Hero background"
           />
           <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px]"></div>
         </div>
-        
+
         <div className="relative z-10 w-full max-w-4xl px-4 text-center">
-          <motion.h1 
+          <motion.h1
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
@@ -55,7 +60,7 @@ export default function HomePage() {
             Rent <span className="text-primary-400">Anything</span>, <br className="hidden md:block" />
             Everywhere.
           </motion.h1>
-          <motion.p 
+          <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
@@ -64,8 +69,8 @@ export default function HomePage() {
             Share your stuff, earn extra cash. <br className="md:hidden" />
             Join thousands of owners earning today.
           </motion.p>
-          
-          <motion.div 
+
+          <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: 0.4 }}
@@ -74,8 +79,8 @@ export default function HomePage() {
             <form onSubmit={handleSearch} className="bg-white p-2 rounded-full shadow-2xl flex items-center w-full max-w-2xl">
               <div className="flex-1 flex items-center px-4">
                 <MapPin className="h-5 w-5 text-primary-600 mr-2 flex-shrink-0" />
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   placeholder="What are you looking for?"
                   className="w-full border-none focus:ring-0 text-gray-900 font-bold placeholder:text-gray-400 placeholder:font-medium"
                   value={searchQuery}
@@ -87,8 +92,8 @@ export default function HomePage() {
               </button>
             </form>
 
-            <Link 
-              to="/assets/create" 
+            <Link
+              to="/assets/create"
               className="group flex items-center gap-2 text-white font-black  tracking-widest text-xs bg-white/10 hover:bg-white/20 backdrop-blur-md px-6 py-3 rounded-full border border-white/20 transition-all"
             >
               <Plus className="h-4 w-4" />
@@ -125,8 +130,8 @@ export default function HomePage() {
             {assets.slice(0, 8).map((asset) => (
               <Link key={asset.id} to={`/assets/${asset.id}`} className="group cursor-pointer">
                 <div className="aspect-[4/3] relative rounded-2xl overflow-hidden mb-3">
-                  <img 
-                    src={asset.photos?.[0] ? getMediaUrl(asset.photos[0].url) : "https://images.unsplash.com/photo-1460317442991-0ec209397118?auto=format&fit=crop&q=80&w=1000"} 
+                  <img
+                    src={asset.photos?.[0] ? getMediaUrl(asset.photos[0].url) : "https://images.unsplash.com/photo-1460317442991-0ec209397118?auto=format&fit=crop&q=80&w=1000"}
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                     alt={asset.name}
                   />
@@ -151,7 +156,7 @@ export default function HomePage() {
                     <span>{asset.average_rating || '5.0'}</span>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center gap-4 mt-2 text-[10px] font-bold text-gray-400  tracking-widest">
                   <span className="flex items-center gap-1">
                     <Eye className="h-3 w-3" /> {(asset as any).views_count || Math.floor(Math.random() * 500) + 50}
@@ -195,8 +200,8 @@ export default function HomePage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {rides.slice(0, 4).map((ride) => (
-              <Link 
-                key={ride.id} 
+              <Link
+                key={ride.id}
                 to={`/rides/${ride.id}`}
                 className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:border-primary-100 transition-all group"
               >
@@ -209,7 +214,7 @@ export default function HomePage() {
                     <p className="font-bold text-gray-900">{ride.driver?.first_name} {ride.driver?.last_name}</p>
                   </div>
                 </div>
-                
+
                 <div className="space-y-3 mb-4">
                   <div className="flex items-start gap-2">
                     <div className="mt-1 w-2 h-2 rounded-full bg-primary-500" />
