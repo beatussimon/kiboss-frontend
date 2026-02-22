@@ -1,12 +1,12 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
-import { AppDispatch } from '../../app/store';
+import { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from '../../app/store';
 import { createRide } from '../../features/rides/ridesSlice';
 import toast from 'react-hot-toast';
-import { Ride } from '../../types';
+import { Ride, Asset } from '../../types';
 import ImageUpload from '../../components/upload/ImageUpload';
-import { Upload, Loader2, Plus, Trash2, MapPin, Clock, Car } from 'lucide-react';
+import { Upload, Loader2, Plus, Trash2, MapPin, Clock, Car, AlertTriangle, ShieldCheck } from 'lucide-react';
 import api from '../../services/api';
 
 interface StopFormData {
@@ -21,7 +21,12 @@ interface StopFormData {
 export default function CreateRidePage() {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
+  const { user } = useSelector((state: RootState) => state.auth);
+  
   const [isLoading, setIsLoading] = useState(false);
+  const [isCheckingVehicles, setIsCheckingVehicles] = useState(true);
+  const [vehicles, setVehicles] = useState<Asset[]>([]);
+  
   const [images, setImages] = useState<File[]>([]);
   const [formData, setFormData] = useState({
     route_name: '',
@@ -39,9 +44,48 @@ export default function CreateRidePage() {
   });
   const [stops, setStops] = useState<StopFormData[]>([]);
 
+  useEffect(() => {
+    const fetchUserVehicles = async () => {
+      try {
+        // In a real app, the backend should support 'owner=me' or similar
+        // For now we'll filter assets where owner ID matches current user
+        const res = await api.get('/assets/', { params: { asset_type: 'VEHICLE' } });
+        const allAssets = res.data.results || res.data;
+        const myVehicles = allAssets.filter((a: any) => a.owner === user?.id || a.owner?.id === user?.id);
+        setVehicles(myVehicles);
+      } catch (error) {
+        console.error('Failed to fetch vehicles:', error);
+      } finally {
+        setIsCheckingVehicles(false);
+      }
+    };
+
+    if (user) {
+      fetchUserVehicles();
+    }
+  }, [user]);
+
+  const verifiedVehicles = vehicles.filter(v => v.verification_status === 'VERIFIED');
+  const hasVerifiedVehicle = verifiedVehicles.length > 0 || user?.roles?.some(r => r.role === 'SUPER_ADMIN');
+
+  const [selectedVehicleId, setSelectedVehicleId] = useState('');
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    
+    if (name === 'vehicle_asset_id') {
+      setSelectedVehicleId(value);
+      const vehicle = verifiedVehicles.find(v => v.id === value);
+      if (vehicle) {
+        setFormData(prev => ({
+          ...prev,
+          vehicle_description: `${vehicle.properties?.year || ''} ${vehicle.properties?.make || ''} ${vehicle.properties?.model || ''}`.trim() || vehicle.name,
+          vehicle_color: (vehicle.properties?.color as string) || '',
+          vehicle_license_plate: (vehicle.properties?.license_plate as string) || '',
+        }));
+      }
+    }
   };
 
   const addStop = () => {
@@ -78,7 +122,8 @@ export default function CreateRidePage() {
 
     try {
       // Allow the browser to set Content-Type with the correct boundary for FormData
-      await api.post(`/rides/${rideId}/upload_photos/`, formData, {
+      // The backend router has RideViewSet registered under 'trips' within the rides app (prefix /api/v1/rides/)
+      await api.post(`/rides/trips/${rideId}/upload_photos/`, formData, {
         headers: {
           'Content-Type': null as unknown as string,
         },
@@ -92,6 +137,11 @@ export default function CreateRidePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!hasVerifiedVehicle) {
+      toast.error('Vehicle verification required');
+      return;
+    }
+
     // Validate required fields
     if (!formData.origin || !formData.destination || !formData.departure_time) {
       toast.error('Please fill in all required fields');
@@ -114,6 +164,7 @@ export default function CreateRidePage() {
         total_seats: formData.total_seats,
         seat_price: parseFloat(formData.seat_price) || 0,
         currency: formData.currency,
+        vehicle_asset: { id: selectedVehicleId } as any,
         vehicle_description: formData.vehicle_description || undefined,
         vehicle_color: formData.vehicle_color || undefined,
         vehicle_license_plate: formData.vehicle_license_plate || undefined,
@@ -152,9 +203,50 @@ export default function CreateRidePage() {
     }
   };
 
+  if (isCheckingVehicles) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[40vh]">
+        <Loader2 className="h-12 w-12 animate-spin text-primary-600 mb-4" />
+        <p className="text-gray-500 font-bold uppercase tracking-widest text-xs">Checking verification status...</p>
+      </div>
+    );
+  }
+
+  if (!hasVerifiedVehicle) {
+    return (
+      <div className="max-w-2xl mx-auto">
+        <div className="card p-12 text-center bg-orange-50 border-orange-200 border-2">
+          <div className="h-24 w-24 bg-white rounded-full flex items-center justify-center mx-auto mb-8 shadow-xl">
+            <AlertTriangle className="h-12 w-12 text-orange-500" />
+          </div>
+          <h1 className="text-3xl font-black text-gray-900 mb-4 tracking-tighter uppercase">Verification Required</h1>
+          <p className="text-gray-600 font-medium mb-8">
+            To ensure the safety of our community, all drivers must have at least one verified vehicle before they can offer rides.
+          </p>
+          <div className="space-y-4">
+            <Link to="/vehicles/register" className="btn-primary w-full py-4 text-lg font-black uppercase tracking-widest flex items-center justify-center gap-3">
+              <Car className="h-6 w-6" />
+              Register Your Vehicle
+            </Link>
+            <button onClick={() => navigate(-1)} className="text-sm font-bold text-gray-400 hover:text-gray-600 uppercase tracking-widest">
+              Go Back
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-3xl mx-auto">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Offer a Ride</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-3xl font-black text-gray-900 tracking-tighter uppercase">Offer a Ride</h1>
+        <div className="flex items-center gap-2 px-3 py-1 bg-green-50 text-green-700 rounded-full border border-green-100">
+          <ShieldCheck className="h-4 w-4" />
+          <span className="text-[10px] font-black uppercase tracking-widest">Verified Driver</span>
+        </div>
+      </div>
+      
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Images Section */}
         <div className="card p-6">
@@ -270,52 +362,54 @@ export default function CreateRidePage() {
 
         {/* Vehicle Information */}
         <div className="card p-6">
-          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Car className="w-5 h-5" />
-            Vehicle Information
-          </h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold flex items-center gap-2">
+              <Car className="w-5 h-5" />
+              Select Verified Vehicle
+            </h2>
+            <Link to="/vehicles/register" className="text-xs font-bold text-primary-600 hover:underline flex items-center gap-1">
+              <Plus className="h-3 w-3" /> Add New Vehicle
+            </Link>
+          </div>
+          
           <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="md:col-span-1">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Vehicle Description
-                </label>
-                <input
-                  type="text"
-                  name="vehicle_description"
-                  value={formData.vehicle_description}
-                  onChange={handleInputChange}
-                  className="input"
-                  placeholder="e.g., Toyota Hiace"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Color
-                </label>
-                <input
-                  type="text"
-                  name="vehicle_color"
-                  value={formData.vehicle_color}
-                  onChange={handleInputChange}
-                  className="input"
-                  placeholder="e.g., White"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  License Plate
-                </label>
-                <input
-                  type="text"
-                  name="vehicle_license_plate"
-                  value={formData.vehicle_license_plate}
-                  onChange={handleInputChange}
-                  className="input"
-                  placeholder="e.g., KAA 123A"
-                />
-              </div>
+            <div>
+              <label className="label">Your Verified Vehicles <span className="text-red-500">*</span></label>
+              <select 
+                name="vehicle_asset_id"
+                className="input"
+                value={selectedVehicleId}
+                onChange={handleInputChange}
+                required
+              >
+                <option value="">-- Choose a verified vehicle --</option>
+                {verifiedVehicles.map(v => (
+                  <option key={v.id} value={v.id}>
+                    {v.name} ({v.properties?.license_plate as string})
+                  </option>
+                ))}
+              </select>
+              <p className="text-[10px] text-gray-500 mt-1 uppercase font-bold tracking-widest">
+                Only verified vehicles can be used to offer rides.
+              </p>
             </div>
+
+            {selectedVehicleId && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-xl border border-gray-100">
+                <div>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase">Description</p>
+                  <p className="text-sm font-black text-gray-900">{formData.vehicle_description}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase">Color</p>
+                  <p className="text-sm font-black text-gray-900">{formData.vehicle_color}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase">License Plate</p>
+                  <p className="text-sm font-black text-primary-600">{formData.vehicle_license_plate}</p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

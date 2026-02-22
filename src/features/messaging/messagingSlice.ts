@@ -102,7 +102,7 @@ export const createContextualThread = createAsyncThunk(
   'messaging/createContextualThread',
   async (data: {
     target_user_id: string;
-    thread_type?: 'INQUIRY' | 'BOOKING' | 'RIDE' | 'DISPUTE';
+    thread_type?: 'INQUIRY' | 'BOOKING' | 'RIDE' | 'DISPUTE' | 'SUPPORT';
     subject?: string;
     listing_id?: string;
     booking_id?: string;

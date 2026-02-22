@@ -1,28 +1,38 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
-import { AppDispatch } from '../../app/store';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from '../../app/store';
 import { createAsset } from '../../features/assets/assetsSlice';
 import toast from 'react-hot-toast';
 import { Asset, AssetType } from '../../types';
 import ImageUpload from '../../components/upload/ImageUpload';
-import { Upload, Loader2 } from 'lucide-react';
+import { Upload, Loader2, Building2, MapPin, Info, AlertCircle } from 'lucide-react';
 import api from '../../services/api';
 
 export default function CreateAssetPage() {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const { user } = useSelector((state: RootState) => state.auth);
+  
+  const queryParams = new URLSearchParams(location.search);
+  const parentId = queryParams.get('parent');
+  const mode = queryParams.get('mode'); // 'business' (parent) or 'service' (child)
+
+  const isBusinessTier = user?.verification_tier === 'business';
+
   const [isLoading, setIsLoading] = useState(false);
   const [images, setImages] = useState<File[]>([]);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    asset_type: 'ROOM' as AssetType,
+    asset_type: (mode === 'business' ? 'HOTEL' : parentId ? 'HOTEL_ROOM' : 'ROOM') as AssetType,
     address: '',
     city: '',
-    country: '',
+    country: 'Tanzania',
     currency: 'TZS',
     is_listed: true,
+    parent: parentId || null,
     pricing_rules: [{ name: 'Standard Rate', unit_type: 'HOUR', price: '1000', min_duration_minutes: 60, priority: 0 }],
     properties: {
       guests: 2,
@@ -34,6 +44,14 @@ export default function CreateAssetPage() {
       amenities: [] as string[],
     }
   });
+
+  useEffect(() => {
+    if (mode === 'business') {
+      setFormData(prev => ({ ...prev, asset_type: 'HOTEL' }));
+    } else if (parentId) {
+      setFormData(prev => ({ ...prev, asset_type: 'HOTEL_ROOM' }));
+    }
+  }, [mode, parentId]);
 
   const uploadImages = async (assetId: string, files: File[]) => {
     if (files.length === 0) return;
@@ -83,18 +101,37 @@ export default function CreateAssetPage() {
         toast.success('Asset created successfully!');
         navigate(`/assets/${assetId}`);
       } else {
-        toast.error('Failed to create asset');
+        // Extract and show specific error message from the payload
+        const errorMsg = result.payload as string;
+        toast.error(errorMsg || 'Failed to create asset');
       }
-    } catch {
-      toast.error('An error occurred');
+    } catch (error: any) {
+      console.error('Asset creation error:', error);
+      toast.error('An unexpected error occurred. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="max-w-3xl mx-auto">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">List Your Asset</h1>
+    <div className="max-w-3xl mx-auto pb-20">
+      <h1 className="text-3xl font-black text-gray-900 mb-2 tracking-tighter uppercase">List Your Asset</h1>
+      <p className="text-gray-500 font-medium mb-8">Share your resources with the KIBOSS community.</p>
+
+      {isBusinessTier && (
+        <div className="bg-indigo-50 border-2 border-indigo-100 rounded-3xl p-6 mb-8 flex gap-4 shadow-sm shadow-indigo-100/50">
+          <div className="h-12 w-12 bg-white rounded-2xl flex items-center justify-center shadow-sm flex-shrink-0">
+            <Building2 className="h-6 w-6 text-indigo-600" />
+          </div>
+          <div>
+            <p className="text-sm font-black text-indigo-900 uppercase tracking-tight mb-1">Business Listing Policy</p>
+            <p className="text-xs font-medium text-indigo-800 leading-relaxed">
+              As a verified business, all your assets (Hotels, Restaurants, and Services) must undergo manual verification by our operations team before they appear in public search results.
+            </p>
+          </div>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Images Section */}
         <div className="card p-6">
@@ -149,23 +186,137 @@ export default function CreateAssetPage() {
                 onChange={(e) => setFormData({ ...formData, asset_type: e.target.value as AssetType })}
                 className="input"
               >
-                <option value="ROOM">Room</option>
-                <option value="TOOL">Tool</option>
-                <option value="VEHICLE">Vehicle</option>
-                <option value="SEAT_SERVICE">Seat Service</option>
-                <option value="TIME_SERVICE">Time Service</option>
+                <optgroup label="Individuals">
+                  <option value="ROOM">Individual Room/Space</option>
+                  <option value="TOOL">Tool/Equipment</option>
+                  <option value="VEHICLE">Vehicle</option>
+                  <option value="SEAT_SERVICE">Seat Service</option>
+                  <option value="TIME_SERVICE">Time Service</option>
+                </optgroup>
+                <optgroup label="Corporate Properties">
+                  <option value="HOTEL">Hotel Property</option>
+                  <option value="RESTAURANT">Restaurant Property</option>
+                </optgroup>
+                <optgroup label="Corporate Services">
+                  <option value="HOTEL_ROOM">Hotel Room</option>
+                  <option value="CONFERENCE_HALL">Conference Hall</option>
+                  <option value="DINING_TABLE">Dining Table</option>
+                </optgroup>
               </select>
             </div>
+
+            {formData.parent && (
+              <div className="p-4 bg-primary-50 rounded-2xl border border-primary-100 flex gap-3">
+                <Info className="h-5 w-5 text-primary-600 flex-shrink-0" />
+                <div>
+                  <p className="text-xs font-bold text-primary-900 uppercase">Service Context</p>
+                  <p className="text-[11px] text-primary-700 font-medium leading-relaxed">
+                    This service will be automatically linked to your parent property. Verification status will be inherited.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Room Specific Features */}
-        {formData.asset_type === 'ROOM' && (
+        {/* Room / Hall Specific Features */}
+        {(formData.asset_type === 'ROOM' || formData.asset_type === 'HOTEL_ROOM' || formData.asset_type === 'CONFERENCE_HALL') && (
           <div className="card p-6">
-            <h2 className="text-lg font-semibold mb-4">Stay Details</h2>
+            <h2 className="text-lg font-semibold mb-4">{formData.asset_type === 'CONFERENCE_HALL' ? 'Venue Capacity' : 'Stay Details'}</h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Guests</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Max Guests</label>
+                <input
+                  type="number"
+                  value={formData.properties.guests}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    properties: { ...formData.properties, guests: parseInt(e.target.value) || 1 }
+                  })}
+                  className="input"
+                  min="1"
+                />
+              </div>
+              {formData.asset_type !== 'CONFERENCE_HALL' && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Bedrooms</label>
+                    <input
+                      type="number"
+                      value={formData.properties.bedrooms}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        properties: { ...formData.properties, bedrooms: parseInt(e.target.value) || 1 }
+                      })}
+                      className="input"
+                      min="1"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Beds</label>
+                    <input
+                      type="number"
+                      value={formData.properties.beds}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        properties: { ...formData.properties, beds: parseInt(e.target.value) || 1 }
+                      })}
+                      className="input"
+                      min="1"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Baths</label>
+                    <input
+                      type="number"
+                      value={formData.properties.baths}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        properties: { ...formData.properties, baths: parseInt(e.target.value) || 1 }
+                      })}
+                      className="input"
+                      min="1"
+                    />
+                  </div>
+                </>
+              )}
+            </div>
+            <div className="grid grid-cols-2 gap-4 mt-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Available From</label>
+                <input
+                  type="time"
+                  value={formData.properties.check_in_after}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    properties: { ...formData.properties, check_in_after: e.target.value }
+                  })}
+                  className="input"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Available Until</label>
+                <input
+                  type="time"
+                  value={formData.properties.check_out_before}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    properties: { ...formData.properties, check_out_before: e.target.value }
+                  })}
+                  className="input"
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Restaurant Specific Features */}
+        {formData.asset_type === 'DINING_TABLE' && (
+          <div className="card p-6">
+            <h2 className="text-lg font-semibold mb-4">Dining Details</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Seating Capacity</label>
                 <input
                   type="number"
                   value={formData.properties.guests}
@@ -178,68 +329,11 @@ export default function CreateAssetPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Bedrooms</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Table Number/Location</label>
                 <input
-                  type="number"
-                  value={formData.properties.bedrooms}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    properties: { ...formData.properties, bedrooms: parseInt(e.target.value) || 1 }
-                  })}
+                  type="text"
                   className="input"
-                  min="1"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Beds</label>
-                <input
-                  type="number"
-                  value={formData.properties.beds}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    properties: { ...formData.properties, beds: parseInt(e.target.value) || 1 }
-                  })}
-                  className="input"
-                  min="1"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Baths</label>
-                <input
-                  type="number"
-                  value={formData.properties.baths}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    properties: { ...formData.properties, baths: parseInt(e.target.value) || 1 }
-                  })}
-                  className="input"
-                  min="1"
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4 mt-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Check-in After</label>
-                <input
-                  type="time"
-                  value={formData.properties.check_in_after}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    properties: { ...formData.properties, check_in_after: e.target.value }
-                  })}
-                  className="input"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Check-out Before</label>
-                <input
-                  type="time"
-                  value={formData.properties.check_out_before}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    properties: { ...formData.properties, check_out_before: e.target.value }
-                  })}
-                  className="input"
+                  placeholder="e.g., Table 5, Terrace"
                 />
               </div>
             </div>

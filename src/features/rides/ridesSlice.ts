@@ -7,6 +7,7 @@ interface RidesState {
   currentRide: Ride | null;
   seatAvailability: SeatAvailability | null;
   myBookings: SeatBooking[];
+  rideManifest: SeatBooking[];
   myDrives: Ride[];
   isLoading: boolean;
   error: string | null;
@@ -18,6 +19,7 @@ const initialState: RidesState = {
   currentRide: null,
   seatAvailability: null,
   myBookings: [],
+  rideManifest: [],
   myDrives: [],
   isLoading: false,
   error: null,
@@ -28,7 +30,7 @@ export const fetchRides = createAsyncThunk(
   'rides/fetchRides',
   async (params: { origin?: string; destination?: string; departure_date?: string; available_seats?: number } = {}, { rejectWithValue }) => {
     try {
-      const response = await api.get<PaginatedResponse<Ride>>('/rides/', { params });
+      const response = await api.get<PaginatedResponse<Ride>>('/rides/trips/', { params });
       return response.data;
     } catch (error: unknown) {
       const axiosError = error as { response?: { data?: { message?: string } } };
@@ -37,11 +39,27 @@ export const fetchRides = createAsyncThunk(
   }
 );
 
+export const fetchRideManifest = createAsyncThunk(
+  'rides/fetchRideManifest',
+  async (rideId: string, { rejectWithValue }) => {
+    try {
+      const response = await api.get<PaginatedResponse<SeatBooking>>('/rides/bookings/', { 
+        params: { ride: rideId } 
+      });
+      // Return only the results array to the reducer if expected
+      return response.data.results || (response.data as any);
+    } catch (error: unknown) {
+      const axiosError = error as { response?: { data?: { message?: string } } };
+      return rejectWithValue(axiosError.response?.data?.message || 'Failed to fetch ride manifest');
+    }
+  }
+);
+
 export const fetchRide = createAsyncThunk(
   'rides/fetchRide',
   async (rideId: string, { rejectWithValue }) => {
     try {
-      const response = await api.get<Ride>(`/rides/${rideId}/`);
+      const response = await api.get<Ride>(`/rides/trips/${rideId}/`);
       return response.data;
     } catch (error: unknown) {
       const axiosError = error as { response?: { data?: { message?: string } } };
@@ -54,7 +72,7 @@ export const fetchSeatAvailability = createAsyncThunk(
   'rides/fetchSeatAvailability',
   async (rideId: string, { rejectWithValue }) => {
     try {
-      const response = await api.get<SeatAvailability>(`/rides/${rideId}/seats_detail/`);
+      const response = await api.get<SeatAvailability>(`/rides/trips/${rideId}/seats_detail/`);
       return response.data;
     } catch (error: unknown) {
       const axiosError = error as { response?: { data?: { message?: string } } };
@@ -67,7 +85,7 @@ export const bookSeat = createAsyncThunk(
   'rides/bookSeat',
   async ({ rideId, data }: { rideId: string; data: { seat_number: number; pickup_stop_id?: string; dropoff_stop_id?: string; passenger_notes?: string; luggage_count?: number; payment_method: string } }, { rejectWithValue }) => {
     try {
-      const response = await api.post<SeatBooking>(`/rides/${rideId}/book/`, data);
+      const response = await api.post<SeatBooking>(`/rides/trips/${rideId}/book/`, data);
       return response.data;
     } catch (error: unknown) {
       const axiosError = error as { response?: { data?: { message?: string } } };
@@ -95,7 +113,7 @@ export const fetchMyDrives = createAsyncThunk(
   'rides/fetchMyDrives',
   async (params: { status?: string } = {}, { rejectWithValue }) => {
     try {
-      const response = await api.get<PaginatedResponse<Ride>>('/rides/', { 
+      const response = await api.get<PaginatedResponse<Ride>>('/rides/trips/', { 
         params: { driver: 'me', ...params } 
       });
       return response.data;
@@ -106,13 +124,14 @@ export const fetchMyDrives = createAsyncThunk(
   }
 );
 
-export const cancelSeatBooking = createAsyncThunk(
-  'rides/cancelSeatBooking',
-  async ({ rideId, seatBookingId, reason }: { rideId: string; seatBookingId: string; reason?: string }, { rejectWithValue }) => {
-    try {
-      const response = await api.post(`/rides/${rideId}/bookings/${seatBookingId}/cancel/`, { reason });
-      return response.data;
-    } catch (error: unknown) {
+  export const cancelSeatBooking = createAsyncThunk(
+    'rides/cancelSeatBooking',
+    async ({ rideId, seatBookingId, reason }: { rideId: string; seatBookingId: string; reason?: string }, { rejectWithValue }) => {
+      try {
+        const response = await api.post(`/rides/bookings/${seatBookingId}/cancel/`, { reason });
+        return response.data;
+      } catch (error: unknown) {
+
       const axiosError = error as { response?: { data?: { message?: string } } };
       return rejectWithValue(axiosError.response?.data?.message || 'Failed to cancel booking');
     }
@@ -123,7 +142,7 @@ export const createRide = createAsyncThunk(
   'rides/createRide',
   async (data: Partial<Ride>, { rejectWithValue }) => {
     try {
-      const response = await api.post<Ride>('/rides/', data);
+      const response = await api.post<Ride>('/rides/trips/', data);
       return response.data;
     } catch (error: unknown) {
       const axiosError = error as { response?: { data?: { message?: string; details?: Record<string, string[]> } } };
@@ -141,7 +160,7 @@ export const updateRide = createAsyncThunk(
   'rides/updateRide',
   async ({ id, data }: { id: string; data: Partial<Ride> }, { rejectWithValue }) => {
     try {
-      const response = await api.patch<Ride>(`/rides/${id}/`, data);
+      const response = await api.patch<Ride>(`/rides/trips/${id}/`, data);
       return response.data;
     } catch (error: unknown) {
       const axiosError = error as { response?: { data?: { message?: string } } };
@@ -200,6 +219,18 @@ const ridesSlice = createSlice({
       // Fetch my bookings
       .addCase(fetchMyBookings.fulfilled, (state, action: PayloadAction<SeatBooking[]>) => {
         state.myBookings = action.payload || [];
+      })
+      // Fetch ride manifest
+      .addCase(fetchRideManifest.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(fetchRideManifest.fulfilled, (state, action: PayloadAction<SeatBooking[]>) => {
+        state.isLoading = false;
+        state.rideManifest = action.payload || [];
+      })
+      .addCase(fetchRideManifest.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
       })
       // Fetch my drives
       .addCase(fetchMyDrives.fulfilled, (state, action: PayloadAction<PaginatedResponse<Ride>>) => {

@@ -89,7 +89,7 @@ export default function HomePage() {
 
             <Link 
               to="/assets/create" 
-              className="group flex items-center gap-2 text-white font-black uppercase tracking-widest text-xs bg-white/10 hover:bg-white/20 backdrop-blur-md px-6 py-3 rounded-full border border-white/20 transition-all"
+              className="group flex items-center gap-2 text-white font-black  tracking-widest text-xs bg-white/10 hover:bg-white/20 backdrop-blur-md px-6 py-3 rounded-full border border-white/20 transition-all"
             >
               <Plus className="h-4 w-4" />
               Start Listing Now
@@ -152,7 +152,7 @@ export default function HomePage() {
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-4 mt-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                <div className="flex items-center gap-4 mt-2 text-[10px] font-bold text-gray-400  tracking-widest">
                   <span className="flex items-center gap-1">
                     <Eye className="h-3 w-3" /> {(asset as any).views_count || Math.floor(Math.random() * 500) + 50}
                   </span>
@@ -205,7 +205,7 @@ export default function HomePage() {
                     {ride.driver?.first_name?.[0]}{ride.driver?.last_name?.[0]}
                   </div>
                   <div className="flex-1">
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Driver</p>
+                    <p className="text-xs font-bold text-gray-400  tracking-widest">Driver</p>
                     <p className="font-bold text-gray-900">{ride.driver?.first_name} {ride.driver?.last_name}</p>
                   </div>
                 </div>
@@ -221,7 +221,7 @@ export default function HomePage() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4 mb-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                <div className="flex items-center gap-4 mb-4 text-[10px] font-bold text-gray-400  tracking-widest">
                   <span className="flex items-center gap-1">
                     <Eye className="h-3 w-3" /> {Math.floor(Math.random() * 200) + 20}
                   </span>

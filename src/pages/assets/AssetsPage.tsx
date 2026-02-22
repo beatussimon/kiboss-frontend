@@ -176,7 +176,7 @@ export default function AssetsPage() {
                       {asset.city}, {asset.country}
                     </p>
                     
-                    <div className="flex items-center gap-3 mt-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                    <div className="flex items-center gap-3 mt-3 text-[10px] font-bold text-gray-400  tracking-widest">
                       <span className="flex items-center gap-1">
                         <Eye className="h-3 w-3" /> {(asset as any).views_count || Math.floor(Math.random() * 500) + 50}
                       </span>

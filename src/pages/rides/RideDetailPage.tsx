@@ -5,7 +5,7 @@ import { AppDispatch, RootState } from '../../app/store';
 import { fetchRide, fetchSeatAvailability, bookSeat } from '../../features/rides/ridesSlice';
 import { getMediaUrl } from '../../utils/media';
 import { Price } from '../../context/CurrencyContext';
-import { MapPin, Users, ArrowRight, Clock, Star, Edit, List, ChevronLeft, ChevronRight, Home, Car, User, Calendar } from 'lucide-react';
+import { MapPin, Users, ArrowRight, Clock, Star, Edit, List, ChevronLeft, ChevronRight, Home, Car, User, Calendar, Shield } from 'lucide-react';
 import toast from 'react-hot-toast';
 import VerificationBadge from '../../components/ui/VerificationBadge';
 import ContactButton from '../../components/messaging/ContactButton';
@@ -184,7 +184,7 @@ export default function RideDetailPage() {
           <div className="card p-8 border-none shadow-xl bg-gradient-to-br from-white to-gray-50">
             <div className="flex items-start justify-between mb-8">
               <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary-600 mb-2 tracking-widest">Confirmed Ride</p>
+                <p className="text-[10px] font-black  tracking-[0.2em] text-primary-600 mb-2 tracking-widest">Confirmed Ride</p>
                 <h1 className="text-3xl font-black text-gray-900 leading-tight">{ride.route_name}</h1>
               </div>
               {/* Driver Actions */}
@@ -205,7 +205,7 @@ export default function RideDetailPage() {
               <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10" />
               <div className="relative flex flex-col md:flex-row items-center justify-between gap-8 md:gap-6">
                 <div className="text-center md:text-left flex-1">
-                  <p className="text-[10px] font-bold text-primary-400 uppercase tracking-widest mb-1">Origin</p>
+                  <p className="text-[10px] font-bold text-primary-400  tracking-widest mb-1">Origin</p>
                   <h3 className="text-xl font-black text-white break-words">{ride.origin}</h3>
                 </div>
                 
@@ -218,7 +218,7 @@ export default function RideDetailPage() {
                 </div>
 
                 <div className="text-center md:text-right flex-1">
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Destination</p>
+                  <p className="text-[10px] font-bold text-gray-400  tracking-widest mb-1">Destination</p>
                   <h3 className="text-xl font-black text-white break-words">{ride.destination}</h3>
                 </div>
               </div>
@@ -226,28 +226,28 @@ export default function RideDetailPage() {
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8 pt-6 border-t border-gray-100">
               <div className="space-y-1">
-                <p className="text-[10px] font-bold text-gray-400 uppercase">Departure</p>
+                <p className="text-[10px] font-bold text-gray-400 ">Departure</p>
                 <div className="flex items-center gap-2 text-gray-900">
                   <Clock className="h-4 w-4 text-primary-600" />
                   <span className="font-bold text-sm">{new Date(ride.departure_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                 </div>
               </div>
               <div className="space-y-1">
-                <p className="text-[10px] font-bold text-gray-400 uppercase">Date</p>
+                <p className="text-[10px] font-bold text-gray-400 ">Date</p>
                 <div className="flex items-center gap-2 text-gray-900">
                   <Calendar className="h-4 w-4 text-primary-600" />
                   <span className="font-bold text-sm">{new Date(ride.departure_time).toLocaleDateString()}</span>
                 </div>
               </div>
               <div className="space-y-1">
-                <p className="text-[10px] font-bold text-gray-400 uppercase">Availability</p>
+                <p className="text-[10px] font-bold text-gray-400 ">Availability</p>
                 <div className="flex items-center gap-2 text-gray-900">
                   <Users className="h-4 w-4 text-primary-600" />
                   <span className="font-bold text-sm">{ride.available_seats} / {ride.total_seats}</span>
                 </div>
               </div>
               <div className="space-y-1">
-                <p className="text-[10px] font-bold text-gray-400 uppercase">Price</p>
+                <p className="text-[10px] font-bold text-gray-400 ">Price</p>
                 <p className="text-lg font-black text-primary-600 leading-none"><Price amount={ride.seat_price} /></p>
               </div>
             </div>
@@ -279,7 +279,7 @@ export default function RideDetailPage() {
                     size="xs"
                   />
                 </div>
-                <p className="text-xs font-bold text-gray-400 flex items-center gap-1 mt-0.5 uppercase tracking-tighter">
+                <p className="text-xs font-bold text-gray-400 flex items-center gap-1 mt-0.5  tracking-tighter">
                   <Star className="h-3 w-3 text-yellow-400 fill-yellow-400" />
                   {ride.driver.trust_score} Trust Score · {ride.driver.total_ratings_count} Positive Rides
                 </p>
@@ -303,8 +303,8 @@ export default function RideDetailPage() {
             <div className="card p-0 sticky top-24 border-none shadow-2xl overflow-hidden bg-white">
               <div className="bg-gray-900 p-6 text-white">
                 <div className="flex justify-between items-center mb-2">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-primary-400">Reserve Seats</p>
-                  <div className="px-2 py-1 bg-primary-600 rounded text-[10px] font-bold uppercase tracking-tighter">Instant Booking</div>
+                  <p className="text-[10px] font-black  tracking-widest text-primary-400">Reserve Seats</p>
+                  <div className="px-2 py-1 bg-primary-600 rounded text-[10px] font-bold  tracking-tighter">Instant Booking</div>
                 </div>
                 <div className="flex justify-between items-end">
                   <div>
@@ -312,7 +312,7 @@ export default function RideDetailPage() {
                     <span className="text-xs font-bold text-gray-400 ml-1">/ seat</span>
                   </div>
                   <div className="text-right">
-                    <p className="text-[10px] font-bold text-gray-400 uppercase">Available</p>
+                    <p className="text-[10px] font-bold text-gray-400 ">Available</p>
                     <p className="text-lg font-black text-primary-400 leading-none">{ride.available_seats} seats</p>
                   </div>
                 </div>
@@ -323,15 +323,15 @@ export default function RideDetailPage() {
                 {seatAvailability && (
                   <div className="space-y-6">
                     <div className="flex items-center justify-between">
-                      <p className="text-xs font-black uppercase tracking-widest text-gray-400">Select Seats</p>
+                      <p className="text-xs font-black  tracking-widest text-gray-400">Select Seats</p>
                       <div className="flex gap-2">
-                        <div className="flex items-center gap-1 text-[8px] font-bold uppercase text-gray-400">
+                        <div className="flex items-center gap-1 text-[8px] font-bold  text-gray-400">
                           <div className="w-2 h-2 bg-white border border-gray-200 rounded-sm" /> Free
                         </div>
-                        <div className="flex items-center gap-1 text-[8px] font-bold uppercase text-gray-400">
+                        <div className="flex items-center gap-1 text-[8px] font-bold  text-gray-400">
                           <div className="w-2 h-2 bg-primary-600 rounded-sm" /> Yours
                         </div>
-                        <div className="flex items-center gap-1 text-[8px] font-bold uppercase text-gray-400">
+                        <div className="flex items-center gap-1 text-[8px] font-bold  text-gray-400">
                           <div className="w-2 h-2 bg-gray-200 rounded-sm" /> Taken
                         </div>
                       </div>
@@ -396,7 +396,7 @@ export default function RideDetailPage() {
                     {selectedSeats.length > 0 && (
                       <div className="p-4 bg-primary-600 rounded-2xl text-white shadow-lg shadow-primary-200 animate-in zoom-in-95 duration-200">
                         <div className="flex justify-between items-center text-sm font-black">
-                          <span className="uppercase tracking-widest text-[10px]">Total ({selectedSeats.length} Seats)</span>
+                          <span className=" tracking-widest text-[10px]">Total ({selectedSeats.length} Seats)</span>
                           <span><Price amount={ride.seat_price * selectedSeats.length} /></span>
                         </div>
                       </div>
@@ -408,14 +408,14 @@ export default function RideDetailPage() {
                   <button 
                     onClick={handleBookNow}
                     disabled={selectedSeats.length === 0 || isBooking || ride.available_seats === 0}
-                    className="btn-primary w-full py-4 text-sm font-black uppercase tracking-widest shadow-xl shadow-primary-500/20 disabled:opacity-50"
+                    className="btn-primary w-full py-4 text-sm font-black  tracking-widest shadow-xl shadow-primary-500/20 disabled:opacity-50"
                   >
                     {isBooking ? 'Processing...' : 'Complete Booking'}
                   </button>
 
                   <div className="w-full flex items-center gap-3">
                     <div className="flex-1 h-px bg-gray-100" />
-                    <span className="text-[10px] font-bold text-gray-300 uppercase">Or</span>
+                    <span className="text-[10px] font-bold text-gray-300 ">Or</span>
                     <div className="flex-1 h-px bg-gray-100" />
                   </div>
 
@@ -427,12 +427,12 @@ export default function RideDetailPage() {
                       rideId={ride.id}
                       subject={`Ride Inquiry: ${ride.origin} → ${ride.destination}`}
                       variant="outline"
-                      className="w-full justify-center py-3 text-xs font-bold uppercase tracking-widest"
+                      className="w-full justify-center py-3 text-xs font-bold  tracking-widest"
                     />
                   )}
                 </div>
                 
-                <p className="text-[9px] text-gray-400 font-bold uppercase tracking-tighter text-center px-4">
+                <p className="text-[9px] text-gray-400 font-bold  tracking-tighter text-center px-4">
                   Escrow Protection Active. Payment released 24h after trip completion.
                 </p>
               </div>
@@ -450,10 +450,12 @@ export default function RideDetailPage() {
                 </h3>
                 <p className="text-gray-400 text-sm mb-6 font-medium">Manage your trip settings, view passenger list, or update route details.</p>
                 <div className="grid grid-cols-1 gap-3">
-                  <Link to={`/rides/${ride.id}/edit`} className="w-full py-3 bg-white text-gray-900 rounded-xl font-bold text-sm text-center hover:bg-gray-100 transition-all">
+                  <Link to={`/rides/${ride.id}/edit`} className="w-full py-3 bg-white text-gray-900 rounded-xl font-bold text-sm text-center hover:bg-gray-100 transition-all flex items-center justify-center gap-2">
+                    <Edit className="h-4 w-4" />
                     Edit Trip Details
                   </Link>
-                  <Link to={`/rides/${ride.id}/bookings`} className="w-full py-3 bg-gray-800 text-white border border-gray-700 rounded-xl font-bold text-sm text-center hover:bg-gray-700 transition-all">
+                  <Link to={`/rides/${ride.id}/manifest`} className="w-full py-3 bg-gray-800 text-white border border-gray-700 rounded-xl font-bold text-sm text-center hover:bg-gray-700 transition-all flex items-center justify-center gap-2">
+                    <Users className="h-4 w-4" />
                     View Passenger Manifest
                   </Link>
                 </div>

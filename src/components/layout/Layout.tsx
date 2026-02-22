@@ -7,14 +7,15 @@ import { fetchNotifications } from '../../features/notifications/notificationsSl
 import { 
   MessageCircle, Bell, User, LogOut, Menu, X, 
   Home, Car, Briefcase, Plus, Search, Settings,
-  Calendar, Shield, CreditCard, Globe, Facebook, Twitter, Instagram, Linkedin, CheckCircle, Heart
+  Calendar, Shield, CreditCard, Globe, Facebook, Twitter, Instagram, Linkedin, CheckCircle, Heart, Building2, ChevronRight
 } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import VerificationBadge from '../ui/VerificationBadge';
 import { getMediaUrl } from '../../utils/media';
 import NotificationDropdown from '../notifications/NotificationDropdown';
 import { useCurrency, CurrencyCode } from '../../context/CurrencyContext';
 import { useNotificationWebSocket } from '../../features/notifications/useNotificationWebSocket';
+import Footer from './Footer';
 
 export default function Layout() {
   const dispatch = useDispatch();
@@ -31,8 +32,51 @@ export default function Layout() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [isCreateMenuOpen, setIsCreateMenuOpen] = useState(false);
+
+  // Refs for click-outside detection
+  const userMenuRef = useRef<HTMLDivElement>(null);
+  const notificationRef = useRef<HTMLDivElement>(null);
+  const createMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+      
+      if (isUserMenuOpen && userMenuRef.current && !userMenuRef.current.contains(target)) {
+        setIsUserMenuOpen(false);
+      }
+      if (isNotificationOpen && notificationRef.current && !notificationRef.current.contains(target)) {
+        setIsNotificationOpen(false);
+      }
+      if (isCreateMenuOpen && createMenuRef.current && !createMenuRef.current.contains(target)) {
+        setIsCreateMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isUserMenuOpen, isNotificationOpen, isCreateMenuOpen]);
+
+  // Dynamic staff check
+  const isStaff = !!(
+    user?.is_staff || 
+    user?.is_superuser || 
+    (user?.roles && Array.isArray(user.roles) && user.roles.length > 0)
+  );
+
+  useEffect(() => {
+    if (user) {
+      console.log(`[Layout] Staff Check DEBUG: 
+        id=${user.id}
+        email=${user.email} 
+        isStaff=${isStaff} 
+        is_staff_val=${user.is_staff} 
+        is_superuser_val=${user.is_superuser} 
+        roles_val=${JSON.stringify(user.roles)}`);
+    }
+  }, [user, isStaff]);
+    useEffect(() => {
     if (isAuthenticated) {
       // Initial fetch to get counts
       dispatch(fetchThreads({}) as any);
@@ -53,6 +97,8 @@ export default function Layout() {
     { name: 'Home', href: '/', icon: Home },
     { name: 'Assets', href: '/assets', icon: Briefcase },
     { name: 'Rides', href: '/rides', icon: Car },
+    { name: 'Business+', href: '/business', icon: Building2 },
+    ...(isStaff ? [{ name: 'Staff', href: '/staff/tasks', icon: Shield }] : []),
   ];
 
   // Secondary navigation - user actions (only when authenticated)
@@ -80,17 +126,17 @@ export default function Layout() {
         <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             {/* Left side - Logo and Primary Nav */}
-            <div className="flex items-center">
+            <div className="flex items-center gap-4">
               {/* Logo */}
               <Link to="/" className="flex-shrink-0 flex items-center">
                 <div className="h-8 w-8 bg-primary-600 rounded-lg flex items-center justify-center">
                   <span className="text-white font-bold text-lg">K</span>
                 </div>
-                <span className="ml-2 text-xl font-bold text-gray-900 hidden sm:block">KIBOSS</span>
+                <span className="ml-2 text-xl font-bold text-gray-900 hidden md:block">KIBOSS</span>
               </Link>
 
               {/* Desktop Primary Navigation */}
-              <div className="hidden lg:ml-8 lg:flex lg:space-x-1">
+              <div className="hidden lg:flex items-center space-x-1">
                 {primaryNav.map((item) => (
                   <Link
                     key={item.name}
@@ -108,18 +154,36 @@ export default function Layout() {
               </div>
             </div>
 
-            {/* Center - Create Actions (Desktop) */}
-            <div className="hidden lg:flex items-center space-x-2">
-              {createActions.map((action) => (
-                <Link
-                  key={action.name}
-                  to={action.href}
-                  className="inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium bg-primary-600 text-white hover:bg-primary-700 transition-colors"
-                >
-                  <action.icon className="h-4 w-4 mr-1" />
-                  {action.name}
-                </Link>
-              ))}
+            {/* Center - Create Actions Dropdown (Desktop) */}
+            <div className="hidden lg:flex items-center" ref={createMenuRef}>
+              {isAuthenticated && (
+                <div className="relative">
+                  <button
+                    onClick={() => setIsCreateMenuOpen(!isCreateMenuOpen)}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-black bg-gray-900 text-white hover:bg-black transition-all shadow-lg shadow-gray-200"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Create
+                    <ChevronRight className={`h-3 w-3 transition-transform ${isCreateMenuOpen ? 'rotate-90' : ''}`} />
+                  </button>
+
+                  {isCreateMenuOpen && (
+                    <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-2xl shadow-2xl py-2 z-50 ring-1 ring-gray-100 animate-in fade-in zoom-in-95 duration-200">
+                      {createActions.map((action) => (
+                        <Link
+                          key={action.name}
+                          to={action.href}
+                          onClick={() => setIsCreateMenuOpen(false)}
+                          className="flex items-center px-4 py-2.5 text-sm font-bold text-gray-700 hover:bg-primary-50 hover:text-primary-700"
+                        >
+                          <action.icon className="h-4 w-4 mr-2" />
+                          {action.name}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Right side - Secondary Nav and User Menu */}
@@ -128,7 +192,7 @@ export default function Layout() {
               <div className="hidden md:flex items-center space-x-1">
                 {secondaryNav.map((item) => (
                   item.name === 'Notifications' ? (
-                    <div key={item.name} className="relative">
+                    <div key={item.name} className="relative" ref={notificationRef}>
                       <button
                         onClick={() => setIsNotificationOpen(!isNotificationOpen)}
                         className={`relative inline-flex items-center p-2 rounded-lg transition-colors ${
@@ -174,7 +238,7 @@ export default function Layout() {
 
               {/* User menu */}
               {isAuthenticated && user ? (
-                <div className="relative">
+                <div className="relative" ref={userMenuRef}>
                   <button
                     onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                     data-testid="user-menu-button"
@@ -192,7 +256,12 @@ export default function Layout() {
                       </div>
                     )}
                     <div className="hidden md:block text-left">
-                      <p className="text-sm font-medium text-gray-900">{user.first_name}</p>
+                      <div className="flex items-center gap-1">
+                        <p className="text-sm font-black text-gray-900">{user.first_name}</p>
+                        {isStaff && (
+                          <span className="bg-primary-600 text-white text-[8px] font-black px-1 rounded-sm  tracking-tighter">Staff</span>
+                        )}
+                      </div>
                       <div className="flex items-center gap-1">
                         <VerificationBadge 
                           tier={user.verification_badge?.tier}
@@ -214,6 +283,24 @@ export default function Layout() {
                         <User className="h-4 w-4 mr-2" />
                         Profile
                       </Link>
+                      <Link
+                        to="/business"
+                        onClick={() => setIsUserMenuOpen(false)}
+                        className="flex items-center px-4 py-2 text-sm text-gray-700 font-bold bg-gray-50 hover:bg-gray-100"
+                      >
+                        <Building2 className="h-4 w-4 mr-2 text-primary-600" />
+                        Business
+                      </Link>
+                      {isStaff && (
+                        <Link
+                          to="/staff/tasks"
+                          onClick={() => setIsUserMenuOpen(false)}
+                          className="flex items-center px-4 py-2 text-sm text-primary-700 font-black bg-primary-50 hover:bg-primary-100 border-y border-primary-100"
+                        >
+                          <Shield className="h-4 w-4 mr-2" />
+                          Staff Dashboard
+                        </Link>
+                      )}
                       <Link
                         to="/profile"
                         onClick={() => {
@@ -323,7 +410,7 @@ export default function Layout() {
               
               {/* Create Actions */}
               <div className="pt-2 pb-1">
-                <p className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Create</p>
+                <p className="px-3 text-xs font-semibold text-gray-400  tracking-wider">Create</p>
               </div>
               {createActions.map((action) => (
                 <Link
@@ -339,7 +426,7 @@ export default function Layout() {
               
               {/* Secondary Nav */}
               <div className="pt-2 pb-1">
-                <p className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Account</p>
+                <p className="px-3 text-xs font-semibold text-gray-400  tracking-wider">Account</p>
               </div>
               {secondaryNav.map((item) => (
                 <Link
@@ -375,6 +462,14 @@ export default function Layout() {
                   Profile
                 </Link>
                 <Link
+                  to="/business"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center px-3 py-2 rounded-lg text-base font-medium text-primary-600 font-bold hover:bg-gray-50"
+                >
+                  <Building2 className="h-5 w-5 mr-3" />
+                  Business
+                </Link>
+                <Link
                   to="/payments"
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="flex items-center px-3 py-2 rounded-lg text-base font-medium text-gray-600 hover:bg-gray-50"
@@ -405,81 +500,7 @@ export default function Layout() {
       </main>
 
       {/* Footer */}
-      {!isMessagingPage && (
-        <footer className="bg-white border-t border-gray-200 mt-auto py-12">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col items-center text-center space-y-10">
-              {/* Logo & Slogan */}
-              <div className="flex flex-col items-center">
-                <Link to="/" className="flex items-center mb-3">
-                  <div className="h-12 w-12 bg-primary-600 rounded-2xl flex items-center justify-center shadow-xl shadow-primary-200 rotate-3">
-                    <span className="text-white font-black text-2xl -rotate-3">K</span>
-                  </div>
-                  <span className="ml-4 text-3xl font-black tracking-tighter text-gray-900">KIBOSS</span>
-                </Link>
-                <p className="text-gray-500 text-sm max-w-sm font-medium leading-relaxed">
-                  Universal Rental & Sharing Operating System. <br />
-                  List anything, rent everything.
-                </p>
-              </div>
-
-              {/* Main Divider Line */}
-              <div className="w-full max-w-lg h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
-
-              {/* Centered Links */}
-              <nav className="flex flex-wrap justify-center items-center gap-x-8 gap-y-4 text-xs font-black uppercase tracking-widest text-gray-400">
-                <Link to="/assets" className="hover:text-primary-600 transition-all hover:scale-105">Assets</Link>
-                <Link to="/rides" className="hover:text-primary-600 transition-all hover:scale-105">Rides</Link>
-                <Link to="/faq" className="hover:text-primary-600 transition-all hover:scale-105">How it works</Link>
-                <Link to="/privacy" className="hover:text-primary-600 transition-all hover:scale-105">Privacy</Link>
-                <Link to="/help" className="hover:text-primary-600 transition-all hover:scale-105">Support</Link>
-              </nav>
-
-              {/* Socials */}
-              <div className="flex space-x-8">
-                <a href="#" className="text-gray-300 hover:text-primary-600 transition-all transform hover:-translate-y-1"><Facebook className="h-5 w-5" /></a>
-                <a href="#" className="text-gray-300 hover:text-primary-600 transition-all transform hover:-translate-y-1"><Twitter className="h-5 w-5" /></a>
-                <a href="#" className="text-gray-300 hover:text-primary-600 transition-all transform hover:-translate-y-1"><Instagram className="h-5 w-5" /></a>
-                <a href="#" className="text-gray-300 hover:text-primary-600 transition-all transform hover:-translate-y-1"><Linkedin className="h-5 w-5" /></a>
-              </div>
-
-              {/* Bottom Section */}
-              <div className="w-full pt-10 border-t border-gray-50 flex flex-col items-center space-y-6">
-                <div className="flex flex-wrap justify-center items-center gap-6">
-                  <div className="flex items-center text-gray-500 text-[10px] font-black uppercase tracking-[0.2em]">
-                    <Globe className="h-4 w-4 mr-2 text-primary-500" />
-                    English (US)
-                  </div>
-                  <div className="w-px h-4 bg-gray-200 hidden sm:block" />
-                  <div className="relative group">
-                    <select 
-                      value={currency.code}
-                      onChange={(e) => setCurrency(e.target.value as CurrencyCode)}
-                      className="appearance-none bg-transparent text-gray-500 text-[10px] font-black uppercase tracking-[0.2em] focus:outline-none pr-4 cursor-pointer group-hover:text-primary-600 transition-colors"
-                    >
-                      {availableCurrencies.map(c => (
-                        <option key={c.code} value={c.code}>
-                          {c.code} ({c.symbol})
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <p className="text-[10px] font-bold text-gray-300 uppercase tracking-widest">
-                  © {new Date().getFullYear()} KIBOSS Inc. Empowering the sharing economy.
-                </p>
-
-                <div className="flex items-center gap-8 opacity-30 grayscale hover:opacity-100 hover:grayscale-0 transition-all duration-500">
-                  <Shield className="h-5 w-5" />
-                  <CheckCircle className="h-5 w-5" />
-                  <CreditCard className="h-5 w-5" />
-                </div>
-              </div>
-            </div>
-          </div>
-        </footer>
-      )}
+      {!isMessagingPage && <Footer />}
     </div>
   );
 }

@@ -33,6 +33,12 @@ import SettingsPage from './pages/profile/SettingsPage';
 import PublicProfilePage from './pages/profile/PublicProfilePage';
 import SearchPage from './pages/search/SearchPage';
 import FAQPage from './pages/faq/FAQPage';
+import RegisterVehiclePage from './pages/rides/RegisterVehiclePage';
+import MyVehiclesPage from './pages/rides/MyVehiclesPage';
+import TaskDashboard from './pages/staff/TaskDashboard';
+import RideManifestPage from './pages/rides/RideManifestPage';
+import RideEditPage from './pages/rides/RideEditPage';
+import BusinessDashboard from './pages/business/BusinessDashboard';
 
 // Protected Route Component
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -75,13 +81,13 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
 
 function App() {
   const dispatch = useDispatch<AppDispatch>();
-  const { accessToken, user } = useSelector((state: RootState) => state.auth);
+  const { accessToken, isAuthenticated } = useSelector((state: RootState) => state.auth);
 
   useEffect(() => {
-    if (accessToken && !user) {
+    if (accessToken || isAuthenticated) {
       dispatch(fetchCurrentUser());
     }
-  }, [dispatch, accessToken, user]);
+  }, [dispatch, accessToken, isAuthenticated]);
 
   return (
     <Routes>
@@ -124,10 +130,16 @@ function App() {
         <Route path="/rides" element={<RidesPage />} />
         <Route path="/rides/create" element={<CreateRidePage />} />
         <Route path="/rides/:id" element={<RideDetailPage />} />
+        <Route path="/rides/:id/edit" element={<RideEditPage />} />
+        <Route path="/rides/:id/manifest" element={<RideManifestPage />} />
         <Route path="/messages" element={<MessagesPage />} />
         <Route path="/messages/:threadId" element={<ThreadPage />} />
         <Route path="/notifications" element={<NotificationsPage />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/vehicles" element={<MyVehiclesPage />} />
+        <Route path="/vehicles/register" element={<RegisterVehiclePage />} />
+        <Route path="/business" element={<BusinessDashboard />} />
+        <Route path="/staff/tasks" element={<TaskDashboard />} />
         <Route path="/payments" element={<PaymentsPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/users/:userId" element={<PublicProfilePage />} />

@@ -37,9 +37,10 @@ export const register = createAsyncThunk(
     try {
       const response = await api.post('/users/register/', data);
       return response.data;
-    } catch (error: unknown) {
-      const axiosError = error as { response?: { data?: { message?: string } } };
-      return rejectWithValue(axiosError.response?.data?.message || 'Registration failed');
+    } catch (error: any) {
+      const axiosError = error as { response?: { data?: { message?: string; error?: string } } };
+      const errorMessage = axiosError.response?.data?.error || axiosError.response?.data?.message || 'Registration failed';
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -61,6 +62,7 @@ export const fetchCurrentUser = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await api.get<User>('/users/me/');
+      console.log('[authSlice] fetchCurrentUser data:', JSON.stringify(response.data, null, 2));
       return response.data;
     } catch (error: unknown) {
       const axiosError = error as { response?: { data?: { message?: string } } };

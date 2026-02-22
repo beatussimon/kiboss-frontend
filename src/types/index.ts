@@ -12,22 +12,35 @@ export interface User {
   trust_score: string;
   total_ratings_count: number;
   is_blocked: boolean;
+  is_staff?: boolean;
+  is_superuser?: boolean;
   verification_tier?: string;
   verification_badge?: {
     tier: string;
     color: string | null;
   };
   profile?: UserProfile;
+  corporate_profile?: CorporateProfile;
   roles?: UserRole[];
+  permissions?: string[];
 }
 
 export interface UserProfile {
+  id: string;
   phone: string;
   avatar: string;
   bio: string;
   city: string;
   country: string;
   timezone: string;
+}
+
+export interface CorporateProfile {
+  id: string;
+  company_name: string;
+  registration_number: string;
+  tax_id: string;
+  verification_status: 'PENDING' | 'VERIFIED' | 'REJECTED';
 }
 
 export interface UserRole {
@@ -55,10 +68,21 @@ export interface AuthState {
 }
 
 // ==================== Asset Types ====================
-export type AssetType = 'ROOM' | 'TOOL' | 'VEHICLE' | 'SEAT_SERVICE' | 'TIME_SERVICE';
+export type AssetType = 
+  | 'ROOM' 
+  | 'TOOL' 
+  | 'VEHICLE' 
+  | 'SEAT_SERVICE' 
+  | 'TIME_SERVICE'
+  | 'HOTEL'
+  | 'RESTAURANT'
+  | 'HOTEL_ROOM'
+  | 'CONFERENCE_HALL'
+  | 'DINING_TABLE';
 
 export interface Asset {
   id: string;
+  parent?: Asset | null;
   name: string;
   asset_type: AssetType;
   description: string;
@@ -67,7 +91,9 @@ export interface Asset {
   country: string;
   is_verified: boolean;
   verification_status: string;
+  verification_notes?: string;
   owner: User;
+  is_corporate: boolean;
   pricing_rules: PricingRule[];
   availability_rules: AvailabilityRule[];
   capacities: Capacity[];

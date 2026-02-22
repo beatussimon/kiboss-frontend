@@ -98,20 +98,26 @@ api.interceptors.response.use(
     if (data) {
       if (typeof data.error === 'string') {
         message = data.error;
-      } else if (data.error?.message) {
-        message = data.error.message;
-      } else if (data.detail) {
+      } else if (data.error && typeof data.error === 'object') {
+        // Handle custom exception handler format {error: {message, code, ...}}
+        const errorDetail = data.error as any;
+        message = errorDetail.message || errorDetail.code || JSON.stringify(errorDetail);
+      } else if (data.detail && typeof data.detail === 'string') {
         message = data.detail;
-      } else if (data.message) {
+      } else if (data.message && typeof data.message === 'string') {
         message = data.message;
       } else if (typeof data === 'object' && !Array.isArray(data)) {
-        // Handle field-level errors
-        const firstErrorKey = Object.keys(data)[0];
-        const firstErrorValue = data[firstErrorKey];
-        if (Array.isArray(firstErrorValue)) {
-          message = `${firstErrorKey}: ${firstErrorValue[0]}`;
-        } else if (typeof firstErrorValue === 'string') {
-          message = firstErrorValue;
+        // Handle field-level errors or nested objects
+        const firstKey = Object.keys(data)[0];
+        const firstVal = data[firstKey];
+        if (Array.isArray(firstVal)) {
+          message = `${firstKey}: ${firstVal[0]}`;
+        } else if (typeof firstVal === 'string') {
+          message = firstVal;
+        } else if (typeof firstVal === 'object') {
+          message = `${firstKey}: ${JSON.stringify(firstVal)}`;
+        } else {
+          message = JSON.stringify(data);
         }
       }
     }
@@ -130,7 +136,7 @@ api.interceptors.response.use(
     }
     
     // Additional special case for 401
-    if (error.response?.status === 401 && !message) {
+    if (error.response?.status === 401 && (!message || message === 'An unexpected error occurred')) {
       message = 'Invalid credentials';
     }
     

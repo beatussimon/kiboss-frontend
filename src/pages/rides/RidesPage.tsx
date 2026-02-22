@@ -6,10 +6,12 @@ import { fetchRides } from '../../features/rides/ridesSlice';
 import { getDistanceToRide } from '../../utils/distance';
 import { MapPin, ArrowRight, Users, Star, Navigation, Search, Eye, Clock, Loader2 } from 'lucide-react';
 import { Price } from '../../context/CurrencyContext';
+import { fetchAssets } from '../../features/assets/assetsSlice';
 
 export default function RidesPage() {
   const dispatch = useDispatch<AppDispatch>();
-  const { rides, isLoading, count, next } = useSelector((state: RootState) => state.rides);
+  const { user } = useSelector((state: RootState) => state.auth);
+  const { rides, isLoading, count } = useSelector((state: RootState) => state.rides);
   const { userLocation } = useSelector((state: RootState) => state.location);
   
   const [searchParams, setSearchParams] = useState({
@@ -17,73 +19,22 @@ export default function RidesPage() {
     destination: '',
     departure_date: '',
   });
-  const [page, setPage] = useState(1);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const observerRef = useRef<IntersectionObserver | null>(null);
-  const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
   // Handle search form submission
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    setPage(1);
     dispatch(fetchRides({
       origin: searchParams.origin || undefined,
       destination: searchParams.destination || undefined,
       departure_date: searchParams.departure_date || undefined,
-      page: 1
     } as any));
   };
 
   // Initial load
   useEffect(() => {
-    setPage(1);
-    dispatch(fetchRides({ page: 1 }));
+    dispatch(fetchRides({}));
+    dispatch(fetchAssets({ asset_type: 'VEHICLE' }));
   }, [dispatch]);
-
-  // Infinite scroll observer
-  const handleLoadMore = useCallback(async () => {
-    if (isLoadingMore || !next) return;
-    
-    setIsLoadingMore(true);
-    const nextPage = page + 1;
-    
-    try {
-      await dispatch(fetchRides({
-        origin: searchParams.origin || undefined,
-        destination: searchParams.destination || undefined,
-        departure_date: searchParams.departure_date || undefined,
-        page: nextPage
-      } as any));
-      setPage(nextPage);
-    } finally {
-      setIsLoadingMore(false);
-    }
-  }, [dispatch, searchParams, page, isLoadingMore, next]);
-
-  useEffect(() => {
-    if (observerRef.current) {
-      observerRef.current.disconnect();
-    }
-
-    observerRef.current = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && next && !isLoadingMore) {
-          handleLoadMore();
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    if (loadMoreRef.current) {
-      observerRef.current.observe(loadMoreRef.current);
-    }
-
-    return () => {
-      if (observerRef.current) {
-        observerRef.current.disconnect();
-      }
-    };
-  }, [handleLoadMore, next, isLoadingMore]);
 
   // Sort rides by proximity if user location is available
   const sortedRides = useMemo(() => {
@@ -110,13 +61,23 @@ export default function RidesPage() {
     return getDistanceToRide(userLocation.latitude, userLocation.longitude, stops);
   };
 
+  const vehicles = useSelector((state: RootState) => state.assets.assets).filter(a => a.asset_type === 'VEHICLE');
+  const isVerifiedDriver = vehicles.some(v => v.verification_status === 'VERIFIED') || user?.is_superuser;
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Find Rides</h1>
-        <Link to="/rides/create" className="btn-primary">
-          Offer a Ride
-        </Link>
+        <div className="flex gap-2">
+          <Link to="/vehicles" className="btn-secondary">
+            Manage Vehicles
+          </Link>
+          {isVerifiedDriver && (
+            <Link to="/rides/create" className="btn-primary">
+              Offer a Ride
+            </Link>
+          )}
+        </div>
       </div>
 
       {/* Search Filters */}
@@ -182,7 +143,7 @@ export default function RidesPage() {
                 <div className="md:w-48 bg-gray-900 p-6 flex flex-col justify-between text-white relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-32 h-32 bg-primary-600/20 rounded-full blur-3xl -mr-16 -mt-16" />
                   <div>
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary-400 mb-4">Trip Details</p>
+                    <p className="text-[10px] font-black  tracking-[0.2em] text-primary-400 mb-4">Trip Details</p>
                     <div className="space-y-4 relative">
                       <div className="flex items-center gap-3">
                         <div className="w-2 h-2 rounded-full bg-primary-500 shadow-[0_0_10px_rgba(37,99,235,0.5)]" />
@@ -196,7 +157,7 @@ export default function RidesPage() {
                     </div>
                   </div>
                   <div className="mt-6">
-                    <p className="text-[10px] font-bold text-gray-500 uppercase">Departure</p>
+                    <p className="text-[10px] font-bold text-gray-500 ">Departure</p>
                     <p className="text-sm font-black">{new Date(ride.departure_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                   </div>
                 </div>
@@ -215,23 +176,23 @@ export default function RidesPage() {
                     </div>
                     <div className="text-right">
                       <p className="text-2xl font-black text-primary-600"><Price amount={ride.seat_price} /></p>
-                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Per Seat</p>
+                      <p className="text-[10px] font-bold text-gray-400  tracking-widest">Per Seat</p>
                     </div>
                   </div>
 
                   <div className="flex flex-wrap items-center gap-4 mt-auto">
-                    <div className="flex items-center gap-1.5 px-3 py-1 bg-gray-100 rounded-full text-[10px] font-bold uppercase tracking-wider text-gray-600">
+                    <div className="flex items-center gap-1.5 px-3 py-1 bg-gray-100 rounded-full text-[10px] font-bold  tracking-wider text-gray-600">
                       <Users className="h-3 w-3" /> {ride.available_seats} Seats Left
                     </div>
                     {distance !== null && (
-                      <div className="flex items-center gap-1.5 px-3 py-1 bg-primary-50 rounded-full text-[10px] font-bold uppercase tracking-wider text-primary-600">
+                      <div className="flex items-center gap-1.5 px-3 py-1 bg-primary-50 rounded-full text-[10px] font-bold  tracking-wider text-primary-600">
                         <Navigation className="h-3 w-3" /> {distance.toFixed(1)} km away
                       </div>
                     )}
-                    <div className="flex items-center gap-1.5 px-3 py-1 bg-orange-50 rounded-full text-[10px] font-bold uppercase tracking-wider text-orange-600">
+                    <div className="flex items-center gap-1.5 px-3 py-1 bg-orange-50 rounded-full text-[10px] font-bold  tracking-wider text-orange-600">
                       <Clock className="h-3 w-3" /> {new Date(ride.departure_time).toLocaleDateString()}
                     </div>
-                    <div className="flex items-center gap-1.5 ml-auto text-[10px] font-bold text-gray-300 uppercase tracking-tighter">
+                    <div className="flex items-center gap-1.5 ml-auto text-[10px] font-bold text-gray-300  tracking-tighter">
                       <Eye className="h-3 w-3" /> {Math.floor(Math.random() * 100) + 10} Views
                     </div>
                   </div>
@@ -239,15 +200,6 @@ export default function RidesPage() {
               </div>
             </Link>
           )})}
-          {/* Load more trigger */}
-          <div ref={loadMoreRef} className="flex justify-center py-8">
-            {isLoadingMore && (
-              <div className="flex items-center gap-2 text-gray-500">
-                <Loader2 className="h-5 w-5 animate-spin" />
-                <span>Loading more rides...</span>
-              </div>
-            )}
-          </div>
         </div>
       ) : (
         <div className="card p-12 text-center">

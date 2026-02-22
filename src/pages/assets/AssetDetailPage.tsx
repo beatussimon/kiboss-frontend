@@ -306,21 +306,21 @@ export default function AssetDetailPage() {
         <div className="card p-8 border-t-4 border-t-primary-600 shadow-xl mb-12 bg-white">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="space-y-2">
-              <label className="text-[10px] font-bold uppercase text-gray-400 tracking-widest">Check-in</label>
+              <label className="text-[10px] font-bold  text-gray-400 tracking-widest">Check-in</label>
               <div className="flex items-center p-3 bg-gray-50 rounded-xl border border-gray-100">
                 <Calendar className="h-4 w-4 text-primary-600 mr-2" />
                 <span className="text-sm font-bold text-gray-700">Add Date</span>
               </div>
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-bold uppercase text-gray-400 tracking-widest">Check-out</label>
+              <label className="text-[10px] font-bold  text-gray-400 tracking-widest">Check-out</label>
               <div className="flex items-center p-3 bg-gray-50 rounded-xl border border-gray-100">
                 <Calendar className="h-4 w-4 text-primary-600 mr-2" />
                 <span className="text-sm font-bold text-gray-700">Add Date</span>
               </div>
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-bold uppercase text-gray-400 tracking-widest">Guests</label>
+              <label className="text-[10px] font-bold  text-gray-400 tracking-widest">Guests</label>
               <div className="flex items-center p-3 bg-gray-50 rounded-xl border border-gray-100">
                 <User className="h-4 w-4 text-primary-600 mr-2" />
                 <span className="text-sm font-bold text-gray-700">1 Guest</span>
@@ -348,7 +348,7 @@ export default function AssetDetailPage() {
               </div>
             </div>
             <div className="text-right">
-              <p className="text-[10px] font-bold text-gray-400 uppercase">Starting from</p>
+              <p className="text-[10px] font-bold text-gray-400 ">Starting from</p>
               <p className="text-2xl font-black text-primary-600"><Price amount={asset.pricing_rules?.[0]?.price || '0'} /></p>
             </div>
           </div>
