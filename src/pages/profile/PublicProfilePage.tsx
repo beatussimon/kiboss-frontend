@@ -51,15 +51,15 @@ export default function PublicProfilePage() {
               </div>
             )}
           </div>
-          
+
           <div className="flex-1">
             <div className="flex items-start justify-between">
               <div>
                 <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
                   {user.first_name} {user.last_name}
-                  <VerificationBadge 
-                    tier={user.verification_badge?.tier} 
-                    color={user.verification_badge?.color} 
+                  <VerificationBadge
+                    tier={user.verification_badge?.tier}
+                    color={user.verification_badge?.color}
                   />
                 </h1>
                 <p className="text-gray-500">@{user.username || user.email?.split('@')[0]}</p>
@@ -121,11 +121,10 @@ export default function PublicProfilePage() {
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab as typeof activeTab)}
-                className={`px-6 py-4 text-sm font-medium capitalize ${
-                  activeTab === tab
+                className={`px-6 py-4 text-sm font-medium capitalize ${activeTab === tab
                     ? 'border-b-2 border-primary-600 text-primary-600'
                     : 'text-gray-500 hover:text-gray-700'
-                }`}
+                  }`}
               >
                 {tab}
               </button>
@@ -135,11 +134,11 @@ export default function PublicProfilePage() {
 
         <div className="p-6">
           {activeTab === 'listings' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {user.listings?.length > 0 ? (
                 user.listings.map((listing) => (
-                  <Link 
-                    key={listing.id} 
+                  <Link
+                    key={listing.id}
                     to={`/assets/${listing.id}`}
                     className="card overflow-hidden hover:shadow-md transition-shadow"
                   >
@@ -161,8 +160,8 @@ export default function PublicProfilePage() {
             <div className="space-y-4">
               {user.rides?.length > 0 ? (
                 user.rides.map((ride) => (
-                  <Link 
-                    key={ride.id} 
+                  <Link
+                    key={ride.id}
                     to={`/rides/${ride.id}`}
                     className="card p-4 hover:shadow-md transition-shadow block"
                   >
@@ -193,9 +192,8 @@ export default function PublicProfilePage() {
                         {[1, 2, 3, 4, 5].map((star) => (
                           <Star
                             key={star}
-                            className={`h-4 w-4 ${
-                              star <= review.rating ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'
-                            }`}
+                            className={`h-4 w-4 ${star <= review.rating ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'
+                              }`}
                           />
                         ))}
                       </div>

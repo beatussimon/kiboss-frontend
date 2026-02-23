@@ -126,8 +126,36 @@ export default function BusinessDashboard() {
     );
   }
 
-  // ... (keeping marketing view as is)
+  // 1. UNVERIFIED / NO PROFILE VIEW
+  if (!user?.corporate_profile || (!isCorporateVerified && !isCorporatePending && !isCorporateRejected)) {
+    if (isRegistering) {
+      return <BusinessRegistrationForm onCancel={() => setIsRegistering(false)} />;
+    }
 
+    return (
+      <div className="max-w-4xl mx-auto py-20 space-y-10 px-4">
+        <div className="max-w-2xl mx-auto text-center space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="h-24 w-24 bg-primary-50 text-primary-600 rounded-[2.5rem] flex items-center justify-center mx-auto shadow-inner">
+            <Building2 className="h-12 w-12" />
+          </div>
+          <h1 className="text-4xl md:text-5xl font-black text-gray-900 tracking-tighter">Business Partner Program</h1>
+          <p className="text-gray-500 font-medium text-lg leading-relaxed">
+            Join our exclusive network of verified corporate partners.
+            Register your business to access the Corporate HQ and start managing your properties, rooms, and services with institutional tools.
+          </p>
+
+          <div className="pt-8">
+            <button
+              onClick={() => setIsRegistering(true)}
+              className="btn-primary px-10 py-4 rounded-2xl shadow-2xl shadow-primary-500/30 text-sm font-black uppercase tracking-widest flex items-center justify-center gap-3 mx-auto hover:scale-105 transition-transform"
+            >
+              Verify Your Business <ChevronRight className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
   // 2. PENDING VIEW
   if (isCorporatePending) {
     return (
