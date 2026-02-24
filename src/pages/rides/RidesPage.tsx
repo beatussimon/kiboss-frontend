@@ -7,6 +7,7 @@ import { getDistanceToRide } from '../../utils/distance';
 import { MapPin, ArrowRight, Users, Star, Navigation, Search, Eye, Clock, Loader2 } from 'lucide-react';
 import { Price } from '../../context/CurrencyContext';
 import { fetchAssets } from '../../features/assets/assetsSlice';
+import { getMediaUrl } from '../../utils/media';
 
 export default function RidesPage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -178,30 +179,34 @@ export default function RidesPage() {
                     {/* Background Image Logic */}
                     {((ride as any).photos && (ride as any).photos.length > 0) ? (
                       <img
-                        src={`http://localhost:8000${(ride as any).photos[0].url}`}
+                        src={getMediaUrl((ride as any).photos[0].url)}
                         alt="Ride Cover"
-                        className="absolute inset-0 w-full h-full object-cover opacity-60 mix-blend-overlay group-hover:scale-110 transition-transform duration-700"
+                        className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                       />
                     ) : ((ride as any).vehicle_asset?.photos && (ride as any).vehicle_asset.photos.length > 0) ? (
                       <img
-                        src={`http://localhost:8000${(ride as any).vehicle_asset.photos[0].url}`}
+                        src={getMediaUrl((ride as any).vehicle_asset.photos[0].url)}
                         alt="Vehicle Cover"
-                        className="absolute inset-0 w-full h-full object-cover opacity-60 mix-blend-overlay group-hover:scale-110 transition-transform duration-700"
+                        className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                       />
                     ) : (
-                      <div className="absolute inset-0 bg-gradient-to-br from-primary-900 to-gray-900" />
+                      <img
+                        src="https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?auto=format&fit=crop&q=80&w=1000"
+                        alt="Default Route Cover"
+                        className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                      />
                     )}
 
-                    <div className="absolute inset-0 bg-gradient-to-t from-gray-900/90 via-gray-900/20 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-gray-900/90 via-gray-900/40 to-black/20" />
 
-                    <div className="absolute top-4 right-4 bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-xl text-right">
+                    <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-xl text-right border border-white/20">
                       <p className="text-[9px] font-bold text-gray-300 uppercase tracking-widest leading-tight">Departure</p>
                       <p className="text-sm font-black text-white">{new Date(ride.departure_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                     </div>
 
                     <div className="absolute bottom-4 left-4 right-4">
                       <p className="text-[9px] font-black tracking-[0.2em] text-primary-400 mb-2 drop-shadow-md">RIDE TIMELINE</p>
-                      <div className="space-y-3 relative bg-black/40 backdrop-blur-md p-3 rounded-xl border border-white/10">
+                      <div className="space-y-3 relative bg-black/60 backdrop-blur-md p-3 rounded-xl border border-white/20">
                         <div className="flex items-center gap-3">
                           <div className="w-2 h-2 rounded-full bg-primary-500 shadow-[0_0_10px_rgba(37,99,235,0.8)] shrink-0" />
                           <span className="text-xs font-bold truncate text-white drop-shadow-md">{ride.origin.split(',')[0]}</span>
@@ -209,7 +214,7 @@ export default function RidesPage() {
                         <div className="absolute left-[15px] top-6 bottom-5 w-px bg-gradient-to-b from-primary-500 to-gray-400" />
                         <div className="flex items-center gap-3">
                           <div className="w-2 h-2 rounded-full bg-gray-400 shrink-0" />
-                          <span className="text-xs font-bold truncate text-gray-200">{ride.destination.split(',')[0]}</span>
+                          <span className="text-xs font-bold truncate text-gray-200 drop-shadow-md">{ride.destination.split(',')[0]}</span>
                         </div>
                       </div>
                     </div>
