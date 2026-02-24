@@ -8,6 +8,7 @@ import { Asset, AssetType } from '../../types';
 import ImageUpload from '../../components/upload/ImageUpload';
 import { Upload, Loader2, Building2, MapPin, Info, AlertCircle } from 'lucide-react';
 import api from '../../services/api';
+import { CountrySelect } from '../../components/common/CountrySelect';
 
 export default function CreateAssetPage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -390,21 +391,13 @@ export default function CreateAssetPage() {
                 </div>
                 <div>
                   <label htmlFor="country" className="block text-sm font-medium text-gray-700 mb-1">Country</label>
-                  <select
+                  <CountrySelect
                     id="country"
+                    name="country"
                     value={formData.country}
-                    onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                    onChange={(country) => setFormData({ ...formData, country })}
                     className="input"
-                    required
-                  >
-                    <option value="">Select Country</option>
-                    <option value="US">United States</option>
-                    <option value="CA">Canada</option>
-                    <option value="GB">United Kingdom</option>
-                    <option value="AU">Australia</option>
-                    <option value="DE">Germany</option>
-                    <option value="FR">France</option>
-                  </select>
+                  />
                 </div>
               </div>
             </div>

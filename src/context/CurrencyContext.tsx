@@ -40,21 +40,30 @@ export const CurrencyProvider: React.FC<{ children: ReactNode }> = ({ children }
 
   const currency = currencies[selectedCode];
 
-  const convertPrice = (amount: number | string, fromCurrency: string = 'USD'): number => {
+  const convertPrice = (amount: number | string, fromCurrency: string = 'TZS'): number => {
     const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
     if (isNaN(numAmount)) return 0;
 
-    // First convert to USD (base)
+    // First convert to TZS (base)
     const fromRate = currencies[fromCurrency as CurrencyCode]?.rate || 1;
     const usdAmount = numAmount / fromRate;
 
     // Then convert to selected currency
-    return usdAmount * currency.rate;
+    if (selectedCode === fromCurrency) return numAmount;
+
+    // Convert to USD first (as rates are based on USD)
+    const tzsRateToUsd = currencies['TZS'].rate;
+    const amountInUsd = fromCurrency === 'USD' ? numAmount : (
+      fromCurrency === 'TZS' ? numAmount / tzsRateToUsd : (numAmount / fromRate)
+    );
+
+    // Then to selected currency
+    return amountInUsd * currency.rate;
   };
 
-  const formatPrice = (amount: number | string, fromCurrency: string = 'USD'): string => {
+  const formatPrice = (amount: number | string, fromCurrency: string = 'TZS'): string => {
     const converted = convertPrice(amount, fromCurrency);
-    
+
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: selectedCode,
@@ -86,10 +95,10 @@ export const useCurrency = () => {
 };
 
 // Helper component for consistent price display
-export const Price: React.FC<{ amount: number | string; from?: string; className?: string }> = ({ 
-  amount, 
-  from = 'USD', 
-  className = '' 
+export const Price: React.FC<{ amount: number | string; from?: string; className?: string }> = ({
+  amount,
+  from = 'TZS',
+  className = ''
 }) => {
   const { formatPrice } = useCurrency();
   return <span className={className}>{formatPrice(amount, from)}</span>;

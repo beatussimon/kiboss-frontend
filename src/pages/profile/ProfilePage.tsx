@@ -9,6 +9,7 @@ import toast from 'react-hot-toast';
 import api from '../../services/api';
 import VerificationBadge from '../../components/ui/VerificationBadge';
 import { Price } from '../../context/CurrencyContext';
+import { CountrySelect } from '../../components/common/CountrySelect';
 
 export default function ProfilePage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -112,7 +113,7 @@ export default function ProfilePage() {
       setAvatarFile(null);
     } catch (error: any) {
       console.error('Failed to update profile:', error);
-      const message = error.response?.data?.details 
+      const message = error.response?.data?.details
         ? Object.entries(error.response.data.details).map(([k, v]) => `${k}: ${v}`).join(', ')
         : 'Failed to update profile';
       toast.error(message);
@@ -283,8 +284,13 @@ export default function ProfilePage() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
               <div className="relative">
-                <MapPin className="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                <input type="text" name="country" value={formData.country} onChange={handleInputChange} disabled={!isEditing} className="input pl-10" placeholder="Tanzania" />
+                <MapPin className="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 z-10" />
+                <CountrySelect
+                  name="country"
+                  value={formData.country}
+                  onChange={(country) => setFormData({ ...formData, country })}
+                  className="input pl-10"
+                />
               </div>
             </div>
           </div>
