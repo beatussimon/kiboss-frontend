@@ -278,15 +278,15 @@ export default function AssetDetailPage() {
           {asset.pricing_rules?.map((rule) => (
             <div key={rule.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
               <span>{rule.name}</span>
-              <span className="font-semibold">${rule.price}/{rule.unit_type.toLowerCase()}</span>
+              <span className="font-semibold"><Price amount={rule.price} /> / {rule.unit_type.toLowerCase()}</span>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Book Now Button - only for non-owners */}
-      {!isOwner && (
-        <div className="card p-6 border-l-4 border-l-primary-500">
+      {/* Book Now Button - only for non-owners (hide if ROOM to prevent redundant UI) */}
+      {!isOwner && asset.asset_type !== 'ROOM' && (
+        <div className="card p-6 border-l-4 border-l-primary-500 mb-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div>
               <span className="text-2xl font-bold text-gray-900">
