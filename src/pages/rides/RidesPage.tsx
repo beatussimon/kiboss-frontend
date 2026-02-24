@@ -31,7 +31,7 @@ export default function RidesPage() {
       if (entries[0].isIntersecting && hasMore) {
         setPage(prevPage => prevPage + 1);
       }
-    });
+    }, { rootMargin: '200px' });
     if (node) observer.current.observe(node);
   }, [isLoading, hasMore]);
 
@@ -152,97 +152,120 @@ export default function RidesPage() {
         </form>
       </div>
 
-      {isLoading && page === 1 ? (
-        <div className="space-y-4">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="card p-6 animate-pulse">
-              <div className="flex gap-4">
-                <div className="w-16 h-16 bg-gray-200 rounded-lg" />
-                <div className="flex-1 space-y-2">
-                  <div className="h-4 bg-gray-200 rounded w-1/3" />
-                  <div className="h-4 bg-gray-200 rounded w-1/2" />
-                </div>
+      {isLoading && page === 1 && rides.length === 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="flex flex-col md:flex-row gap-0 overflow-hidden animate-pulse">
+              <div className="w-full md:w-1/2 rounded-2xl md:rounded-r-none bg-gray-200 aspect-[4/3]" />
+              <div className="w-full md:w-1/2 p-4 space-y-4">
+                <div className="h-4 bg-gray-200 rounded w-1/3" />
+                <div className="h-4 bg-gray-200 rounded w-1/2" />
+                <div className="h-10 bg-gray-200 rounded w-full mt-auto" />
               </div>
             </div>
           ))}
         </div>
       ) : sortedRides && sortedRides.length > 0 ? (
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {sortedRides.map((ride, index) => {
             const distance = getRideDistance(ride.stops);
             const isLastElement = index === sortedRides.length - 1;
             return (
-              <Link key={ride.id} ref={isLastElement ? lastRideElementRef : null} to={`/rides/${ride.id}`} className="card p-0 overflow-hidden hover:shadow-xl transition-all block group border-l-4 border-l-transparent hover:border-l-primary-600">
-                <div className="flex flex-col md:flex-row">
-                  {/* Visual Trip Indicator */}
-                  <div className="md:w-48 bg-gray-900 p-6 flex flex-col justify-between text-white relative overflow-hidden">
+              <Link key={ride.id} ref={isLastElement ? lastRideElementRef : null} to={`/rides/${ride.id}`} className="group cursor-pointer">
+                <div className="flex overflow-hidden h-full rounded-2xl ring-1 ring-gray-100 hover:shadow-2xl transition-all hover:ring-primary-100 bg-white min-h-[280px]">
+                  {/* Image Half */}
+                  <div className="w-1/2 relative bg-gray-900 overflow-hidden shrink-0">
                     {/* Background Image Logic */}
                     {((ride as any).photos && (ride as any).photos.length > 0) ? (
                       <img
                         src={`http://localhost:8000${(ride as any).photos[0].url}`}
                         alt="Ride Cover"
-                        className="absolute inset-0 w-full h-full object-cover opacity-40 mix-blend-overlay"
+                        className="absolute inset-0 w-full h-full object-cover opacity-60 mix-blend-overlay group-hover:scale-110 transition-transform duration-700"
                       />
                     ) : ((ride as any).vehicle_asset?.photos && (ride as any).vehicle_asset.photos.length > 0) ? (
                       <img
                         src={`http://localhost:8000${(ride as any).vehicle_asset.photos[0].url}`}
                         alt="Vehicle Cover"
-                        className="absolute inset-0 w-full h-full object-cover opacity-40 mix-blend-overlay"
+                        className="absolute inset-0 w-full h-full object-cover opacity-60 mix-blend-overlay group-hover:scale-110 transition-transform duration-700"
                       />
-                    ) : null}
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-primary-600/20 rounded-full blur-3xl -mr-16 -mt-16" />
-                    <div className="relative z-10">
-                      <p className="text-[10px] font-black  tracking-[0.2em] text-primary-400 mb-4">Trip Details</p>
-                      <div className="space-y-4 relative">
+                    ) : (
+                      <div className="absolute inset-0 bg-gradient-to-br from-primary-900 to-gray-900" />
+                    )}
+
+                    <div className="absolute inset-0 bg-gradient-to-t from-gray-900/90 via-gray-900/20 to-transparent" />
+
+                    <div className="absolute top-4 right-4 bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-xl text-right">
+                      <p className="text-[9px] font-bold text-gray-300 uppercase tracking-widest leading-tight">Departure</p>
+                      <p className="text-sm font-black text-white">{new Date(ride.departure_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                    </div>
+
+                    <div className="absolute bottom-4 left-4 right-4">
+                      <p className="text-[9px] font-black tracking-[0.2em] text-primary-400 mb-2 drop-shadow-md">RIDE TIMELINE</p>
+                      <div className="space-y-3 relative bg-black/40 backdrop-blur-md p-3 rounded-xl border border-white/10">
                         <div className="flex items-center gap-3">
-                          <div className="w-2 h-2 rounded-full bg-primary-500 shadow-[0_0_10px_rgba(37,99,235,0.5)]" />
-                          <span className="text-xs font-bold truncate">{ride.origin.split(',')[0]}</span>
+                          <div className="w-2 h-2 rounded-full bg-primary-500 shadow-[0_0_10px_rgba(37,99,235,0.8)] shrink-0" />
+                          <span className="text-xs font-bold truncate text-white drop-shadow-md">{ride.origin.split(',')[0]}</span>
                         </div>
-                        <div className="absolute left-1 top-2 bottom-2 w-px bg-gradient-to-b from-primary-500 to-gray-700" />
+                        <div className="absolute left-[15px] top-6 bottom-5 w-px bg-gradient-to-b from-primary-500 to-gray-400" />
                         <div className="flex items-center gap-3">
-                          <div className="w-2 h-2 rounded-full bg-gray-500" />
-                          <span className="text-xs font-bold truncate">{ride.destination.split(',')[0]}</span>
+                          <div className="w-2 h-2 rounded-full bg-gray-400 shrink-0" />
+                          <span className="text-xs font-bold truncate text-gray-200">{ride.destination.split(',')[0]}</span>
                         </div>
                       </div>
-                    </div>
-                    <div className="mt-6 relative z-10">
-                      <p className="text-[10px] font-bold text-gray-400">Departure</p>
-                      <p className="text-sm font-black">{new Date(ride.departure_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                     </div>
                   </div>
 
-                  {/* Content */}
-                  <div className="flex-1 p-6 flex flex-col">
-                    <div className="flex justify-between items-start mb-4">
-                      <div>
-                        <h3 className="text-xl font-black text-gray-900 group-hover:text-primary-600 transition-colors">{ride.route_name}</h3>
-                        <div className="flex items-center gap-2 mt-1">
-                          <div className="h-5 w-5 rounded-full bg-primary-100 flex items-center justify-center text-[8px] font-bold text-primary-700">
-                            {(ride as any).driver?.first_name?.[0]}{(ride as any).driver?.last_name?.[0]}
-                          </div>
-                          <span className="text-xs font-bold text-gray-500">{(ride as any).driver?.first_name} {(ride as any).driver?.last_name}</span>
+                  {/* Info Half */}
+                  <div className="w-1/2 p-5 flex flex-col justify-between">
+                    <div>
+                      <div className="flex justify-between items-start mb-2">
+                        <h3 className="font-bold text-gray-900 group-hover:text-primary-600 transition-colors line-clamp-2 pr-2 leading-tight">
+                          {ride.route_name}
+                        </h3>
+                        <div className="text-right shrink-0">
+                          <p className="text-lg font-black text-primary-600 leading-none"><Price amount={ride.seat_price} /></p>
+                          <p className="text-[9px] font-bold text-gray-400 tracking-widest uppercase mt-1">Per Seat</p>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-2xl font-black text-primary-600"><Price amount={ride.seat_price} /></p>
-                        <p className="text-[10px] font-bold text-gray-400  tracking-widest">Per Seat</p>
+
+                      <div className="flex items-center gap-2 mt-3">
+                        <div className="h-6 w-6 rounded-full bg-primary-50 flex items-center justify-center text-[10px] font-black text-primary-700 shrink-0">
+                          {(ride as any).driver?.first_name?.[0]}{(ride as any).driver?.last_name?.[0]}
+                        </div>
+                        <span className="text-xs font-bold text-gray-500 truncate">{(ride as any).driver?.first_name} {(ride as any).driver?.last_name}</span>
                       </div>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-4 mt-auto">
-                      <div className="flex items-center gap-1.5 px-3 py-1 bg-gray-100 rounded-full text-[10px] font-bold  tracking-wider text-gray-600">
-                        <Users className="h-3 w-3" /> {ride.available_seats} Seats Left
-                      </div>
-                      {distance !== null && (
-                        <div className="flex items-center gap-1.5 px-3 py-1 bg-primary-50 rounded-full text-[10px] font-bold  tracking-wider text-primary-600">
-                          <Navigation className="h-3 w-3" /> {distance.toFixed(1)} km away
+                    <div className="mt-4 pt-4 border-t border-gray-50 space-y-3">
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="flex flex-col gap-0.5">
+                          <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Availability</p>
+                          <div className="flex items-center gap-1.5 text-xs font-bold text-gray-900">
+                            <Users className="h-3 w-3 text-primary-600" /> {ride.available_seats} Seats
+                          </div>
                         </div>
-                      )}
-                      <div className="flex items-center gap-1.5 px-3 py-1 bg-orange-50 rounded-full text-[10px] font-bold  tracking-wider text-orange-600">
-                        <Clock className="h-3 w-3" /> {new Date(ride.departure_time).toLocaleDateString()}
+                        {distance !== null ? (
+                          <div className="flex flex-col gap-0.5">
+                            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Distance</p>
+                            <div className="flex items-center gap-1.5 text-xs font-bold text-gray-900">
+                              <Navigation className="h-3 w-3 text-primary-600" /> {distance.toFixed(1)} km
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col gap-0.5">
+                            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Date</p>
+                            <div className="flex items-center gap-1.5 text-xs font-bold text-gray-900">
+                              <Clock className="h-3 w-3 text-primary-600" /> {new Date(ride.departure_time).toLocaleDateString()}
+                            </div>
+                          </div>
+                        )}
                       </div>
-                      <div className="flex items-center gap-1.5 ml-auto text-[10px] font-bold text-gray-300  tracking-tighter">
-                        <Eye className="h-3 w-3" /> {Math.floor(Math.random() * 100) + 10} Views
+
+                      <div className="flex items-center justify-between pt-3 border-t border-gray-50">
+                        <div className="flex items-center gap-1 text-[9px] font-bold text-gray-400 bg-gray-50 px-2 py-1 rounded inline-flex">
+                          <Eye className="h-3 w-3" /> Popular Area
+                        </div>
+                        <span className="text-[9px] font-black text-primary-600 uppercase tracking-widest group-hover:underline">View Journey →</span>
                       </div>
                     </div>
                   </div>
