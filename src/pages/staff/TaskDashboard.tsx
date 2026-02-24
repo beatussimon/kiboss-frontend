@@ -30,7 +30,8 @@ export default function TaskDashboard() {
 
     if (userRoles.includes('VERIFIER')) return { title: 'Verification Workspace', subtitle: 'Identity & Vehicle Review', icon: <CheckCircle className="h-6 w-6" />, label: 'Verifier' };
     if (userRoles.includes('CAR_VERIFIER')) return { title: 'Fleet Verification', subtitle: 'Vehicle & Asset Review', icon: <Car className="h-6 w-6" />, label: 'Car Verifier' };
-    if (userRoles.includes('BUSINESS_VERIFIER')) return { title: 'Business Verification', subtitle: 'Corporate & Entity Review', icon: <Briefcase className="h-6 w-6" />, label: 'Business Verifier' };
+    if (userRoles.includes('RIDE_BUSINESS_VERIFIER')) return { title: 'Ride Business Verification', subtitle: 'Corporate Transport Review', icon: <Briefcase className="h-6 w-6" />, label: 'Ride Business Verifier' };
+    if (userRoles.includes('ASSET_BUSINESS_VERIFIER')) return { title: 'Asset Business Verification', subtitle: 'Corporate Real Estate Review', icon: <Briefcase className="h-6 w-6" />, label: 'Asset Business Verifier' };
     if (userRoles.includes('SUPPORT')) return { title: 'Support & Resolution Hub', subtitle: 'Ticket & Dispute Management', icon: <MessageSquare className="h-6 w-6" />, label: 'Support' };
     if (userRoles.includes('OPS')) return { title: 'Operations Dashboard', subtitle: 'Fleet & Audit Management', icon: <Activity className="h-6 w-6" />, label: 'Operations' };
     if (userRoles.includes('LEGAL')) return { title: 'Legal & Dispute Review', subtitle: 'Compliance & Resolution', icon: <Shield className="h-6 w-6" />, label: 'Legal' };
@@ -370,6 +371,98 @@ export default function TaskDashboard() {
           </div>
         );
 
+      case 'SUPPORT_TICKET':
+      case 'DISPUTE_RESOLUTION':
+        // Determine the client user (who is not the current admin user)
+        const getClientUser = () => {
+          if (detail.participants && detail.participants.length > 0) {
+            return detail.participants.find((p: any) => p.email !== user?.email) || detail.participants[0];
+          }
+          return null;
+        };
+        const clientUser = getClientUser();
+        const clientName = clientUser ? `${clientUser.first_name || ''} ${clientUser.last_name || ''}`.trim() : (detail.user_email || task.created_by_email);
+        const clientInitial = clientName ? clientName.charAt(0).toUpperCase() : 'U';
+
+        return (
+          <div className="card p-6 bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-100">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xs font-black text-blue-600 uppercase tracking-widest flex items-center gap-2">
+                <MessageSquare className="h-4 w-4" />
+                {detail.id ? 'Live Support Connection' : 'Support Request'}
+              </h3>
+              {detail.message_count !== undefined && (
+                <span className="text-xs font-bold text-blue-600 bg-blue-100/50 px-2 py-1 rounded border border-blue-200">
+                  {detail.message_count} Message{detail.message_count !== 1 ? 's' : ''}
+                </span>
+              )}
+            </div>
+
+            <div className="space-y-6">
+              {detail.id ? (
+                // This is a Thread/Feedback object mapped natively
+                <div className="bg-white rounded-2xl p-6 shadow-sm border border-blue-100">
+                  <div className="flex items-center gap-4 mb-6 pb-6 border-b border-gray-100">
+                    <div className="h-12 w-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-lg border-2 border-white shadow-sm">
+                      {clientInitial}
+                    </div>
+                    <div>
+                      <h4 className="text-base font-black text-gray-900 leading-tight">
+                        {clientName}
+                      </h4>
+                      <p className="text-xs font-medium text-gray-500 mt-0.5">
+                        {clientUser?.email || detail.user_email || task.created_by_email}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="bg-gray-50 rounded-xl p-4 mb-6 border border-gray-100">
+                    <h5 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center justify-between">
+                      <span>Subject: {detail.subject || 'Support Request'}</span>
+                      {detail.last_message && (
+                        <span className="text-[10px] bg-white px-2 py-0.5 rounded border border-gray-200">Latest</span>
+                      )}
+                    </h5>
+                    <p className="text-sm font-medium text-gray-700 italic border-l-2 border-primary-200 pl-3 py-1">
+                      "{detail.last_message?.content || detail.message || 'No messages yet.'}"
+                    </p>
+                    {detail.last_message && (
+                      <p className="text-[10px] text-gray-400 mt-3 text-right font-medium pr-1">
+                        {new Date(detail.last_message.created_at).toLocaleString()}
+                      </p>
+                    )}
+                  </div>
+
+                  {detail.is_resolved !== undefined ? (
+                    // Feedback Form
+                    <div className="flex items-center gap-2 px-4 py-3 bg-blue-50 rounded-xl text-sm font-bold text-blue-800 border border-blue-100">
+                      <AlertCircle className="h-5 w-5 text-blue-500 flex-shrink-0" />
+                      Feedback form submitted — please reach out via email.
+                    </div>
+                  ) : (
+                    // Messaging Thread
+                    <div className="flex items-center justify-end mt-4">
+                      <button
+                        onClick={() => navigate(`/messages/${detail.id}`)}
+                        className="btn-primary w-full sm:w-auto px-6 py-2.5 rounded-xl shadow-md shadow-primary-500/20 flex items-center justify-center gap-2 hover:translate-y-[-1px] transition-all"
+                      >
+                        <MessageSquare className="h-4 w-4" />
+                        Enter Live Chat
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="bg-white rounded-2xl p-6 shadow-sm border border-red-50 text-center">
+                  <AlertCircle className="h-8 w-8 text-red-400 mx-auto mb-3" />
+                  <p className="text-sm font-medium text-gray-900">No direct connection found.</p>
+                  <p className="text-xs text-gray-500 mt-1 italic">This support ticket is missing its threaded context.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+
       default:
         return <div className="card p-6"><pre className="text-xs bg-gray-50 p-4 rounded overflow-auto">{JSON.stringify(detail, null, 2)}</pre></div>;
     }
@@ -507,7 +600,7 @@ export default function TaskDashboard() {
                     <div className="flex items-center gap-2 mb-4"><UserPlus className="h-4 w-4 text-primary-600" /><h3 className="text-[10px] font-black text-gray-900 uppercase tracking-[0.2em]">Administrative Control</h3></div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
                       <div><label htmlFor="assignTo" className="text-[10px] font-black text-gray-400 uppercase mb-1.5 block">Assign Individual</label><select id="assignTo" name="assignTo" className="input text-xs h-10 font-bold border-gray-200" value={assignTo} onChange={(e) => setAssignTo(e.target.value)}><option value="">Auto (Unassigned)</option>{staffUsers.map(u => (<option key={u.id} value={u.id}>{u.first_name} {u.last_name} ({u.email})</option>))}</select></div>
-                      <div><label htmlFor="assignRole" className="text-[10px] font-black text-gray-400 uppercase mb-1.5 block">Assign Role</label><select id="assignRole" name="assignRole" className="input text-xs h-10 font-bold border-gray-200" value={assignRole} onChange={(e) => setAssignRole(e.target.value)}><option value="">Open to all</option><option value="VERIFIER">Verifier</option><option value="CAR_VERIFIER">Car Verifier</option><option value="BUSINESS_VERIFIER">Business Verifier</option><option value="OPS">Operations</option><option value="SUPPORT">Support</option><option value="SUPER_ADMIN">Super Admin</option></select></div>
+                      <div><label htmlFor="assignRole" className="text-[10px] font-black text-gray-400 uppercase mb-1.5 block">Assign Role</label><select id="assignRole" name="assignRole" className="input text-xs h-10 font-bold border-gray-200" value={assignRole} onChange={(e) => setAssignRole(e.target.value)}><option value="">Open to all</option><option value="VERIFIER">Verifier</option><option value="CAR_VERIFIER">Car Verifier</option><option value="RIDE_BUSINESS_VERIFIER">Ride Business Verifier</option><option value="ASSET_BUSINESS_VERIFIER">Asset Business Verifier</option><option value="OPS">Operations</option><option value="SUPPORT">Support</option><option value="SUPER_ADMIN">Super Admin</option></select></div>
                       <div className="flex gap-2"><div className="flex-1"><label htmlFor="assignPriority" className="text-[10px] font-black text-gray-400 uppercase mb-1.5 block">Set Priority</label><select id="assignPriority" name="assignPriority" className="input text-xs h-10 font-bold border-gray-200" value={assignPriority} onChange={(e) => setAssignPriority(e.target.value)}><option value="LOW">Low</option><option value="MEDIUM">Medium</option><option value="HIGH">High</option><option value="URGENT">Urgent</option></select></div><button onClick={handleAssignTask} disabled={isProcessing} className="btn-primary h-10 px-4 flex items-center justify-center gap-2 shadow-lg">{isProcessing ? <RotateCcw className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}</button></div>
                     </div>
                   </div>

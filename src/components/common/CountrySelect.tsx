@@ -30,8 +30,8 @@ export const CountrySelect: React.FC<CountrySelectProps> = ({
         // Fetch countries from REST Countries API
         const fetchCountries = async () => {
             try {
-                // The ?fields parameter might cause 400 errors for some CDNs so fetching all and parsing
-                const response = await fetch('https://restcountries.com/v3.1/all');
+                // The API requires the fields parameter to avoid 400 errors due to payload size limits
+                const response = await fetch('https://restcountries.com/v3.1/all?fields=name,cca2,currencies');
                 if (!response.ok) throw new Error('Failed to fetch countries');
 
                 const data: Country[] = await response.json();

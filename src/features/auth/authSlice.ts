@@ -62,7 +62,6 @@ export const fetchCurrentUser = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await api.get<User>('/users/me/');
-      console.log('[authSlice] fetchCurrentUser data:', JSON.stringify(response.data, null, 2));
       return response.data;
     } catch (error: unknown) {
       const axiosError = error as { response?: { data?: { message?: string } } };

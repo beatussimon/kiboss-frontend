@@ -13,7 +13,9 @@ import {
   Star,
   Info,
   Loader2,
-  Clock
+  Clock,
+  Car,
+  Home
 } from 'lucide-react';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
@@ -39,6 +41,7 @@ export default function BusinessRegistrationForm({ initialPlan = 'MONTHLY', onCa
   const [config, setConfig] = useState<BusinessConfig | null>(null);
 
   const [formData, setFormData] = useState({
+    business_category: 'ASSET' as 'RIDE' | 'ASSET',
     company_name: '',
     registration_number: '',
     tax_id: '',
@@ -92,6 +95,7 @@ export default function BusinessRegistrationForm({ initialPlan = 'MONTHLY', onCa
     try {
       // 1. Prepare Multipart Form Data
       const finalFormData = new FormData();
+      finalFormData.append('business_category', formData.business_category);
       finalFormData.append('company_name', formData.company_name);
       finalFormData.append('registration_number', formData.registration_number);
       finalFormData.append('tax_id', formData.tax_id);
@@ -104,7 +108,7 @@ export default function BusinessRegistrationForm({ initialPlan = 'MONTHLY', onCa
       });
 
       // 2. Submit everything in one atomic request
-      await api.post('/users/business/register/', finalFormData);
+      await api.post('/users/corporate/register/', finalFormData);
 
       toast.success('Business application submitted successfully!');
       // Navigate to dashboard where they can see the pending status
@@ -188,9 +192,35 @@ export default function BusinessRegistrationForm({ initialPlan = 'MONTHLY', onCa
               <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
                 <div>
                   <h2 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tighter mb-1">Company Identity</h2>
-                  <p className="text-gray-500 text-xs md:text-sm font-medium">Enter your official business details.</p>
+                  <p className="text-gray-500 text-xs md:text-sm font-medium">Select your business type and enter official details.</p>
                 </div>
-                <div className="space-y-4">
+                <div className="space-y-6">
+                  <div>
+                    <label className="text-[9px] md:text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 block">Business Category</label>
+                    <div className="grid grid-cols-2 gap-4">
+                      <button
+                        onClick={() => setFormData({ ...formData, business_category: 'RIDE' })}
+                        className={`flex flex-col items-center justify-center p-4 border-2 rounded-2xl transition-all ${formData.business_category === 'RIDE'
+                          ? 'border-primary-600 bg-primary-50 text-primary-900 shadow-md shadow-primary-200'
+                          : 'border-gray-100 bg-white text-gray-500 hover:border-primary-300'
+                          }`}
+                      >
+                        <Car className={`h-8 w-8 mb-2 ${formData.business_category === 'RIDE' ? 'text-primary-600' : 'text-gray-400'}`} />
+                        <span className="font-bold text-sm">Ride Business</span>
+                      </button>
+                      <button
+                        onClick={() => setFormData({ ...formData, business_category: 'ASSET' })}
+                        className={`flex flex-col items-center justify-center p-4 border-2 rounded-2xl transition-all ${formData.business_category === 'ASSET'
+                          ? 'border-primary-600 bg-primary-50 text-primary-900 shadow-md shadow-primary-200'
+                          : 'border-gray-100 bg-white text-gray-500 hover:border-primary-300'
+                          }`}
+                      >
+                        <Home className={`h-8 w-8 mb-2 ${formData.business_category === 'ASSET' ? 'text-primary-600' : 'text-gray-400'}`} />
+                        <span className="font-bold text-sm">Asset Business</span>
+                      </button>
+                    </div>
+                  </div>
+
                   <div>
                     <label className="text-[9px] md:text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 block">Official Company Name</label>
                     <input

@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../app/store';
-import { fetchRide, fetchSeatAvailability, bookSeat } from '../../features/rides/ridesSlice';
+import { fetchRide, fetchSeatAvailability, bookSeat, bulkBookSeats, bookCargo, fetchMyBookings } from '../../features/rides/ridesSlice';
 import { getMediaUrl } from '../../utils/media';
 import { Price } from '../../context/CurrencyContext';
-import { MapPin, Users, ArrowRight, Clock, Star, Edit, List, ChevronLeft, ChevronRight, Home, Car, User, Calendar, Shield } from 'lucide-react';
+import { MapPin, Users, ArrowRight, Clock, Star, Edit, List, ChevronLeft, ChevronRight, Home, Car, User, Calendar, Shield, Package, Phone } from 'lucide-react';
 import toast from 'react-hot-toast';
 import VerificationBadge from '../../components/ui/VerificationBadge';
 import ContactButton from '../../components/messaging/ContactButton';
@@ -15,19 +15,36 @@ export default function RideDetailPage() {
   const { id } = useParams<{ id: string }>();
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
-  const { currentRide: ride, seatAvailability, isLoading, error } = useSelector((state: RootState) => state.rides);
+  const { currentRide: ride, seatAvailability, isLoading, error, myBookings } = useSelector((state: RootState) => state.rides);
   const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
   const [selectedSeats, setSelectedSeats] = useState<number[]>([]);
+  const [businessSeats, setBusinessSeats] = useState<number>(1);
+  const [cargoWeight, setCargoWeight] = useState<number | ''>('');
+  const [activeTab, setActiveTab] = useState<'SEATS' | 'CARGO'>('SEATS');
   const [isBooking, setIsBooking] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+  const [hasCargoBooking, setHasCargoBooking] = useState(false);
 
   useEffect(() => {
     if (id) {
       dispatch(fetchRide(id));
       dispatch(fetchSeatAvailability(id));
+      if (isAuthenticated) {
+        dispatch(fetchMyBookings());
+        import('../../services/api').then(({ default: api }) => {
+          api.get(`/rides/cargo-bookings/`, { params: { ride: id!, sender: 'me' } })
+            .then(res => {
+              const bookings = res.data?.results || res.data || [];
+              if (bookings.some((b: any) => b.status === 'CONFIRMED' || b.status === 'PENDING')) {
+                setHasCargoBooking(true);
+              }
+            })
+            .catch(console.error);
+        });
+      }
     }
-  }, [dispatch, id]);
+  }, [dispatch, id, isAuthenticated]);
 
   const nextImage = (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
@@ -54,36 +71,71 @@ export default function RideDetailPage() {
   };
 
   const handleBookNow = async () => {
-    if (!id || selectedSeats.length === 0) {
-      toast.error('Please select at least one seat');
-      return;
-    }
-
-    if (!isAuthenticated) {
-      toast.error('Please login to book a seat');
-      return;
+    const rideId = id!;
+    if (!rideId || (!isAuthenticated && activeTab !== 'CARGO')) {
+      if (!isAuthenticated) {
+        toast.error('Please login to book');
+        return;
+      }
     }
 
     setIsBooking(true);
     try {
-      // Book each selected seat
-      const bookingPromises = selectedSeats.map(seatNumber =>
-        dispatch(bookSeat({
-          rideId: id,
-          data: {
-            seat_number: seatNumber,
-            payment_method: 'card'
+      if (activeTab === 'CARGO') {
+        const weight = Number(cargoWeight);
+        if (weight <= 0) {
+          toast.error('Please enter a valid weight');
+          setIsBooking(false);
+          return;
+        }
+        await dispatch(bookCargo({
+          ride_id: rideId,
+          weight: weight,
+        })).unwrap();
+        toast.success(`Cargo space booked successfully!`);
+        setCargoWeight('');
+        setHasCargoBooking(true);
+      } else {
+        if (ride?.ride_type === 'BUSINESS') {
+          if (businessSeats <= 0) {
+            toast.error('Please enter a valid number of seats');
+            setIsBooking(false);
+            return;
           }
-        })).unwrap()
-      );
+          await dispatch(bulkBookSeats({
+            rideId: rideId,
+            data: { quantity: businessSeats }
+          })).unwrap();
+          toast.success(`${businessSeats} seat(s) booked successfully!`);
+          setBusinessSeats(1);
+        } else {
+          if (selectedSeats.length === 0) {
+            toast.error('Please select at least one seat');
+            setIsBooking(false);
+            return;
+          }
+          const bookingPromises = selectedSeats.map(seatNumber =>
+            dispatch(bookSeat({
+              rideId: rideId,
+              data: {
+                seat_number: seatNumber,
+                payment_method: 'card'
+              }
+            })).unwrap()
+          );
+          await Promise.all(bookingPromises);
+          toast.success(`${selectedSeats.length} seat(s) booked successfully!`);
+          setSelectedSeats([]);
+        }
+      }
 
-      await Promise.all(bookingPromises);
-      toast.success(`${selectedSeats.length} seat(s) booked successfully!`);
-      setSelectedSeats([]);
-      // Refresh seat availability
-      dispatch(fetchSeatAvailability(id));
+      // Refresh seat/cargo availability
+      dispatch(fetchRide(rideId));
+      if (activeTab === 'SEATS' && ride?.ride_type === 'PERSONAL') {
+        dispatch(fetchSeatAvailability(rideId));
+      }
     } catch (err) {
-      toast.error('Failed to book seat(s). Please try again.');
+      toast.error(typeof err === 'string' ? err : 'Failed to process booking. Please try again.');
     } finally {
       setIsBooking(false);
     }
@@ -117,6 +169,11 @@ export default function RideDetailPage() {
 
   // Check if current user is the driver
   const isDriver = isAuthenticated && user?.id === ride.driver?.id;
+
+  const hasConfirmedBooking = isDriver || hasCargoBooking || myBookings?.some(b =>
+    b.ride_id === id && (b.status === 'CONFIRMED' || b.status === 'PENDING')
+  );
+
   const imageModalPhotos = ride.photos ? ride.photos.map((p, i) => ({ id: p.id || i, url: getMediaUrl(p.url) })) : [];
 
   return (
@@ -239,32 +296,42 @@ export default function RideDetailPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8 pt-6 border-t border-gray-100">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8 pt-6 border-t border-gray-100">
               <div className="space-y-1">
-                <p className="text-[10px] font-bold text-gray-400 ">Departure</p>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Departure</p>
                 <div className="flex items-center gap-2 text-gray-900">
                   <Clock className="h-4 w-4 text-primary-600" />
                   <span className="font-bold text-sm">{new Date(ride.departure_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                 </div>
               </div>
               <div className="space-y-1">
-                <p className="text-[10px] font-bold text-gray-400 ">Date</p>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Date</p>
                 <div className="flex items-center gap-2 text-gray-900">
                   <Calendar className="h-4 w-4 text-primary-600" />
                   <span className="font-bold text-sm">{new Date(ride.departure_time).toLocaleDateString()}</span>
                 </div>
               </div>
               <div className="space-y-1">
-                <p className="text-[10px] font-bold text-gray-400 ">Availability</p>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Seats</p>
                 <div className="flex items-center gap-2 text-gray-900">
                   <Users className="h-4 w-4 text-primary-600" />
                   <span className="font-bold text-sm">{ride.available_seats} / {ride.total_seats}</span>
                 </div>
               </div>
-              <div className="space-y-1">
-                <p className="text-[10px] font-bold text-gray-400 ">Price</p>
-                <p className="text-lg font-black text-primary-600 leading-none"><Price amount={ride.seat_price} /></p>
-              </div>
+              {ride.cargo_enabled ? (
+                <div className="space-y-1">
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Cargo (kg)</p>
+                  <div className="flex items-center gap-2 text-gray-900">
+                    <Package className="h-4 w-4 text-primary-600" />
+                    <span className="font-bold text-sm">{ride.available_cargo} / {ride.total_cargo}</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Price</p>
+                  <p className="text-lg font-black text-primary-600 leading-none"><Price amount={ride.seat_price} /></p>
+                </div>
+              )}
             </div>
 
             {/* Driver Info - Clickable to profile */}
@@ -330,101 +397,173 @@ export default function RideDetailPage() {
           {/* Unified Booking Card */}
           {!isDriver && (
             <div className="card p-0 sticky top-24 border-none shadow-2xl overflow-hidden bg-white">
-              <div className="bg-gray-900 p-6 text-white">
+              {ride.cargo_enabled && (
+                <div className="flex border-b border-gray-200">
+                  <button
+                    onClick={() => setActiveTab('SEATS')}
+                    className={`flex-1 py-4 text-sm font-black uppercase tracking-widest transition-colors ${activeTab === 'SEATS' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
+                  >
+                    <Users className="h-4 w-4 inline-block mr-2 -mt-1" />
+                    Seats
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('CARGO')}
+                    className={`flex-1 py-4 text-sm font-black uppercase tracking-widest transition-colors ${activeTab === 'CARGO' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
+                  >
+                    <Package className="h-4 w-4 inline-block mr-2 -mt-1" />
+                    Cargo
+                  </button>
+                </div>
+              )}
+              <div className="bg-gray-900 p-6 text-white rounded-t-lg">
                 <div className="flex justify-between items-center mb-2">
-                  <p className="text-[10px] font-black  tracking-widest text-primary-400">Reserve Seats</p>
-                  <div className="px-2 py-1 bg-primary-600 rounded text-[10px] font-bold  tracking-tighter">Instant Booking</div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-primary-400">
+                    {activeTab === 'SEATS' ? 'Reserve Seats' : 'Book Cargo'}
+                  </p>
+                  <div className="px-2 py-1 bg-primary-600 rounded text-[10px] font-bold tracking-tighter">Instant Booking</div>
                 </div>
                 <div className="flex justify-between items-end">
                   <div>
-                    <span className="text-3xl font-black"><Price amount={ride.seat_price} /></span>
-                    <span className="text-xs font-bold text-gray-400 ml-1">/ seat</span>
+                    <span className="text-3xl font-black">
+                      <Price amount={activeTab === 'SEATS' ? ride.seat_price : (ride.cargo_price || 0)} />
+                    </span>
+                    <span className="text-xs font-bold text-gray-400 ml-1">
+                      / {activeTab === 'SEATS' ? 'seat' : 'kg'}
+                    </span>
                   </div>
                   <div className="text-right">
-                    <p className="text-[10px] font-bold text-gray-400 ">Available</p>
-                    <p className="text-lg font-black text-primary-400 leading-none">{ride.available_seats} seats</p>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Available</p>
+                    <p className="text-lg font-black text-primary-400 leading-none">
+                      {activeTab === 'SEATS' ? `${ride.available_seats} seats` : `${ride.available_cargo} kg`}
+                    </p>
                   </div>
                 </div>
               </div>
 
               <div className="p-6 space-y-8">
-                {/* Realistic Seat Map */}
-                {seatAvailability && (
-                  <div className="space-y-6">
-                    <div className="flex items-center justify-between">
-                      <p className="text-xs font-black  tracking-widest text-gray-400">Select Seats</p>
-                      <div className="flex gap-2">
-                        <div className="flex items-center gap-1 text-[8px] font-bold  text-gray-400">
-                          <div className="w-2 h-2 bg-white border border-gray-200 rounded-sm" /> Free
+                {activeTab === 'SEATS' ? (
+                  ride.ride_type === 'BUSINESS' ? (
+                    <div className="space-y-4">
+                      <label className="block text-sm font-bold text-gray-700">Number of Seats to Book</label>
+                      <input
+                        type="number"
+                        min="1"
+                        max={ride.available_seats}
+                        value={businessSeats}
+                        onChange={(e) => setBusinessSeats(parseInt(e.target.value) || 0)}
+                        className="input text-lg font-black p-4 text-center"
+                        placeholder="e.g. 2"
+                      />
+                      {businessSeats > 0 && businessSeats <= ride.available_seats && (
+                        <div className="p-4 bg-primary-600 rounded-2xl text-white shadow-lg shadow-primary-200">
+                          <div className="flex justify-between items-center text-sm font-black">
+                            <span className="uppercase tracking-widest text-[10px]">Total ({businessSeats} Seats)</span>
+                            <span><Price amount={ride.seat_price * businessSeats} /></span>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-1 text-[8px] font-bold  text-gray-400">
-                          <div className="w-2 h-2 bg-primary-600 rounded-sm" /> Yours
-                        </div>
-                        <div className="flex items-center gap-1 text-[8px] font-bold  text-gray-400">
-                          <div className="w-2 h-2 bg-gray-200 rounded-sm" /> Taken
-                        </div>
-                      </div>
+                      )}
                     </div>
-
-                    <div className="relative max-w-[180px] mx-auto bg-gray-50 rounded-[3rem] p-6 border-2 border-gray-100 shadow-inner">
-                      {/* Dashboard / Windshield Area */}
-                      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2/3 h-1 bg-gray-200 rounded-full mt-2" />
-
-                      {/* Front Row */}
-                      <div className="flex justify-between mb-10">
-                        {/* Driver Seat (Placeholder) */}
-                        <div className="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center opacity-50">
-                          <User className="h-5 w-5 text-gray-400" />
+                  ) : (
+                    /* Realistic Seat Map for Personal Rides */
+                    seatAvailability && (
+                      <div className="space-y-6">
+                        <div className="flex items-center justify-between">
+                          <p className="text-xs font-black tracking-widest text-gray-400 uppercase">Select Seats</p>
+                          <div className="flex gap-2">
+                            <div className="flex items-center gap-1 text-[8px] font-bold text-gray-400 uppercase">
+                              <div className="w-2 h-2 bg-white border border-gray-200 rounded-sm" /> Free
+                            </div>
+                            <div className="flex items-center gap-1 text-[8px] font-bold text-gray-400 uppercase">
+                              <div className="w-2 h-2 bg-primary-600 rounded-sm" /> Yours
+                            </div>
+                            <div className="flex items-center gap-1 text-[8px] font-bold text-gray-400 uppercase">
+                              <div className="w-2 h-2 bg-gray-200 rounded-sm" /> Taken
+                            </div>
+                          </div>
                         </div>
 
-                        {/* Front Passenger Seat (Seat 1) */}
-                        {ride.total_seats >= 1 && (() => {
-                          const seat = seatAvailability.seats.find(s => s.seat_number === 1);
-                          const isSelected = selectedSeats.includes(1);
-                          const isBooked = seat?.status === 'BOOKED' || seat?.status === 'BLOCKED';
-                          return (
-                            <button
-                              disabled={isBooked}
-                              onClick={() => toggleSeat(1, seat?.status || 'AVAILABLE')}
-                              className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all shadow-sm ${isBooked ? 'bg-gray-100 text-gray-300' :
-                                isSelected ? 'bg-primary-600 text-white scale-110 shadow-primary-200' :
-                                  'bg-white text-primary-600 border border-primary-50 hover:border-primary-600'
-                                }`}
-                            >
-                              <span className="font-bold text-xs">1</span>
-                            </button>
-                          );
-                        })()}
-                      </div>
+                        <div className="relative max-w-[180px] mx-auto bg-gray-50 rounded-[3rem] p-6 border-2 border-gray-100 shadow-inner">
+                          {/* Dashboard / Windshield Area */}
+                          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2/3 h-1 bg-gray-200 rounded-full mt-2" />
 
-                      {/* Back Rows (Dynamic generation based on total_seats) */}
-                      <div className="grid grid-cols-3 gap-3">
-                        {[2, 3, 4, 5, 6, 7, 8, 9].filter(n => n <= ride.total_seats).map((num) => {
-                          const seat = seatAvailability.seats.find(s => s.seat_number === num);
-                          const isSelected = selectedSeats.includes(num);
-                          const isBooked = seat?.status === 'BOOKED' || seat?.status === 'BLOCKED';
-                          return (
-                            <button
-                              key={num}
-                              disabled={isBooked}
-                              onClick={() => toggleSeat(num, seat?.status || 'AVAILABLE')}
-                              className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all shadow-sm ${isBooked ? 'bg-gray-100 text-gray-300' :
-                                isSelected ? 'bg-primary-600 text-white scale-110 shadow-primary-200' :
-                                  'bg-white text-primary-600 border border-primary-50 hover:border-primary-600'
-                                }`}
-                            >
-                              <span className="font-bold text-xs">{num}</span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
+                          {/* Front Row */}
+                          <div className="flex justify-between mb-10">
+                            {/* Driver Seat (Placeholder) */}
+                            <div className="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center opacity-50">
+                              <User className="h-5 w-5 text-gray-400" />
+                            </div>
 
-                    {selectedSeats.length > 0 && (
-                      <div className="p-4 bg-primary-600 rounded-2xl text-white shadow-lg shadow-primary-200 animate-in zoom-in-95 duration-200">
+                            {/* Front Passenger Seat (Seat 1) */}
+                            {ride.total_seats >= 1 && (() => {
+                              const seat = seatAvailability.seats.find(s => s.seat_number === 1);
+                              const isSelected = selectedSeats.includes(1);
+                              const isBooked = seat?.status === 'BOOKED' || seat?.status === 'BLOCKED';
+                              return (
+                                <button
+                                  disabled={isBooked}
+                                  onClick={() => toggleSeat(1, seat?.status || 'AVAILABLE')}
+                                  className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all shadow-sm ${isBooked ? 'bg-gray-100 text-gray-300' :
+                                    isSelected ? 'bg-primary-600 text-white scale-110 shadow-primary-200' :
+                                      'bg-white text-primary-600 border border-primary-50 hover:border-primary-600'
+                                    }`}
+                                >
+                                  <span className="font-bold text-xs">1</span>
+                                </button>
+                              );
+                            })()}
+                          </div>
+
+                          {/* Back Rows (Dynamic generation based on total_seats) */}
+                          <div className="grid grid-cols-3 gap-3">
+                            {[2, 3, 4, 5, 6, 7, 8, 9].filter(n => n <= ride.total_seats).map((num) => {
+                              const seat = seatAvailability.seats.find(s => s.seat_number === num);
+                              const isSelected = selectedSeats.includes(num);
+                              const isBooked = seat?.status === 'BOOKED' || seat?.status === 'BLOCKED';
+                              return (
+                                <button
+                                  key={num}
+                                  disabled={isBooked}
+                                  onClick={() => toggleSeat(num, seat?.status || 'AVAILABLE')}
+                                  className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all shadow-sm ${isBooked ? 'bg-gray-100 text-gray-300' :
+                                    isSelected ? 'bg-primary-600 text-white scale-110 shadow-primary-200' :
+                                      'bg-white text-primary-600 border border-primary-50 hover:border-primary-600'
+                                    }`}
+                                >
+                                  <span className="font-bold text-xs">{num}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        {selectedSeats.length > 0 && (
+                          <div className="p-4 bg-primary-600 rounded-2xl text-white shadow-lg shadow-primary-200 animate-in zoom-in-95 duration-200">
+                            <div className="flex justify-between items-center text-sm font-black">
+                              <span className="uppercase tracking-widest text-[10px]">Total ({selectedSeats.length} Seats)</span>
+                              <span><Price amount={ride.seat_price * selectedSeats.length} /></span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )
+                  )
+                ) : (
+                  <div className="space-y-4">
+                    <label className="block text-sm font-bold text-gray-700">Cargo Weight (kg)</label>
+                    <input
+                      type="number"
+                      min="1"
+                      max={ride.available_cargo}
+                      value={cargoWeight}
+                      onChange={(e) => setCargoWeight(e.target.value === '' ? '' : Number(e.target.value))}
+                      className="input text-lg font-black p-4 text-center"
+                      placeholder="e.g. 5"
+                    />
+                    {Number(cargoWeight) > 0 && Number(cargoWeight) <= (ride.available_cargo || 0) && (
+                      <div className="p-4 bg-primary-600 rounded-2xl text-white shadow-lg shadow-primary-200">
                         <div className="flex justify-between items-center text-sm font-black">
-                          <span className=" tracking-widest text-[10px]">Total ({selectedSeats.length} Seats)</span>
-                          <span><Price amount={ride.seat_price * selectedSeats.length} /></span>
+                          <span className="uppercase tracking-widest text-[10px]">Total Cost</span>
+                          <span><Price amount={(ride.cargo_price || 0) * Number(cargoWeight)} /></span>
                         </div>
                       </div>
                     )}
@@ -434,15 +573,25 @@ export default function RideDetailPage() {
                 <div className="space-y-3 pt-4 border-t border-gray-50">
                   <button
                     onClick={handleBookNow}
-                    disabled={selectedSeats.length === 0 || isBooking || ride.available_seats === 0}
-                    className="btn-primary w-full py-4 text-sm font-black  tracking-widest shadow-xl shadow-primary-500/20 disabled:opacity-50"
+                    disabled={isBooking || (activeTab === 'SEATS' ? ride.available_seats === 0 : ride.available_cargo === 0)}
+                    className="btn-primary w-full py-4 text-sm font-black uppercase tracking-widest shadow-xl shadow-primary-500/20 disabled:opacity-50"
                   >
-                    {isBooking ? 'Processing...' : 'Complete Booking'}
+                    {isBooking ? 'Processing...' : `Complete Booking`}
                   </button>
+
+                  {hasConfirmedBooking && ride.driver.profile?.phone && (
+                    <a
+                      href={`tel:${ride.driver.profile.phone}`}
+                      className="btn-secondary w-full py-4 text-sm font-black uppercase tracking-widest shadow-xl flex items-center justify-center gap-2 border-green-200 bg-green-50 text-green-700 hover:bg-green-100 hover:border-green-300"
+                    >
+                      <Phone className="h-5 w-5" />
+                      Call Now
+                    </a>
+                  )}
 
                   <div className="w-full flex items-center gap-3">
                     <div className="flex-1 h-px bg-gray-100" />
-                    <span className="text-[10px] font-bold text-gray-300 ">Or</span>
+                    <span className="text-[10px] font-bold text-gray-300 uppercase">Or</span>
                     <div className="flex-1 h-px bg-gray-100" />
                   </div>
 
@@ -454,12 +603,12 @@ export default function RideDetailPage() {
                       rideId={ride.id}
                       subject={`Ride Inquiry: ${ride.origin} → ${ride.destination}`}
                       variant="outline"
-                      className="w-full justify-center py-3 text-xs font-bold  tracking-widest"
+                      className="w-full justify-center py-3 text-xs font-bold uppercase tracking-widest"
                     />
                   )}
                 </div>
 
-                <p className="text-[9px] text-gray-400 font-bold  tracking-tighter text-center px-4">
+                <p className="text-[9px] text-gray-400 font-bold uppercase tracking-tighter text-center px-4">
                   Escrow Protection Active. Payment released 24h after trip completion.
                 </p>
               </div>

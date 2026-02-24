@@ -68,11 +68,11 @@ export interface AuthState {
 }
 
 // ==================== Asset Types ====================
-export type AssetType = 
-  | 'ROOM' 
-  | 'TOOL' 
-  | 'VEHICLE' 
-  | 'SEAT_SERVICE' 
+export type AssetType =
+  | 'ROOM'
+  | 'TOOL'
+  | 'VEHICLE'
+  | 'SEAT_SERVICE'
   | 'TIME_SERVICE'
   | 'HOTEL'
   | 'RESTAURANT'
@@ -164,13 +164,13 @@ export interface AssetFilters {
 }
 
 // ==================== Booking Types ====================
-export type BookingStatus = 
-  | 'PENDING' 
-  | 'CONFIRMED' 
-  | 'ACTIVE' 
-  | 'COMPLETED' 
-  | 'CANCELLED' 
-  | 'EXPIRED' 
+export type BookingStatus =
+  | 'PENDING'
+  | 'CONFIRMED'
+  | 'ACTIVE'
+  | 'COMPLETED'
+  | 'CANCELLED'
+  | 'EXPIRED'
   | 'DISPUTED';
 
 export interface Booking {
@@ -273,9 +273,16 @@ export interface Ride {
   destination: string;
   departure_time: string;
   estimated_arrival?: string;
+  ride_type?: 'PERSONAL' | 'BUSINESS';
   total_seats: number;
   available_seats: number;
   seat_price: number;
+  cargo_enabled?: boolean;
+  total_cargo?: number;
+  cargo_price?: number;
+  available_cargo?: number;
+  reserved_cargo?: number;
+  confirmed_cargo?: number;
   currency: string;
   status: RideStatus;
   driver: User;

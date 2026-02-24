@@ -34,8 +34,12 @@ export default function CreateRidePage() {
     destination: '',
     departure_time: '',
     estimated_arrival: '',
+    ride_type: 'PERSONAL',
     total_seats: 4,
     seat_price: '',
+    cargo_enabled: false,
+    total_cargo: '',
+    cargo_price: '',
     currency: 'TZS',
     vehicle_description: '',
     vehicle_color: '',
@@ -156,8 +160,12 @@ export default function CreateRidePage() {
         destination: formData.destination,
         departure_time: formData.departure_time,
         estimated_arrival: formData.estimated_arrival || undefined,
+        ride_type: formData.ride_type as 'PERSONAL' | 'BUSINESS',
         total_seats: formData.total_seats,
         seat_price: parseFloat(formData.seat_price) || 0,
+        cargo_enabled: formData.cargo_enabled,
+        total_cargo: formData.cargo_enabled ? (parseFloat(formData.total_cargo) || 0) : 0,
+        cargo_price: formData.cargo_enabled ? (parseFloat(formData.cargo_price) || 0) : 0,
         currency: formData.currency,
         vehicle_asset: { id: selectedVehicleId } as any,
         vehicle_description: formData.vehicle_description || undefined,
@@ -408,64 +416,143 @@ export default function CreateRidePage() {
           </div>
         </div>
 
-        {/* Seats and Pricing */}
+        {/* Ride Configuration & Pricing */}
         <div className="card p-6">
-          <h2 className="text-lg font-semibold mb-4">Seats & Pricing</h2>
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Total Seats <span className="text-red-500">*</span>
-                </label>
+          <h2 className="text-lg font-semibold mb-4">Ride Configuration & Pricing</h2>
+
+          <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50 p-4 rounded-xl border border-gray-100">
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">Ride Classification</label>
+              <select
+                name="ride_type"
+                value={formData.ride_type}
+                onChange={handleInputChange}
+                className="input bg-white"
+              >
+                <option value="PERSONAL">Personal Ride (Standard)</option>
+                <option value="BUSINESS">Business Ride (High Capacity / Bus / Van)</option>
+              </select>
+            </div>
+
+            <div className="flex items-center h-full pt-1">
+              <label className="relative inline-flex items-center cursor-pointer">
                 <input
-                  type="number"
-                  name="total_seats"
-                  value={formData.total_seats}
-                  onChange={handleInputChange}
-                  className="input"
-                  min="1"
-                  max="50"
-                  required
+                  type="checkbox"
+                  name="cargo_enabled"
+                  checked={formData.cargo_enabled}
+                  onChange={(e) => setFormData(prev => ({ ...prev, cargo_enabled: e.target.checked }))}
+                  className="sr-only peer"
                 />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Price per Seat <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
-                    {formData.currency === 'KES' ? 'KSh' : formData.currency === 'USD' ? '$' : formData.currency}
-                  </span>
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
+                <span className="ml-3 text-sm font-bold text-gray-700">Enable Cargo / Carry My Load</span>
+              </label>
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            {/* Passenger Seats Options */}
+            <div>
+              <h3 className="text-sm font-bold text-gray-900 border-b pb-2 mb-4">Passenger Seats</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Total Seats <span className="text-red-500">*</span>
+                  </label>
                   <input
                     type="number"
-                    name="seat_price"
-                    value={formData.seat_price}
+                    name="total_seats"
+                    value={formData.total_seats}
                     onChange={handleInputChange}
-                    className="input pl-12"
+                    className="input"
                     min="0"
-                    step="0.01"
+                    max="100"
                     required
                   />
                 </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Currency
-                </label>
-                <select
-                  name="currency"
-                  value={formData.currency}
-                  onChange={handleInputChange}
-                  className="input"
-                >
-                  <option value="TZS">TZS (Tanzanian Shilling)</option>
-                  <option value="KES">KES (Kenyan Shilling)</option>
-                  <option value="USD">USD (US Dollar)</option>
-                  <option value="EUR">EUR (Euro)</option>
-                  <option value="CNY">CNY (Chinese Yuan)</option>
-                </select>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Price per Seat <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-bold text-xs">
+                      {formData.currency}
+                    </span>
+                    <input
+                      type="number"
+                      name="seat_price"
+                      value={formData.seat_price}
+                      onChange={handleInputChange}
+                      className="input pl-12"
+                      min="0"
+                      step="0.01"
+                      required
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Currency
+                  </label>
+                  <select
+                    name="currency"
+                    value={formData.currency}
+                    onChange={handleInputChange}
+                    className="input"
+                  >
+                    <option value="TZS">TZS (Tanzanian Shilling)</option>
+                    <option value="KES">KES (Kenyan Shilling)</option>
+                    <option value="USD">USD (US Dollar)</option>
+                    <option value="EUR">EUR (Euro)</option>
+                    <option value="CNY">CNY (Chinese Yuan)</option>
+                  </select>
+                </div>
               </div>
             </div>
+
+            {/* Cargo Options */}
+            {formData.cargo_enabled && (
+              <div className="bg-primary-50 p-4 rounded-xl border border-primary-100">
+                <h3 className="text-sm font-bold text-primary-900 pb-2 mb-4">Cargo Capacity (Carry My Load)</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Max Cargo Weight (kg) <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      name="total_cargo"
+                      value={formData.total_cargo}
+                      onChange={handleInputChange}
+                      className="input"
+                      min="1"
+                      placeholder="e.g. 50"
+                      required={formData.cargo_enabled}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Price per kg <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-bold text-xs">
+                        {formData.currency}
+                      </span>
+                      <input
+                        type="number"
+                        name="cargo_price"
+                        value={formData.cargo_price}
+                        onChange={handleInputChange}
+                        className="input pl-12"
+                        min="0"
+                        step="0.01"
+                        placeholder="Price per kg"
+                        required={formData.cargo_enabled}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

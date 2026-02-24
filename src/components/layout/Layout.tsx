@@ -1,11 +1,11 @@
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../app/store';
-import { logout } from '../../features/auth/authSlice';
+import { logout, updateUser } from '../../features/auth/authSlice';
 import { fetchThreads, fetchUnreadCount } from '../../features/messaging/messagingSlice';
 import { fetchNotifications } from '../../features/notifications/notificationsSlice';
-import { 
-  MessageCircle, Bell, User, LogOut, Menu, X, 
+import {
+  MessageCircle, Bell, User, LogOut, Menu, X,
   Home, Car, Briefcase, Plus, Search, Settings,
   Calendar, Shield, CreditCard, Globe, Facebook, Twitter, Instagram, Linkedin, CheckCircle, Heart, Building2, ChevronRight
 } from 'lucide-react';
@@ -22,7 +22,7 @@ export default function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
   const { currency, setCurrency, availableCurrencies } = useCurrency();
-  
+
   // Start notification WebSocket
   useNotificationWebSocket();
 
@@ -42,7 +42,7 @@ export default function Layout() {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Node;
-      
+
       if (isUserMenuOpen && userMenuRef.current && !userMenuRef.current.contains(target)) {
         setIsUserMenuOpen(false);
       }
@@ -59,24 +59,14 @@ export default function Layout() {
   }, [isUserMenuOpen, isNotificationOpen, isCreateMenuOpen]);
 
   // Dynamic staff check
-  const isStaff = !!(
-    user?.is_staff || 
-    user?.is_superuser || 
-    (user?.roles && Array.isArray(user.roles) && user.roles.length > 0)
-  );
+  const isStaff = !!(user?.is_staff || user?.is_superuser || (user?.roles && Array.isArray(user.roles) && user.roles.length > 0));
 
   useEffect(() => {
-    if (user) {
-      console.log(`[Layout] Staff Check DEBUG: 
-        id=${user.id}
-        email=${user.email} 
-        isStaff=${isStaff} 
-        is_staff_val=${user.is_staff} 
-        is_superuser_val=${user.is_superuser} 
-        roles_val=${JSON.stringify(user.roles)}`);
+    if (user && user.is_staff !== isStaff) {
+      dispatch(updateUser({ ...user, is_staff: isStaff }));
     }
-  }, [user, isStaff]);
-    useEffect(() => {
+  }, [user, isStaff, dispatch]);
+  useEffect(() => {
     if (isAuthenticated) {
       // Initial fetch to get counts
       dispatch(fetchThreads({}) as any);
@@ -141,11 +131,10 @@ export default function Layout() {
                   <Link
                     key={item.name}
                     to={item.href}
-                    className={`inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      isActive(item.href)
-                        ? 'bg-primary-50 text-primary-700'
-                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                    }`}
+                    className={`inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive(item.href)
+                      ? 'bg-primary-50 text-primary-700'
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                      }`}
                   >
                     <item.icon className="h-4 w-4 mr-1.5" />
                     {item.name}
@@ -195,11 +184,10 @@ export default function Layout() {
                     <div key={item.name} className="relative" ref={notificationRef}>
                       <button
                         onClick={() => setIsNotificationOpen(!isNotificationOpen)}
-                        className={`relative inline-flex items-center p-2 rounded-lg transition-colors ${
-                          isActive(item.href) || isNotificationOpen
-                            ? 'bg-primary-50 text-primary-700'
-                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                        }`}
+                        className={`relative inline-flex items-center p-2 rounded-lg transition-colors ${isActive(item.href) || isNotificationOpen
+                          ? 'bg-primary-50 text-primary-700'
+                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                          }`}
                         title={item.name}
                       >
                         <item.icon className="h-5 w-5" />
@@ -209,20 +197,19 @@ export default function Layout() {
                           </span>
                         )}
                       </button>
-                      <NotificationDropdown 
-                        isOpen={isNotificationOpen} 
-                        onClose={() => setIsNotificationOpen(false)} 
+                      <NotificationDropdown
+                        isOpen={isNotificationOpen}
+                        onClose={() => setIsNotificationOpen(false)}
                       />
                     </div>
                   ) : (
                     <Link
                       key={item.name}
                       to={item.href}
-                      className={`relative inline-flex items-center p-2 rounded-lg transition-colors ${
-                        isActive(item.href)
-                          ? 'bg-primary-50 text-primary-700'
-                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                      }`}
+                      className={`relative inline-flex items-center p-2 rounded-lg transition-colors ${isActive(item.href)
+                        ? 'bg-primary-50 text-primary-700'
+                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                        }`}
                       title={item.name}
                     >
                       <item.icon className="h-5 w-5" />
@@ -263,7 +250,7 @@ export default function Layout() {
                         )}
                       </div>
                       <div className="flex items-center gap-1">
-                        <VerificationBadge 
+                        <VerificationBadge
                           tier={user.verification_badge?.tier}
                           color={user.verification_badge?.color}
                           size="xs"
@@ -397,17 +384,16 @@ export default function Layout() {
                   key={item.name}
                   to={item.href}
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className={`flex items-center px-3 py-2 rounded-lg text-base font-medium ${
-                    isActive(item.href)
-                      ? 'bg-primary-50 text-primary-700'
-                      : 'text-gray-600 hover:bg-gray-50'
-                  }`}
+                  className={`flex items-center px-3 py-2 rounded-lg text-base font-medium ${isActive(item.href)
+                    ? 'bg-primary-50 text-primary-700'
+                    : 'text-gray-600 hover:bg-gray-50'
+                    }`}
                 >
                   <item.icon className="h-5 w-5 mr-3" />
                   {item.name}
                 </Link>
               ))}
-              
+
               {/* Create Actions */}
               <div className="pt-2 pb-1">
                 <p className="px-3 text-xs font-semibold text-gray-400  tracking-wider">Create</p>
@@ -423,7 +409,7 @@ export default function Layout() {
                   {action.name}
                 </Link>
               ))}
-              
+
               {/* Secondary Nav */}
               <div className="pt-2 pb-1">
                 <p className="px-3 text-xs font-semibold text-gray-400  tracking-wider">Account</p>
@@ -433,11 +419,10 @@ export default function Layout() {
                   key={item.name}
                   to={item.href}
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className={`flex items-center justify-between px-3 py-2 rounded-lg text-base font-medium ${
-                    isActive(item.href)
-                      ? 'bg-primary-50 text-primary-700'
-                      : 'text-gray-600 hover:bg-gray-50'
-                  }`}
+                  className={`flex items-center justify-between px-3 py-2 rounded-lg text-base font-medium ${isActive(item.href)
+                    ? 'bg-primary-50 text-primary-700'
+                    : 'text-gray-600 hover:bg-gray-50'
+                    }`}
                 >
                   <div className="flex items-center">
                     <item.icon className="h-5 w-5 mr-3" />
@@ -450,7 +435,7 @@ export default function Layout() {
                   )}
                 </Link>
               ))}
-              
+
               {/* User Actions */}
               <div className="border-t border-gray-200 pt-3 mt-3">
                 <Link

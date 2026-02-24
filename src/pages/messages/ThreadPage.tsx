@@ -2,13 +2,13 @@ import { useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../app/store';
-import { 
-  fetchThread, 
-  fetchThreadMessages, 
-  sendMessage, 
-  markThreadRead, 
+import {
+  fetchThread,
+  fetchThreadMessages,
+  sendMessage,
+  markThreadRead,
   addOptimisticMessage,
-  clearCurrentThread 
+  clearCurrentThread
 } from '../../features/messaging/messagingSlice';
 import { useChatWebSocket } from '../../features/messaging/useChatWebSocket';
 import { getMediaUrl } from '../../utils/media';
@@ -32,7 +32,10 @@ export default function ThreadPage() {
   };
 
   const otherUser = getOtherParticipant();
-  const isOtherTyping = !!(threadId && typingStatus[threadId] && otherUser && typingStatus[threadId][otherUser.id]);
+  // Check if ANY user other than the current user is typing
+  const isOtherTyping = threadId && typingStatus[threadId]
+    ? Object.entries(typingStatus[threadId]).some(([id, isTyping]) => id !== user?.id && isTyping)
+    : false;
 
   const prevThreadIdRef = useRef<string | undefined>(threadId);
 
@@ -68,10 +71,10 @@ export default function ThreadPage() {
 
   const handleSend = async () => {
     if (!message.trim() && !attachment) return;
-    
+
     const content = message;
     const files = attachment ? [attachment] : undefined;
-    
+
     // Create optimistic message
     const tempId = `temp-${Date.now()}`;
     const optimisticMsg = {
@@ -92,12 +95,12 @@ export default function ThreadPage() {
 
     // Dispatch optimistic update
     dispatch(addOptimisticMessage({ threadId: threadId!, message: optimisticMsg }));
-    
+
     // Clear input immediately for better UX
     setMessage('');
     setAttachment(null);
     sendTyping(false);
-    
+
     if (files) {
       await dispatch(sendMessage({ threadId: threadId!, content, attachments: files, optimisticId: tempId }));
     } else {
@@ -116,9 +119,9 @@ export default function ThreadPage() {
 
   const handleLoadMore = () => {
     if (threadId && pagination.hasMore) {
-      dispatch(fetchThreadMessages({ 
-        threadId, 
-        page: pagination.page + 1 
+      dispatch(fetchThreadMessages({
+        threadId,
+        page: pagination.page + 1
       }));
     }
   };
@@ -192,7 +195,7 @@ export default function ThreadPage() {
       <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-[#f8f9fa] custom-scrollbar">
         {pagination.hasMore && (
           <div className="flex justify-center">
-            <button 
+            <button
               onClick={handleLoadMore}
               className="px-4 py-1 text-xs font-medium text-primary-600 bg-white border border-gray-200 rounded-full hover:bg-gray-50 transition-colors shadow-sm"
               disabled={isLoadingMessages}
@@ -201,7 +204,7 @@ export default function ThreadPage() {
             </button>
           </div>
         )}
-        
+
         {messages.length === 0 && !isLoading && !isLoadingMessages && (
           <div className="flex flex-col items-center justify-center h-full text-center space-y-3 opacity-60">
             <div className="bg-white p-4 rounded-full shadow-sm">
@@ -212,9 +215,9 @@ export default function ThreadPage() {
         )}
 
         {messages.map((msg, index) => {
-          const showDate = index === 0 || 
-            new Date(msg.created_at).toDateString() !== new Date(messages[index-1].created_at).toDateString();
-          
+          const showDate = index === 0 ||
+            new Date(msg.created_at).toDateString() !== new Date(messages[index - 1].created_at).toDateString();
+
           return (
             <div key={msg.id} className="space-y-2">
               {showDate && (
@@ -224,16 +227,14 @@ export default function ThreadPage() {
                   </span>
                 </div>
               )}
-              
+
               <div className={`flex ${isCurrentUser(msg.sender.id) ? 'justify-end' : 'justify-start'}`}>
-                <div className={`group relative max-w-[85%] md:max-w-[70%] ${
-                  isCurrentUser(msg.sender.id) ? 'order-1' : 'order-2'
-                }`}>
-                  <div className={`p-3 rounded-2xl shadow-sm ${
-                    isCurrentUser(msg.sender.id)
-                      ? 'bg-primary-600 text-white rounded-tr-none'
-                      : 'bg-white text-gray-900 rounded-tl-none border border-gray-100'
+                <div className={`group relative max-w-[85%] md:max-w-[70%] ${isCurrentUser(msg.sender.id) ? 'order-1' : 'order-2'
                   }`}>
+                  <div className={`p-3 rounded-2xl shadow-sm ${isCurrentUser(msg.sender.id)
+                    ? 'bg-primary-600 text-white rounded-tr-none'
+                    : 'bg-white text-gray-900 rounded-tl-none border border-gray-100'
+                    }`}>
                     {msg.attachments && msg.attachments.length > 0 && (
                       <div className="mb-2 space-y-2">
                         {msg.attachments.map((att) => (
@@ -243,13 +244,12 @@ export default function ThreadPage() {
                                 <img src={getMediaUrl(att.file)} alt={att.file_name} className="max-h-60 w-full object-cover hover:opacity-90 transition-opacity" />
                               </a>
                             ) : (
-                              <a 
-                                href={getMediaUrl(att.file)} 
-                                target="_blank" 
+                              <a
+                                href={getMediaUrl(att.file)}
+                                target="_blank"
                                 rel="noopener noreferrer"
-                                className={`flex items-center gap-3 p-2 text-sm ${
-                                  isCurrentUser(msg.sender.id) ? 'bg-white/10 text-white' : 'bg-gray-50 text-primary-600'
-                                }`}
+                                className={`flex items-center gap-3 p-2 text-sm ${isCurrentUser(msg.sender.id) ? 'bg-white/10 text-white' : 'bg-gray-50 text-primary-600'
+                                  }`}
                               >
                                 <div className={`p-2 rounded ${isCurrentUser(msg.sender.id) ? 'bg-white/20' : 'bg-primary-50'}`}>
                                   <FileText className="h-4 w-4" />
@@ -265,9 +265,11 @@ export default function ThreadPage() {
                       </div>
                     )}
                     <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">{msg.content}</p>
-                    <div className={`text-[10px] mt-1 flex items-center justify-end space-x-1 ${
-                      isCurrentUser(msg.sender.id) ? 'text-white/70' : 'text-gray-400'
-                    }`}>
+                    <div className={`text-[10px] mt-1 flex items-center justify-end space-x-1 ${isCurrentUser(msg.sender.id) ? 'text-white/70' : 'text-gray-400'
+                      }`}>
+                      {!isCurrentUser(msg.sender.id) && (
+                        <span className="font-bold mr-1">{msg.sender.first_name} {msg.sender.last_name}</span>
+                      )}
                       <span>{new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                       {isCurrentUser(msg.sender.id) && (
                         <span className="ml-1">
@@ -306,28 +308,28 @@ export default function ThreadPage() {
             </button>
           </div>
         )}
-        
+
         <div className="flex items-center space-x-2">
           <div className="flex space-x-1">
             <label className="p-2 hover:bg-gray-100 rounded-full cursor-pointer transition-colors text-gray-500">
               <Paperclip className="h-5 w-5" />
-              <input 
-                type="file" 
-                className="hidden" 
+              <input
+                type="file"
+                className="hidden"
                 onChange={(e) => e.target.files && setAttachment(e.target.files[0])}
               />
             </label>
             <label className="p-2 hover:bg-gray-100 rounded-full cursor-pointer transition-colors text-gray-500">
               <Image className="h-5 w-5" />
-              <input 
-                type="file" 
-                className="hidden" 
+              <input
+                type="file"
+                className="hidden"
                 accept="image/*"
                 onChange={(e) => e.target.files && setAttachment(e.target.files[0])}
               />
             </label>
           </div>
-          
+
           <div className="flex-1 relative">
             <input
               type="text"
@@ -339,15 +341,14 @@ export default function ThreadPage() {
               disabled={thread?.status === 'LOCKED'}
             />
           </div>
-          
+
           <button
             onClick={handleSend}
             disabled={(!message.trim() && !attachment) || thread?.status === 'LOCKED'}
-            className={`p-2.5 rounded-full shadow-sm transition-all ${
-              (!message.trim() && !attachment) || thread?.status === 'LOCKED'
-                ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                : 'bg-primary-600 text-white hover:bg-primary-700 hover:shadow-md'
-            }`}
+            className={`p-2.5 rounded-full shadow-sm transition-all ${(!message.trim() && !attachment) || thread?.status === 'LOCKED'
+              ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+              : 'bg-primary-600 text-white hover:bg-primary-700 hover:shadow-md'
+              }`}
           >
             <Send className="h-5 w-5" />
           </button>

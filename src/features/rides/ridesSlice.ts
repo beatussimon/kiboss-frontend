@@ -88,8 +88,34 @@ export const bookSeat = createAsyncThunk(
       const response = await api.post<SeatBooking>(`/rides/trips/${rideId}/book/`, data);
       return response.data;
     } catch (error: unknown) {
-      const axiosError = error as { response?: { data?: { message?: string } } };
-      return rejectWithValue(axiosError.response?.data?.message || 'Failed to book seat');
+      const axiosError = error as { response?: { data?: { message?: string, error?: string } } };
+      return rejectWithValue(axiosError.response?.data?.error || axiosError.response?.data?.message || 'Failed to book seat');
+    }
+  }
+);
+
+export const bookCargo = createAsyncThunk(
+  'rides/bookCargo',
+  async (data: { ride_id: string; weight: number; cargo_description?: string; recipient_name?: string; recipient_phone?: string; pickup_stop_id?: string; dropoff_stop_id?: string }, { rejectWithValue }) => {
+    try {
+      const response = await api.post('/rides/cargo-bookings/', data);
+      return response.data;
+    } catch (error: unknown) {
+      const axiosError = error as { response?: { data?: { error?: string, message?: string } } };
+      return rejectWithValue(axiosError.response?.data?.error || axiosError.response?.data?.message || 'Failed to book cargo');
+    }
+  }
+);
+
+export const bulkBookSeats = createAsyncThunk(
+  'rides/bulkBookSeats',
+  async ({ rideId, data }: { rideId: string; data: { quantity: number; pickup_stop_id?: string; dropoff_stop_id?: string; passenger_notes?: string; luggage_count?: number } }, { rejectWithValue }) => {
+    try {
+      const response = await api.post(`/rides/trips/${rideId}/bulk_book_seats/`, data);
+      return response.data;
+    } catch (error: unknown) {
+      const axiosError = error as { response?: { data?: { error?: string, message?: string } } };
+      return rejectWithValue(axiosError.response?.data?.error || axiosError.response?.data?.message || 'Failed to bulk book seats');
     }
   }
 );
