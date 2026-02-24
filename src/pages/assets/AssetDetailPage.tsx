@@ -6,10 +6,11 @@ import { fetchAsset } from '../../features/assets/assetsSlice';
 import { toggleWishlist } from '../../features/wishlist/wishlistSlice';
 import ContactButton from '../../components/messaging/ContactButton';
 import InlineMessagingPanel from '../../components/messaging/InlineMessagingPanel';
+import ImageModal from '../../components/ui/ImageModal';
 import { getMediaUrl } from '../../utils/media';
 import { Price } from '../../context/CurrencyContext';
-import { 
-  Home, MapPin, Star, Shield, Calendar, User, MessageCircle, 
+import {
+  Home, MapPin, Star, Shield, Calendar, User, MessageCircle,
   Edit, Trash2, List, Heart, ChevronLeft, ChevronRight, Zap, CreditCard
 } from 'lucide-react';
 import VerificationBadge from '../../components/ui/VerificationBadge';
@@ -25,6 +26,7 @@ export default function AssetDetailPage() {
   const [showMessaging, setShowMessaging] = useState(false);
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
 
   const handleThreadCreated = (threadId: string) => {
     // Navigate to the thread page instead of showing inline
@@ -37,13 +39,15 @@ export default function AssetDetailPage() {
     }
   }, [dispatch, id]);
 
-  const nextImage = () => {
+  const nextImage = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     if (asset?.photos && asset.photos.length > 0) {
       setCurrentImageIndex((prev) => (prev + 1) % asset.photos.length);
     }
   };
 
-  const prevImage = () => {
+  const prevImage = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     if (asset?.photos && asset.photos.length > 0) {
       setCurrentImageIndex((prev) => (prev - 1 + asset.photos.length) % asset.photos.length);
     }
@@ -65,52 +69,64 @@ export default function AssetDetailPage() {
   // Check if current user is the owner
   const isOwner = isAuthenticated && user?.id === asset.owner?.id;
 
+  const imageModalPhotos = asset.photos ? asset.photos.map((p, i) => ({ id: p.id || i, url: getMediaUrl(p.url) })) : [];
+
   return (
     <div>
+      <ImageModal
+        isOpen={isImageModalOpen}
+        onClose={() => setIsImageModalOpen(false)}
+        images={imageModalPhotos}
+        initialIndex={currentImageIndex}
+      />
+
       <div className="flex justify-between items-center mb-4">
-        <Link to="/assets" className="text-primary-600 hover:text-primary-700 flex items-center">
+        <Link to="/assets" className="text-primary-600 hover:text-primary-700 flex items-center font-bold">
           ← Back to Assets
         </Link>
-        <button 
+        <button
           onClick={() => asset && dispatch(toggleWishlist(asset))}
-          className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all ${
-            isWishlisted ? 'bg-red-50 text-red-600' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-          }`}
+          className={`flex items-center gap-2 px-6 py-2.5 rounded-full transition-all border font-bold shadow-sm ${isWishlisted ? 'bg-red-50 text-red-600 border-red-100 hover:bg-red-100' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+            }`}
         >
           <Heart className={`h-5 w-5 ${isWishlisted ? 'fill-current' : ''}`} />
-          <span className="text-sm font-bold">{isWishlisted ? 'Saved' : 'Save'}</span>
+          <span>{isWishlisted ? 'Saved' : 'Save'}</span>
         </button>
       </div>
 
       {/* Image Gallery */}
       <div className="space-y-4 mb-8">
-        <div className="aspect-video relative rounded-2xl overflow-hidden bg-gray-900 group">
+        <div
+          className="aspect-video relative rounded-xl md:rounded-[2rem] overflow-hidden bg-gray-900 group cursor-pointer shadow-xl border border-gray-800"
+          onClick={() => setIsImageModalOpen(true)}
+        >
           {asset.photos && asset.photos.length > 0 ? (
             <>
-              <img 
-                src={getMediaUrl(asset.photos[currentImageIndex].url)} 
-                alt={`${asset.name} - ${currentImageIndex + 1}`} 
-                className="w-full h-full object-contain" 
+              <img
+                src={getMediaUrl(asset.photos[currentImageIndex].url)}
+                alt={`${asset.name} - ${currentImageIndex + 1}`}
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
-              
+              <div className="absolute inset-0 bg-black/10 transition-opacity group-hover:bg-transparent" />
+
               {/* Navigation Arrows */}
               {asset.photos.length > 1 && (
                 <>
-                  <button 
+                  <button
                     onClick={prevImage}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-white/20 hover:bg-white/40 backdrop-blur-md rounded-full text-white transition-all opacity-0 group-hover:opacity-100"
+                    className="absolute left-6 top-1/2 -translate-y-1/2 p-3 bg-black/40 hover:bg-black/60 backdrop-blur-md rounded-full text-white transition-all opacity-0 group-hover:opacity-100 border border-white/20 hover:scale-110"
                   >
                     <ChevronLeft className="h-6 w-6" />
                   </button>
-                  <button 
+                  <button
                     onClick={nextImage}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-white/20 hover:bg-white/40 backdrop-blur-md rounded-full text-white transition-all opacity-0 group-hover:opacity-100"
+                    className="absolute right-6 top-1/2 -translate-y-1/2 p-3 bg-black/40 hover:bg-black/60 backdrop-blur-md rounded-full text-white transition-all opacity-0 group-hover:opacity-100 border border-white/20 hover:scale-110"
                   >
                     <ChevronRight className="h-6 w-6" />
                   </button>
-                  
+
                   {/* Image Counter */}
-                  <div className="absolute bottom-4 right-4 px-3 py-1 bg-black/50 backdrop-blur-md rounded-full text-white text-xs font-bold">
+                  <div className="absolute bottom-6 right-6 px-4 py-1.5 bg-black/60 backdrop-blur-md rounded-full text-white text-xs font-bold border border-white/20 shadow-lg  tracking-widest uppercase">
                     {currentImageIndex + 1} / {asset.photos.length}
                   </div>
                 </>
@@ -125,14 +141,13 @@ export default function AssetDetailPage() {
 
         {/* Thumbnails */}
         {asset.photos && asset.photos.length > 1 && (
-          <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
+          <div className="flex gap-3 overflow-x-auto pb-4 no-scrollbar">
             {asset.photos.map((photo, index) => (
               <button
                 key={photo.id}
                 onClick={() => setCurrentImageIndex(index)}
-                className={`relative w-24 h-16 rounded-lg overflow-hidden flex-shrink-0 transition-all ${
-                  currentImageIndex === index ? 'ring-2 ring-primary-600 opacity-100' : 'opacity-60 hover:opacity-100'
-                }`}
+                className={`relative w-32 h-20 rounded-xl overflow-hidden flex-shrink-0 transition-all shadow-sm ${currentImageIndex === index ? 'ring-2 ring-primary-500 scale-105 shadow-primary-500/30' : 'opacity-60 hover:opacity-100 hover:scale-105 bg-gray-100'
+                  }`}
               >
                 <img src={getMediaUrl(photo.url)} alt="" className="w-full h-full object-cover" />
               </button>
@@ -242,7 +257,7 @@ export default function AssetDetailPage() {
             )}
           </div>
           <span>{asset.owner.first_name}</span>
-          <VerificationBadge 
+          <VerificationBadge
             tier={asset.owner.verification_badge?.tier}
             color={asset.owner.verification_badge?.color}
             size="sm"
@@ -327,7 +342,7 @@ export default function AssetDetailPage() {
               </div>
             </div>
             <div className="flex flex-col justify-end">
-              <Link 
+              <Link
                 to={`/bookings/new?asset_id=${asset.id}`}
                 className="btn-primary w-full py-3.5 rounded-xl font-bold shadow-lg shadow-primary-500/20 flex items-center justify-center"
               >
@@ -335,7 +350,7 @@ export default function AssetDetailPage() {
               </Link>
             </div>
           </div>
-          
+
           <div className="mt-8 pt-6 border-t border-gray-50 flex justify-between items-center">
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-1">

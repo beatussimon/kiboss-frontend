@@ -9,6 +9,7 @@ import { MapPin, Users, ArrowRight, Clock, Star, Edit, List, ChevronLeft, Chevro
 import toast from 'react-hot-toast';
 import VerificationBadge from '../../components/ui/VerificationBadge';
 import ContactButton from '../../components/messaging/ContactButton';
+import ImageModal from '../../components/ui/ImageModal';
 
 export default function RideDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -19,6 +20,7 @@ export default function RideDetailPage() {
   const [selectedSeats, setSelectedSeats] = useState<number[]>([]);
   const [isBooking, setIsBooking] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -27,13 +29,15 @@ export default function RideDetailPage() {
     }
   }, [dispatch, id]);
 
-  const nextImage = () => {
+  const nextImage = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     if (ride?.photos && ride.photos.length > 0) {
       setCurrentImageIndex((prev) => (prev + 1) % ride.photos.length);
     }
   };
 
-  const prevImage = () => {
+  const prevImage = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     if (ride?.photos && ride.photos.length > 0) {
       setCurrentImageIndex((prev) => (prev - 1 + ride.photos.length) % ride.photos.length);
     }
@@ -41,9 +45,9 @@ export default function RideDetailPage() {
 
   const toggleSeat = (seatNumber: number, status: string) => {
     if (status !== 'AVAILABLE') return;
-    
-    setSelectedSeats(prev => 
-      prev.includes(seatNumber) 
+
+    setSelectedSeats(prev =>
+      prev.includes(seatNumber)
         ? prev.filter(s => s !== seatNumber)
         : [...prev, seatNumber]
     );
@@ -63,7 +67,7 @@ export default function RideDetailPage() {
     setIsBooking(true);
     try {
       // Book each selected seat
-      const bookingPromises = selectedSeats.map(seatNumber => 
+      const bookingPromises = selectedSeats.map(seatNumber =>
         dispatch(bookSeat({
           rideId: id,
           data: {
@@ -72,7 +76,7 @@ export default function RideDetailPage() {
           }
         })).unwrap()
       );
-      
+
       await Promise.all(bookingPromises);
       toast.success(`${selectedSeats.length} seat(s) booked successfully!`);
       setSelectedSeats([]);
@@ -91,9 +95,9 @@ export default function RideDetailPage() {
 
   if (error) {
     return (
-      <div className="card p-8">
-        <p className="text-red-600 mb-4">{error}</p>
-        <Link to="/rides" className="text-primary-600 hover:text-primary-700">
+      <div className="card p-8 bg-red-50 border-red-100">
+        <p className="text-red-600 mb-4 font-bold">{error}</p>
+        <Link to="/rides" className="text-primary-600 font-bold hover:text-primary-700 flex items-center gap-2">
           ← Back to Rides
         </Link>
       </div>
@@ -102,9 +106,9 @@ export default function RideDetailPage() {
 
   if (!ride) {
     return (
-      <div className="card p-8">
-        <p className="text-gray-600 mb-4">Ride not found</p>
-        <Link to="/rides" className="text-primary-600 hover:text-primary-700">
+      <div className="card p-8 bg-gray-50 border-gray-100 text-center">
+        <p className="text-gray-600 mb-4 font-bold text-lg">Ride not found</p>
+        <Link to="/rides" className="btn-secondary inline-flex">
           ← Back to Rides
         </Link>
       </div>
@@ -113,44 +117,56 @@ export default function RideDetailPage() {
 
   // Check if current user is the driver
   const isDriver = isAuthenticated && user?.id === ride.driver?.id;
+  const imageModalPhotos = ride.photos ? ride.photos.map((p, i) => ({ id: p.id || i, url: getMediaUrl(p.url) })) : [];
 
   return (
     <div>
-      <Link to="/rides" className="text-primary-600 hover:text-primary-700 mb-4 inline-block">
+      <ImageModal
+        isOpen={isImageModalOpen}
+        onClose={() => setIsImageModalOpen(false)}
+        images={imageModalPhotos}
+        initialIndex={currentImageIndex}
+      />
+
+      <Link to="/rides" className="text-primary-600 font-bold hover:text-primary-700 mb-6 inline-flex border border-primary-100 bg-primary-50 px-4 py-2 rounded-full text-sm items-center gap-2 hover:bg-primary-100 transition-colors">
         ← Back to Rides
       </Link>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-8">
           {/* Image Gallery */}
           <div className="space-y-4">
-            <div className="aspect-video relative rounded-2xl overflow-hidden bg-gray-900 group">
+            <div
+              className="aspect-video relative rounded-[2rem] overflow-hidden bg-gray-900 group cursor-pointer shadow-xl border border-gray-800"
+              onClick={() => setIsImageModalOpen(true)}
+            >
               {ride.photos && ride.photos.length > 0 ? (
                 <>
-                  <img 
-                    src={getMediaUrl(ride.photos[currentImageIndex].url)} 
-                    alt={`${ride.route_name} - ${currentImageIndex + 1}`} 
-                    className="w-full h-full object-contain" 
+                  <img
+                    src={getMediaUrl(ride.photos[currentImageIndex].url)}
+                    alt={`${ride.route_name} - ${currentImageIndex + 1}`}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                   />
-                  
+                  <div className="absolute inset-0 bg-black/10 transition-opacity group-hover:bg-transparent" />
+
                   {/* Navigation Arrows */}
                   {ride.photos.length > 1 && (
                     <>
-                      <button 
+                      <button
                         onClick={prevImage}
-                        className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-white/20 hover:bg-white/40 backdrop-blur-md rounded-full text-white transition-all opacity-0 group-hover:opacity-100"
+                        className="absolute left-6 top-1/2 -translate-y-1/2 p-3 bg-black/40 hover:bg-black/60 backdrop-blur-md rounded-full text-white transition-all opacity-0 group-hover:opacity-100 border border-white/20 hover:scale-110"
                       >
                         <ChevronLeft className="h-6 w-6" />
                       </button>
-                      <button 
+                      <button
                         onClick={nextImage}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-white/20 hover:bg-white/40 backdrop-blur-md rounded-full text-white transition-all opacity-0 group-hover:opacity-100"
+                        className="absolute right-6 top-1/2 -translate-y-1/2 p-3 bg-black/40 hover:bg-black/60 backdrop-blur-md rounded-full text-white transition-all opacity-0 group-hover:opacity-100 border border-white/20 hover:scale-110"
                       >
                         <ChevronRight className="h-6 w-6" />
                       </button>
-                      
+
                       {/* Image Counter */}
-                      <div className="absolute bottom-4 right-4 px-3 py-1 bg-black/50 backdrop-blur-md rounded-full text-white text-xs font-bold">
+                      <div className="absolute bottom-6 right-6 px-4 py-1.5 bg-black/60 backdrop-blur-md rounded-full text-white text-xs font-bold border border-white/20 shadow-lg tracking-widest uppercase">
                         {currentImageIndex + 1} / {ride.photos.length}
                       </div>
                     </>
@@ -165,14 +181,13 @@ export default function RideDetailPage() {
 
             {/* Thumbnails */}
             {ride.photos && ride.photos.length > 1 && (
-              <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
+              <div className="flex gap-3 overflow-x-auto pb-4 no-scrollbar">
                 {ride.photos.map((photo, index) => (
                   <button
                     key={photo.id}
                     onClick={() => setCurrentImageIndex(index)}
-                    className={`relative w-24 h-16 rounded-lg overflow-hidden flex-shrink-0 transition-all ${
-                      currentImageIndex === index ? 'ring-2 ring-primary-600 opacity-100' : 'opacity-60 hover:opacity-100'
-                    }`}
+                    className={`relative w-32 h-20 rounded-xl overflow-hidden flex-shrink-0 transition-all shadow-sm ${currentImageIndex === index ? 'ring-2 ring-primary-500 scale-105 shadow-primary-500/30' : 'opacity-60 hover:opacity-100 hover:scale-105 bg-gray-100'
+                      }`}
                   >
                     <img src={getMediaUrl(photo.url)} alt="" className="w-full h-full object-cover" />
                   </button>
@@ -199,7 +214,7 @@ export default function RideDetailPage() {
                 </div>
               )}
             </div>
-            
+
             {/* Visual Route */}
             <div className="relative py-10 px-6 bg-gray-900 rounded-3xl mb-8 overflow-hidden">
               <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10" />
@@ -208,7 +223,7 @@ export default function RideDetailPage() {
                   <p className="text-[10px] font-bold text-primary-400  tracking-widest mb-1">Origin</p>
                   <h3 className="text-xl font-black text-white break-words">{ride.origin}</h3>
                 </div>
-                
+
                 <div className="flex items-center gap-4 w-full md:w-auto px-2">
                   <div className="w-3 h-3 rounded-full bg-primary-500 shadow-[0_0_15px_rgba(37,99,235,0.8)] flex-shrink-0" />
                   <div className="flex-1 md:w-24 h-1 bg-gradient-to-r from-primary-500 to-gray-700 rounded-full" />
@@ -253,38 +268,52 @@ export default function RideDetailPage() {
             </div>
 
             {/* Driver Info - Clickable to profile */}
-            <Link 
-              to={`/users/${ride.driver.id}`} 
-              className="flex items-center gap-4 p-5 bg-white border border-gray-100 rounded-2xl hover:shadow-lg hover:border-primary-100 transition-all group"
+            <Link
+              to={`/users/${ride.driver.id}`}
+              className="flex items-center gap-4 p-5 bg-white border border-gray-100/80 rounded-2xl hover:shadow-xl hover:border-primary-100 transition-all duration-300 group mt-8"
             >
-              <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden ring-4 ring-gray-50 group-hover:ring-primary-50 transition-all">
-                {ride.driver.profile?.avatar ? (
-                  <img 
-                    src={getMediaUrl(ride.driver.profile.avatar)} 
-                    alt={ride.driver.first_name}
-                    className="w-full h-full object-cover" 
-                  />
-                ) : (
-                  <User className="h-7 w-7 text-gray-400" />
-                )}
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <p className="font-black text-gray-900 group-hover:text-primary-600 transition-colors">
-                    {ride.driver.first_name} {ride.driver.last_name}
-                  </p>
-                  <VerificationBadge 
+              <div className="relative">
+                <div className="w-16 h-16 rounded-[1.25rem] bg-gradient-to-br from-primary-100/50 to-primary-50/50 flex flex-col items-center justify-center overflow-hidden ring-4 ring-white shadow-sm group-hover:ring-primary-50 transition-all duration-300">
+                  {ride.driver.profile?.avatar ? (
+                    <img
+                      src={getMediaUrl(ride.driver.profile.avatar)}
+                      alt={ride.driver.first_name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-xl font-black text-primary-700 uppercase tracking-tighter">
+                      {ride.driver.first_name?.[0]}{ride.driver.last_name?.[0]}
+                    </span>
+                  )}
+                </div>
+                <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-0.5 shadow-sm">
+                  <VerificationBadge
                     tier={ride.driver.verification_badge?.tier}
                     color={ride.driver.verification_badge?.color}
                     size="xs"
                   />
                 </div>
-                <p className="text-xs font-bold text-gray-400 flex items-center gap-1 mt-0.5  tracking-tighter">
-                  <Star className="h-3 w-3 text-yellow-400 fill-yellow-400" />
-                  {ride.driver.trust_score} Trust Score · {ride.driver.total_ratings_count} Positive Rides
-                </p>
               </div>
-              <ArrowRight className="h-5 w-5 text-gray-300 group-hover:text-primary-600 group-hover:translate-x-1 transition-all" />
+              <div className="flex-1">
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Driver</p>
+                <div className="flex items-center gap-2">
+                  <p className="font-bold text-lg text-gray-900 group-hover:text-primary-600 transition-colors leading-tight">
+                    {ride.driver.first_name} {ride.driver.last_name}
+                  </p>
+                </div>
+                <div className="flex items-center gap-3 mt-1.5">
+                  <p className="text-xs font-bold text-gray-500 flex items-center gap-1 bg-gray-50 px-2 py-0.5 rounded-md border border-gray-100/50">
+                    <Star className="h-3 w-3 text-yellow-500 fill-yellow-500" />
+                    {ride.driver.trust_score} Trust
+                  </p>
+                  <p className="text-[10px] font-bold text-gray-400">
+                    {ride.driver.total_ratings_count} Rides
+                  </p>
+                </div>
+              </div>
+              <div className="w-10 h-10 rounded-full bg-gray-50 group-hover:bg-primary-50 flex items-center justify-center transition-colors">
+                <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-primary-600 group-hover:translate-x-0.5 transition-all" />
+              </div>
             </Link>
           </div>
 
@@ -336,18 +365,18 @@ export default function RideDetailPage() {
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="relative max-w-[180px] mx-auto bg-gray-50 rounded-[3rem] p-6 border-2 border-gray-100 shadow-inner">
                       {/* Dashboard / Windshield Area */}
                       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2/3 h-1 bg-gray-200 rounded-full mt-2" />
-                      
+
                       {/* Front Row */}
                       <div className="flex justify-between mb-10">
                         {/* Driver Seat (Placeholder) */}
                         <div className="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center opacity-50">
                           <User className="h-5 w-5 text-gray-400" />
                         </div>
-                        
+
                         {/* Front Passenger Seat (Seat 1) */}
                         {ride.total_seats >= 1 && (() => {
                           const seat = seatAvailability.seats.find(s => s.seat_number === 1);
@@ -357,11 +386,10 @@ export default function RideDetailPage() {
                             <button
                               disabled={isBooked}
                               onClick={() => toggleSeat(1, seat?.status || 'AVAILABLE')}
-                              className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all shadow-sm ${
-                                isBooked ? 'bg-gray-100 text-gray-300' :
-                                isSelected ? 'bg-primary-600 text-white scale-110 shadow-primary-200' : 
-                                'bg-white text-primary-600 border border-primary-50 hover:border-primary-600'
-                              }`}
+                              className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all shadow-sm ${isBooked ? 'bg-gray-100 text-gray-300' :
+                                isSelected ? 'bg-primary-600 text-white scale-110 shadow-primary-200' :
+                                  'bg-white text-primary-600 border border-primary-50 hover:border-primary-600'
+                                }`}
                             >
                               <span className="font-bold text-xs">1</span>
                             </button>
@@ -380,11 +408,10 @@ export default function RideDetailPage() {
                               key={num}
                               disabled={isBooked}
                               onClick={() => toggleSeat(num, seat?.status || 'AVAILABLE')}
-                              className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all shadow-sm ${
-                                isBooked ? 'bg-gray-100 text-gray-300' :
-                                isSelected ? 'bg-primary-600 text-white scale-110 shadow-primary-200' : 
-                                'bg-white text-primary-600 border border-primary-50 hover:border-primary-600'
-                              }`}
+                              className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all shadow-sm ${isBooked ? 'bg-gray-100 text-gray-300' :
+                                isSelected ? 'bg-primary-600 text-white scale-110 shadow-primary-200' :
+                                  'bg-white text-primary-600 border border-primary-50 hover:border-primary-600'
+                                }`}
                             >
                               <span className="font-bold text-xs">{num}</span>
                             </button>
@@ -405,7 +432,7 @@ export default function RideDetailPage() {
                 )}
 
                 <div className="space-y-3 pt-4 border-t border-gray-50">
-                  <button 
+                  <button
                     onClick={handleBookNow}
                     disabled={selectedSeats.length === 0 || isBooking || ride.available_seats === 0}
                     className="btn-primary w-full py-4 text-sm font-black  tracking-widest shadow-xl shadow-primary-500/20 disabled:opacity-50"
@@ -431,7 +458,7 @@ export default function RideDetailPage() {
                     />
                   )}
                 </div>
-                
+
                 <p className="text-[9px] text-gray-400 font-bold  tracking-tighter text-center px-4">
                   Escrow Protection Active. Payment released 24h after trip completion.
                 </p>

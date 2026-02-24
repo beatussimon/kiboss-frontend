@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { getMediaUrl } from '../utils/media';
 import { Price } from '../context/CurrencyContext';
+import RideCard from '../components/rides/RideCard';
 
 export default function HomePage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -192,59 +193,15 @@ export default function HomePage() {
         </div>
 
         {ridesLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {[...Array(2)].map((_, i) => (
-              <div key={i} className="animate-pulse h-32 bg-gray-100 rounded-2xl" />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="animate-pulse h-64 bg-gray-100 rounded-[2rem]" />
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {rides.slice(0, 4).map((ride) => (
-              <Link
-                key={ride.id}
-                to={`/rides/${ride.id}`}
-                className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:border-primary-100 transition-all group"
-              >
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="h-10 w-10 rounded-full bg-primary-50 flex items-center justify-center text-primary-600 font-bold">
-                    {ride.driver?.first_name?.[0]}{ride.driver?.last_name?.[0]}
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-xs font-bold text-gray-400  tracking-widest">Driver</p>
-                    <p className="font-bold text-gray-900">{ride.driver?.first_name} {ride.driver?.last_name}</p>
-                  </div>
-                </div>
-
-                <div className="space-y-3 mb-4">
-                  <div className="flex items-start gap-2">
-                    <div className="mt-1 w-2 h-2 rounded-full bg-primary-500" />
-                    <p className="text-sm font-medium text-gray-700 truncate">{ride.origin}</p>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <div className="mt-1 w-2 h-2 rounded-full bg-gray-300" />
-                    <p className="text-sm font-medium text-gray-700 truncate">{ride.destination}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-4 mb-4 text-[10px] font-bold text-gray-400  tracking-widest">
-                  <span className="flex items-center gap-1">
-                    <Eye className="h-3 w-3" /> {Math.floor(Math.random() * 200) + 20}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Users className="h-3 w-3" /> {ride.confirmed_seats || 0}/{ride.total_seats}
-                  </span>
-                </div>
-
-                <div className="pt-4 border-t border-gray-50 flex justify-between items-center">
-                  <div className="flex items-center gap-1 text-xs font-bold text-gray-500">
-                    <Clock className="h-3.5 w-3.5" />
-                    {new Date(ride.departure_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </div>
-                  <p className="font-bold text-primary-600">
-                    <Price amount={ride.seat_price} />
-                  </p>
-                </div>
-              </Link>
+              <RideCard key={ride.id} ride={ride} />
             ))}
           </div>
         )}
