@@ -10,7 +10,7 @@ import ImageModal from '../../components/ui/ImageModal';
 import { getMediaUrl } from '../../utils/media';
 import { Price } from '../../context/CurrencyContext';
 import {
-  Home, MapPin, Star, Shield, Calendar, User, MessageCircle,
+  Home, MapPin, Star, Shield, Calendar, User, MessageCircle, ArrowRight,
   Edit, Trash2, List, Heart, ChevronLeft, ChevronRight, Zap, CreditCard
 } from 'lucide-react';
 import VerificationBadge from '../../components/ui/VerificationBadge';

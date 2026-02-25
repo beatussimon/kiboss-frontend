@@ -124,10 +124,10 @@ export const fetchMyBookings = createAsyncThunk(
   'rides/fetchMyBookings',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await api.get<SeatBooking[]>('/rides/bookings/', {
+      const response = await api.get<any>('/rides/bookings/', {
         params: { passenger: 'me' }
       });
-      return response.data;
+      return response.data.results || response.data;
     } catch (error: unknown) {
       const axiosError = error as { response?: { data?: { message?: string } } };
       return rejectWithValue(axiosError.response?.data?.message || 'Failed to fetch bookings');

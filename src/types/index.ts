@@ -41,6 +41,7 @@ export interface CorporateProfile {
   registration_number: string;
   tax_id: string;
   verification_status: 'PENDING' | 'VERIFIED' | 'REJECTED';
+  business_category?: string;
 }
 
 export interface UserRole {

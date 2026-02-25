@@ -21,7 +21,9 @@ import {
   MessageCircle,
   Zap,
   Star,
-  CreditCard
+  CreditCard,
+  Car,
+  Activity
 } from 'lucide-react';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
@@ -70,11 +72,13 @@ export default function BusinessDashboard() {
   const fetchProperties = async () => {
     try {
       setIsLoading(true);
-      // Fetch only parent properties (Hotels/Restaurants) owned by me
+      const category = user?.corporate_profile?.business_category || 'ASSET';
+      const assetTypes = category === 'RIDE' ? 'VEHICLE' : 'HOTEL,RESTAURANT';
+
       const res = await api.get('/assets/', {
         params: {
           owner: 'me',
-          asset_type: 'HOTEL,RESTAURANT',
+          asset_type: assetTypes,
           is_active: 'any'
         }
       });
@@ -113,6 +117,24 @@ export default function BusinessDashboard() {
       window.location.reload();
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Registration failed');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCancelApplication = async () => {
+    if (!window.confirm("Are you sure you want to completely cancel and delete your corporate application? This action cannot be undone.")) {
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await api.delete('/users/corporate/register/');
+      toast.success('Your corporate application has been cancelled.');
+      // Refresh the page to reload the user profile from scratch
+      window.location.reload();
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to cancel application');
     } finally {
       setIsLoading(false);
     }
@@ -181,6 +203,15 @@ export default function BusinessDashboard() {
               className="px-6 py-3 bg-primary-50 text-primary-600 border-2 border-primary-100 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-primary-100 transition-all flex items-center gap-2"
             >
               <MessageCircle className="h-4 w-4" /> Message Us
+            </button>
+          </div>
+
+          <div className="pt-2">
+            <button
+              onClick={handleCancelApplication}
+              className="text-red-500 hover:text-red-600 text-xs font-bold uppercase tracking-widest transition-colors underline underline-offset-4"
+            >
+              Cancel Application
             </button>
           </div>
         </div>
@@ -291,6 +322,15 @@ export default function BusinessDashboard() {
               <MessageCircle className="h-4 w-4" /> Appeal Decision
             </button>
           </div>
+
+          <div className="pt-2">
+            <button
+              onClick={handleCancelApplication}
+              className="text-red-500 hover:text-red-600 text-xs font-bold uppercase tracking-widest transition-colors underline underline-offset-4"
+            >
+              Cancel Application
+            </button>
+          </div>
         </div>
 
         {isEditing && (
@@ -359,145 +399,210 @@ export default function BusinessDashboard() {
   }
 
   // 4. VERIFIED DASHBOARD
+  const category = user?.corporate_profile?.business_category || 'ASSET';
+  const isRide = category === 'RIDE';
+
   return (
-    <div className="max-w-6xl mx-auto space-y-10">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div className="space-y-2">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-primary-600 rounded-2xl shadow-lg shadow-primary-200">
-              <Building2 className="h-6 w-6 text-white" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <h1 className="text-4xl font-black text-gray-900 tracking-tighter">Corporate HQ</h1>
-                <VerificationBadge tier="business" color="indigo" size="sm" />
+    <div className="max-w-7xl mx-auto space-y-8 pb-12">
+      {/* Business Header Profile */}
+      <div className="relative rounded-[2.5rem] overflow-hidden bg-white border border-gray-100 shadow-xl shadow-gray-200/40">
+        <div className="absolute top-0 left-0 right-0 h-48 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900" />
+
+        <div className="relative pt-24 px-8 pb-8 flex flex-col md:flex-row gap-8 items-start md:items-end justify-between">
+          <div className="flex flex-col md:flex-row gap-6 items-start md:items-end">
+            <div className="h-32 w-32 rounded-3xl bg-white p-2 shadow-xl ring-1 ring-gray-100 flex-shrink-0 relative z-10">
+              <div className="w-full h-full bg-gray-50 rounded-2xl flex items-center justify-center text-gray-300">
+                {isRide ? <Car className="h-12 w-12" /> : <Building2 className="h-12 w-12" />}
               </div>
-              <p className="text-gray-500 font-medium italic">Verified Business Partner</p>
+            </div>
+
+            <div className="space-y-2 mb-2">
+              <div className="flex items-center gap-3">
+                <h1 className="text-4xl md:text-5xl font-black text-gray-900 tracking-tighter drop-shadow-sm">
+                  {user?.corporate_profile?.company_name || 'Business Partner'}
+                </h1>
+                <VerificationBadge tier="business" color="indigo" size="md" />
+              </div>
+              <div className="flex items-center gap-4 text-sm font-black uppercase tracking-widest text-gray-500">
+                <span className="flex items-center gap-1.5"><Briefcase className="h-4 w-4" /> {isRide ? 'Fleet operations' : 'Asset Management'}</span>
+                <span>•</span>
+                <span className="text-gray-400">Reg: {user?.corporate_profile?.registration_number || 'N/A'}</span>
+              </div>
             </div>
           </div>
-          <p className="text-gray-500 font-medium max-w-md">Manage your properties, services, and inventory from one central hub.</p>
-        </div>
-        <div className="flex flex-wrap gap-3">
-          <ContactButton
-            targetUserId="admin"
-            label="Support / Platform Assistance"
-            threadType="SUPPORT"
-            subject="Corporate Support Request"
-            variant="outline"
-            className="px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest"
-          />
-          <Link to="/assets/create?mode=business" className="btn-primary px-6 py-3 rounded-2xl flex items-center gap-2 shadow-xl shadow-primary-500/20">
-            <Plus className="h-5 w-5" />
-            Add New Property
-          </Link>
+
+          <div className="flex flex-wrap gap-3 w-full md:w-auto">
+            <ContactButton
+              targetUserId="admin"
+              label="Support"
+              threadType="SUPPORT"
+              subject="Corporate Support Request"
+              variant="outline"
+              className="flex-1 md:flex-none px-6 py-3 bg-white rounded-2xl text-xs font-black uppercase tracking-widest border border-gray-200 hover:bg-gray-50 hover:border-gray-300 shadow-sm"
+            />
+            <Link to={isRide ? "/rides/create?mode=business" : "/assets/create?mode=business"} className="flex-1 md:flex-none btn-primary px-8 py-3 rounded-2xl flex items-center justify-center gap-2 shadow-xl shadow-primary-500/30">
+              <Plus className="h-5 w-5" />
+              {isRide ? 'Add Vehicle' : 'Add Property'}
+            </Link>
+          </div>
         </div>
       </div>
 
       {/* Stats Summary */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="card p-6 border-none bg-white shadow-sm ring-1 ring-gray-100 flex items-center gap-4">
-          <div className="h-12 w-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
-            <Hotel className="h-6 w-6" />
+        <div className="card p-6 border-none bg-white shadow-lg ring-1 ring-gray-200/50 flex items-center gap-5 hover:shadow-xl transition-shadow">
+          <div className="h-14 w-14 bg-gradient-to-br from-blue-50 to-blue-100/50 text-blue-600 rounded-2xl flex items-center justify-center ring-1 ring-blue-100/50">
+            {isRide ? <Car className="h-7 w-7" /> : <Hotel className="h-7 w-7" />}
           </div>
           <div>
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Active Properties</p>
-            <p className="text-2xl font-black text-gray-900">{properties.length}</p>
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{isRide ? 'Active Vehicles' : 'Active Properties'}</p>
+            <p className="text-3xl font-black text-gray-900 mt-1">{properties.length}</p>
           </div>
         </div>
-        <div className="card p-6 border-none bg-white shadow-sm ring-1 ring-gray-100 flex items-center gap-4">
-          <div className="h-12 w-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center">
-            <Bed className="h-6 w-6" />
+        <div className="card p-6 border-none bg-white shadow-lg ring-1 ring-gray-200/50 flex items-center gap-5 hover:shadow-xl transition-shadow">
+          <div className="h-14 w-14 bg-gradient-to-br from-emerald-50 to-emerald-100/50 text-emerald-600 rounded-2xl flex items-center justify-center ring-1 ring-emerald-100/50">
+            {isRide ? <Users className="h-7 w-7" /> : <Bed className="h-7 w-7" />}
           </div>
           <div>
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Services</p>
-            <p className="text-2xl font-black text-gray-900">--</p>
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{isRide ? 'Total Drivers' : 'Total Services'}</p>
+            <p className="text-3xl font-black text-gray-900 mt-1">--</p>
           </div>
         </div>
-        <div className="card p-6 border-none bg-white shadow-sm ring-1 ring-gray-100 flex items-center gap-4">
-          <div className="h-12 w-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center">
-            <Users className="h-6 w-6" />
+        <div className="card p-6 border-none bg-white shadow-lg ring-1 ring-gray-200/50 flex items-center gap-5 hover:shadow-xl transition-shadow">
+          <div className="h-14 w-14 bg-gradient-to-br from-purple-50 to-purple-100/50 text-purple-600 rounded-2xl flex items-center justify-center ring-1 ring-purple-100/50">
+            {isRide ? <Activity className="h-7 w-7" /> : <Users className="h-7 w-7" />}
           </div>
           <div>
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Booking Volume</p>
-            <p className="text-2xl font-black text-gray-900">--</p>
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{isRide ? 'Trip Volume' : 'Booking Volume'}</p>
+            <p className="text-3xl font-black text-gray-900 mt-1">--</p>
           </div>
         </div>
       </div>
 
-      {/* Property List */}
-      <div className="space-y-6">
-        <h2 className="text-2xl font-black text-gray-900 tracking-tight uppercase">My Properties</h2>
+      {/* Property/Fleet Directory */}
+      <div className="space-y-6 pt-4">
+        <div className="flex items-center justify-between border-b border-gray-100 pb-4">
+          <h2 className="text-xl font-black text-gray-900 tracking-tight uppercase flex items-center gap-2">
+            <LayoutDashboard className="h-5 w-5 text-gray-400" />
+            {isRide ? 'Fleet Directory' : 'Property Directory'}
+          </h2>
+        </div>
 
         {properties.length === 0 ? (
-          <div className="card p-20 text-center bg-gray-50 border-dashed border-2">
-            <Building2 className="h-16 w-16 text-gray-200 mx-auto mb-4" />
-            <p className="text-gray-400 font-bold uppercase tracking-widest text-xs">No properties listed yet</p>
+          <div className="card p-8 md:p-12 text-center bg-gradient-to-br from-gray-900 to-black border-none relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-primary-600 rounded-full blur-3xl -mr-32 -mt-32 opacity-20 group-hover:opacity-40 transition-opacity duration-700" />
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-600 rounded-full blur-3xl -ml-32 -mb-32 opacity-20 group-hover:opacity-40 transition-opacity duration-700" />
+
+            <div className="relative z-10 max-w-3xl mx-auto space-y-8">
+              <div className="bg-white/10 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto shadow-inner backdrop-blur-md border border-white/10">
+                {isRide ? <Car className="h-10 w-10 text-white" /> : <Building2 className="h-10 w-10 text-white" />}
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="text-3xl md:text-4xl font-black text-white tracking-tighter">
+                  Welcome to the Partner Network
+                </h3>
+                <p className="text-gray-400 font-medium text-sm md:text-base leading-relaxed max-w-2xl mx-auto">
+                  Your business account is fully active. You're now equipped with institutional-grade tools to manage your {isRide ? 'fleet operations' : 'asset portfolio'}, reach premium customers, and scale your revenue.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 text-left">
+                <div className="bg-white/5 p-5 rounded-2xl border border-white/10 backdrop-blur-sm">
+                  <div className="bg-white/10 w-8 h-8 rounded-lg flex items-center justify-center mb-3">
+                    <LayoutDashboard className="h-4 w-4 text-white" />
+                  </div>
+                  <h4 className="text-white font-bold text-sm mb-1">Centralized Control</h4>
+                  <p className="text-gray-400 text-[11px] leading-relaxed">Manage all your {isRide ? 'vehicles and drivers' : 'properties and services'} from a single unified dashboard.</p>
+                </div>
+                <div className="bg-white/5 p-5 rounded-2xl border border-white/10 backdrop-blur-sm">
+                  <div className="bg-white/10 w-8 h-8 rounded-lg flex items-center justify-center mb-3">
+                    <Activity className="h-4 w-4 text-white" />
+                  </div>
+                  <h4 className="text-white font-bold text-sm mb-1">Live Analytics</h4>
+                  <p className="text-gray-400 text-[11px] leading-relaxed">Track performance metrics and volume in real-time to optimize operations.</p>
+                </div>
+                <div className="bg-white/5 p-5 rounded-2xl border border-white/10 backdrop-blur-sm">
+                  <div className="bg-white/10 w-8 h-8 rounded-lg flex items-center justify-center mb-3">
+                    <Settings className="h-4 w-4 text-white" />
+                  </div>
+                  <h4 className="text-white font-bold text-sm mb-1">Dedicated Support</h4>
+                  <p className="text-gray-400 text-[11px] leading-relaxed">Priority access to our partner success team for instant resolution.</p>
+                </div>
+              </div>
+
+              <div className="pt-6">
+                <Link to={isRide ? "/rides/create?mode=business" : "/assets/create?mode=business"} className="inline-flex bg-primary-600 text-white px-8 py-4 rounded-2xl text-sm font-black uppercase tracking-widest hover:bg-primary-500 transition-all items-center gap-3 shadow-xl shadow-primary-600/30 group-hover:scale-105 duration-300">
+                  Begin Your Journey <ChevronRight className="h-5 w-5" />
+                </Link>
+              </div>
+            </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-6">
+          <div className="grid grid-cols-1 gap-5">
             {properties.map((prop) => (
-              <div key={prop.id} className="card p-0 overflow-hidden bg-white hover:shadow-2xl transition-all border-none ring-1 ring-gray-100 flex flex-col md:flex-row">
-                <div className="w-full md:w-72 h-48 bg-gray-100 relative">
+              <div key={prop.id} className="group card p-3 overflow-hidden bg-white hover:shadow-2xl transition-all duration-300 border-none ring-1 ring-gray-200/60 flex flex-col md:flex-row gap-6 items-center">
+                <div className="w-full md:w-64 h-48 md:h-40 rounded-2xl overflow-hidden bg-gray-100 relative flex-shrink-0">
                   {prop.photos?.[0] ? (
-                    <img src={getMediaUrl(prop.photos[0].url)} alt="" className="w-full h-full object-cover" />
+                    <img src={getMediaUrl(prop.photos[0].url)} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-300 font-black">
-                      KIBOSS PROPERTY
+                    <div className="w-full h-full flex items-center justify-center bg-gray-50 text-gray-300 font-black text-[10px] uppercase tracking-widest px-4 text-center">
+                      {isRide ? 'VEHICLE PREVIEW' : 'PROPERTY PREVIEW'}
                     </div>
                   )}
-                  <div className="absolute top-4 left-4">
-                    <span className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border shadow-lg ${prop.verification_status === 'VERIFIED' ? 'bg-emerald-500 text-white border-emerald-400' : 'bg-orange-500 text-white border-orange-400'
+                  <div className="absolute top-3 left-3">
+                    <span className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest shadow-md backdrop-blur-sm ${prop.verification_status === 'VERIFIED' ? 'bg-emerald-500/90 text-white' : 'bg-orange-500/90 text-white'
                       }`}>
                       {prop.verification_status}
                     </span>
                   </div>
                 </div>
-                <div className="flex-1 p-8 flex flex-col justify-between">
+
+                <div className="flex-1 w-full py-2 pr-4 flex flex-col justify-between h-full">
                   <div>
-                    <div className="flex justify-between items-start mb-4">
+                    <div className="flex justify-between items-start mb-2">
                       <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          {prop.asset_type === 'HOTEL' ? <Hotel className="h-4 w-4 text-primary-600" /> : <Utensils className="h-4 w-4 text-emerald-600" />}
-                          <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{prop.asset_type}</span>
+                        <div className="flex items-center gap-1.5 mb-1.5">
+                          {prop.asset_type === 'HOTEL' ? <Hotel className="h-3.5 w-3.5 text-primary-600" /> : prop.asset_type === 'VEHICLE' ? <Car className="h-3.5 w-3.5 text-blue-600" /> : <Utensils className="h-3.5 w-3.5 text-emerald-600" />}
+                          <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{prop.asset_type}</span>
                         </div>
-                        <h3 className="text-2xl font-black text-gray-900 tracking-tight">{prop.name}</h3>
-                        <p className="text-gray-500 text-sm font-medium mt-1">{prop.city}, {prop.country}</p>
+                        <h3 className="text-xl font-black text-gray-900 tracking-tight">{prop.name}</h3>
+                        <p className="text-gray-500 text-xs font-medium mt-0.5">{prop.city}, {prop.country}</p>
                       </div>
-                      <div className="flex gap-2">
-                        <button className="p-2 text-gray-400 hover:text-primary-600 transition-colors">
-                          <Settings className="h-5 w-5" />
-                        </button>
-                      </div>
+                      <button className="p-2 bg-gray-50 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-xl transition-colors">
+                        <Settings className="h-4 w-4" />
+                      </button>
                     </div>
                   </div>
 
-                  <div className="flex flex-wrap items-center justify-between gap-4 mt-8 pt-6 border-t border-gray-50">
-                    <div className="flex gap-6">
-                      <div className="text-center">
-                        <p className="text-[8px] font-black text-gray-400 uppercase">Rooms</p>
-                        <p className="text-sm font-black text-gray-900">0</p>
+                  <div className="flex flex-wrap items-center justify-between gap-4 mt-4 pt-4 border-t border-gray-100">
+                    <div className="flex gap-8">
+                      <div>
+                        <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-0.5">{isRide ? 'Seats' : 'Rooms'}</p>
+                        <p className="text-sm font-black text-gray-900">{isRide ? (prop.properties?.seats as string) || '4' : '0'}</p>
                       </div>
-                      <div className="text-center">
-                        <p className="text-[8px] font-black text-gray-400 uppercase">Staff</p>
-                        <p className="text-sm font-black text-gray-900">--</p>
+                      <div>
+                        <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-0.5">{isRide ? 'Condition' : 'Staff'}</p>
+                        <p className="text-sm font-black text-gray-900">{isRide ? ((prop.properties?.status as string) || 'Good') : '--'}</p>
                       </div>
                     </div>
 
                     <div className="flex gap-2">
-                      <Link
-                        to={`/assets/create?parent=${prop.id}&mode=service`}
-                        className="px-4 py-2 bg-gray-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-black transition-all flex items-center gap-2"
-                      >
-                        <Plus className="h-3.5 w-3.5" />
-                        Add Service
-                      </Link>
+                      {!isRide && (
+                        <Link
+                          to={`/assets/create?parent=${prop.id}&mode=service`}
+                          className="px-4 py-2 bg-white text-gray-700 border border-gray-200 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-gray-50 transition-all flex items-center gap-1.5 shadow-sm"
+                        >
+                          <Plus className="h-3 w-3" />
+                          Add Service
+                        </Link>
+                      )}
                       <Link
                         to={`/assets/${prop.id}`}
-                        className="px-4 py-2 bg-primary-50 text-primary-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary-100 transition-all flex items-center gap-2"
+                        className="px-4 py-2 bg-primary-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary-700 transition-all flex items-center gap-1.5 shadow-md shadow-primary-500/20"
                       >
-                        View Public Page
-                        <ChevronRight className="h-3.5 w-3.5" />
+                        Manage
+                        <ChevronRight className="h-3 w-3" />
                       </Link>
                     </div>
                   </div>
