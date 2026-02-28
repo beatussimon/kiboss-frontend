@@ -82,12 +82,16 @@ export default function Layout() {
     navigate('/login');
   };
 
+  // Dynamic checks
+  const isCorporateVerified = user?.corporate_profile?.verification_status === 'VERIFIED';
+  const businessCategory = user?.corporate_profile?.business_category;
+
   // Primary navigation - main features
   const primaryNav = [
     { name: 'Home', href: '/', icon: Home },
-    { name: 'Assets', href: '/assets', icon: Briefcase },
-    { name: 'Rides', href: '/rides', icon: Car },
-    { name: 'Business+', href: '/business', icon: Building2 },
+    ...(!isCorporateVerified || businessCategory !== 'RIDE' ? [{ name: 'Assets', href: '/assets', icon: Briefcase }] : []),
+    ...(!isCorporateVerified || businessCategory !== 'ASSET' ? [{ name: 'Rides', href: '/rides', icon: Car }] : []),
+    { name: isCorporateVerified ? 'Corporate HQ' : 'Business+', href: '/business', icon: Building2 },
     ...(isStaff ? [{ name: 'Staff', href: '/staff/tasks', icon: Shield }] : []),
   ];
 
@@ -100,8 +104,8 @@ export default function Layout() {
 
   // Create actions (only when authenticated)
   const createActions = isAuthenticated ? [
-    { name: 'List Asset', href: '/assets/create', icon: Plus },
-    { name: 'Offer Ride', href: '/rides/create', icon: Car },
+    ...(!isCorporateVerified || businessCategory !== 'RIDE' ? [{ name: 'List Asset', href: '/assets/create', icon: Plus }] : []),
+    ...(!isCorporateVerified || businessCategory !== 'ASSET' ? [{ name: 'Offer Ride', href: '/rides/create', icon: Car }] : []),
   ] : [];
 
   const isActive = (path: string) => {
@@ -276,7 +280,7 @@ export default function Layout() {
                         className="flex items-center px-4 py-2 text-sm text-gray-700 font-bold bg-gray-50 hover:bg-gray-100"
                       >
                         <Building2 className="h-4 w-4 mr-2 text-primary-600" />
-                        Business
+                        {isCorporateVerified ? 'Corporate HQ' : 'Business+'}
                       </Link>
                       {isStaff && (
                         <Link
@@ -452,7 +456,7 @@ export default function Layout() {
                   className="flex items-center px-3 py-2 rounded-lg text-base font-medium text-primary-600 font-bold hover:bg-gray-50"
                 >
                   <Building2 className="h-5 w-5 mr-3" />
-                  Business
+                  {isCorporateVerified ? 'Corporate HQ' : 'Business+'}
                 </Link>
                 <Link
                   to="/payments"

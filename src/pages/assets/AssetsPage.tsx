@@ -6,7 +6,7 @@ import { fetchAssets } from '../../features/assets/assetsSlice';
 import { toggleWishlist } from '../../features/wishlist/wishlistSlice';
 import { getMediaUrl } from '../../utils/media';
 import { AssetType } from '../../types';
-import { Home, MapPin, Star, Filter, Grid, List, Loader2, Eye, Users, Bookmark, Heart, Shield } from 'lucide-react';
+import { Home, MapPin, Star, Filter, Grid, List, Loader2, Eye, Users, Bookmark, Heart, Shield, BadgeCheck } from 'lucide-react';
 import { Price } from '../../context/CurrencyContext';
 
 export default function AssetsPage() {
@@ -183,8 +183,15 @@ export default function AssetsPage() {
                 </div>
                 <div className="flex justify-between items-start">
                   <div>
-                    <h3 className="font-bold text-gray-900 leading-tight group-hover:text-primary-600 transition-colors">
+                    <h3 className="font-bold text-gray-900 leading-tight group-hover:text-primary-600 transition-colors flex items-center gap-1">
                       {asset.name}
+                      {(asset as any).owner_verification_badge?.tier && (asset as any).owner_verification_badge.tier !== 'none' && (
+                        <BadgeCheck className={`h-4 w-4 flex-shrink-0 ${(asset as any).owner_verification_badge.tier === 'business' ? 'text-indigo-500' :
+                            (asset as any).owner_verification_badge.tier === 'premium' ? 'text-blue-500' :
+                              (asset as any).owner_verification_badge.tier === 'gold' ? 'text-yellow-500' :
+                                'text-gray-400'
+                          }`} />
+                      )}
                     </h3>
                     <p className="text-sm text-gray-500">{asset.city}, {asset.country}</p>
                   </div>

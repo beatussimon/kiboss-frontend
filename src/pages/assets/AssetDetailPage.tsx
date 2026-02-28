@@ -247,23 +247,53 @@ export default function AssetDetailPage() {
           <span className="ml-1 font-semibold">{asset.average_rating || 'N/A'}</span>
           <span className="ml-1 text-gray-500">({asset.total_reviews || 0} reviews)</span>
         </div>
-        {/* Owner Profile Link with Verification Badge */}
-        <Link to={`/users/${asset.owner.id}`} className="flex items-center gap-2 text-primary-600 hover:text-primary-700">
-          <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+      </div>
+
+      {/* Host / Owner Info - Clickable to profile */}
+      <Link
+        to={`/users/${asset.owner.id}`}
+        className="flex items-center gap-4 p-5 bg-white border border-gray-100/80 rounded-2xl hover:shadow-xl hover:border-primary-100 transition-all duration-300 group mb-6"
+      >
+        <div className="relative">
+          <div className="w-16 h-16 rounded-[1.25rem] bg-gradient-to-br from-primary-100/50 to-primary-50/50 flex flex-col items-center justify-center overflow-hidden ring-4 ring-white shadow-sm group-hover:ring-primary-50 transition-all duration-300">
             {asset.owner.profile?.avatar ? (
-              <img src={getMediaUrl(asset.owner.profile.avatar)} alt={asset.owner.first_name} className="w-full h-full object-cover" />
+              <img
+                src={getMediaUrl(asset.owner.profile.avatar)}
+                alt={asset.owner.first_name}
+                className="w-full h-full object-cover"
+              />
             ) : (
-              <User className="h-4 w-4 text-gray-500" />
+              <span className="text-xl font-black text-primary-700 uppercase tracking-tighter">
+                {asset.owner.first_name?.[0] || 'K'}{asset.owner.last_name?.[0] || ''}
+              </span>
             )}
           </div>
-          <span>{asset.owner.first_name}</span>
-          <VerificationBadge
-            tier={asset.owner.verification_badge?.tier}
-            color={asset.owner.verification_badge?.color}
-            size="sm"
-          />
-        </Link>
-      </div>
+          <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-0.5 shadow-sm">
+            <VerificationBadge
+              tier={asset.owner.verification_badge?.tier}
+              color={asset.owner.verification_badge?.color}
+              size="xs"
+            />
+          </div>
+        </div>
+        <div className="flex-1">
+          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Hosted By</p>
+          <div className="flex items-center gap-2">
+            <p className="font-bold text-lg text-gray-900 group-hover:text-primary-600 transition-colors leading-tight">
+              {asset.owner.first_name || 'Kiboss User'} {asset.owner.last_name || ''}
+            </p>
+          </div>
+          <div className="flex items-center gap-3 mt-1.5">
+            <p className="text-xs font-bold text-gray-500 flex items-center gap-1 bg-gray-50 px-2 py-0.5 rounded-md border border-gray-100/50">
+              <Star className="h-3 w-3 text-yellow-500 fill-yellow-500" />
+              {(asset.owner as any).trust_score || 'N/A'} Trust
+            </p>
+          </div>
+        </div>
+        <div className="w-10 h-10 rounded-full bg-gray-50 group-hover:bg-primary-50 flex items-center justify-center transition-colors">
+          <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-primary-600 group-hover:translate-x-0.5 transition-all" />
+        </div>
+      </Link>
 
       {/* Description */}
       <div className="card p-6 mb-6">

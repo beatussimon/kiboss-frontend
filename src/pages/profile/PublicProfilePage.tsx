@@ -53,33 +53,80 @@ export default function PublicProfilePage() {
           </div>
 
           <div className="flex-1">
-            <div className="flex items-start justify-between">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                  {user.first_name} {user.last_name}
-                  <VerificationBadge
-                    tier={user.verification_badge?.tier}
-                    color={user.verification_badge?.color}
-                  />
-                </h1>
-                <p className="text-gray-500">@{user.username || user.email?.split('@')[0]}</p>
+            {/* Corporate Profile Header vs Regular User Header */}
+            {user.corporate_profile && user.corporate_profile.verification_status === 'VERIFIED' ? (
+              <div className="mb-4 bg-indigo-50 border-l-4 border-indigo-600 p-4 rounded-r-lg">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h1 className="text-3xl font-extrabold text-indigo-900 flex items-center gap-3">
+                      {user.corporate_profile.company_name}
+                      <VerificationBadge
+                        tier="business"
+                        color="indigo"
+                        showLabel={true}
+                      />
+                    </h1>
+                    <p className="text-indigo-700 font-medium mt-1">
+                      {user.corporate_profile.business_category} Business Operator
+                    </p>
+                    <p className="text-sm text-indigo-600/80 mt-1">
+                      Reg. No: {user.corporate_profile.registration_number}
+                    </p>
+                  </div>
+
+                  <div className="flex gap-2">
+                    {isOwnProfile ? (
+                      <Link to="/profile" className="btn-primary bg-indigo-600 hover:bg-indigo-700">
+                        <Edit className="h-4 w-4 mr-2" />
+                        Manage Business
+                      </Link>
+                    ) : (
+                      <button
+                        onClick={handleFollow}
+                        className={user.is_following ? 'btn-secondary border-indigo-200 text-indigo-700' : 'btn-primary bg-indigo-600 hover:bg-indigo-700'}
+                      >
+                        {user.is_following ? 'Following' : 'Follow'}
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="mt-4 pt-4 border-t border-indigo-100 flex items-center gap-2 text-sm text-indigo-800">
+                  <span className="font-semibold text-gray-500">Operated by:</span>
+                  {user.avatar && <img src={getMediaUrl(user.avatar)} alt="Avatar" className="w-6 h-6 rounded-full inline-block" />}
+                  {user.first_name} {user.last_name} (@{user.username || user.email?.split('@')[0]})
+                </div>
               </div>
-              <div className="flex gap-2">
-                {isOwnProfile ? (
-                  <Link to="/profile" className="btn-primary">
-                    <Edit className="h-4 w-4 mr-2" />
-                    Edit Profile
-                  </Link>
-                ) : (
-                  <button
-                    onClick={handleFollow}
-                    className={user.is_following ? 'btn-secondary' : 'btn-primary'}
-                  >
-                    {user.is_following ? 'Following' : 'Follow'}
-                  </button>
-                )}
+            ) : (
+              // Standard User Profile Header
+              <div className="flex items-start justify-between">
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                    {user.first_name} {user.last_name}
+                    <VerificationBadge
+                      tier={user.verification_badge?.tier}
+                      color={user.verification_badge?.color}
+                    />
+                  </h1>
+                  <p className="text-gray-500">@{user.username || user.email?.split('@')[0]}</p>
+                </div>
+                <div className="flex gap-2">
+                  {isOwnProfile ? (
+                    <Link to="/profile" className="btn-primary">
+                      <Edit className="h-4 w-4 mr-2" />
+                      Edit Profile
+                    </Link>
+                  ) : (
+                    <button
+                      onClick={handleFollow}
+                      className={user.is_following ? 'btn-secondary' : 'btn-primary'}
+                    >
+                      {user.is_following ? 'Following' : 'Follow'}
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="flex flex-wrap gap-4 mt-4 text-sm text-gray-600">
               <div className="flex items-center gap-1">
@@ -122,8 +169,8 @@ export default function PublicProfilePage() {
                 key={tab}
                 onClick={() => setActiveTab(tab as typeof activeTab)}
                 className={`px-6 py-4 text-sm font-medium capitalize ${activeTab === tab
-                    ? 'border-b-2 border-primary-600 text-primary-600'
-                    : 'text-gray-500 hover:text-gray-700'
+                  ? 'border-b-2 border-primary-600 text-primary-600'
+                  : 'text-gray-500 hover:text-gray-700'
                   }`}
               >
                 {tab}

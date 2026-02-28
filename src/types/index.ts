@@ -457,6 +457,7 @@ export interface PublicUser {
     tier: string;
     color: string | null;
   };
+  corporate_profile?: CorporateProfile;
   listings: Listing[];
   rides: PublicRide[];
   reviews: Review[];
