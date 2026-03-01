@@ -27,17 +27,15 @@ export default function TaskDashboard() {
   const isSuperRole = user?.is_superuser || userRoles.includes('SUPER_ADMIN');
 
   const getRoleConfig = () => {
-    if (isSuperRole) return { title: 'Internal Task Dashboard', subtitle: 'Admin Mode', icon: <Shield className="h-6 w-6" />, label: 'Super Admin' };
-
-    if (userRoles.includes('VERIFIER')) return { title: 'Verification Workspace', subtitle: 'Identity & Vehicle Review', icon: <CheckCircle className="h-6 w-6" />, label: 'Verifier' };
-    if (userRoles.includes('CAR_VERIFIER')) return { title: 'Fleet Verification', subtitle: 'Vehicle & Asset Review', icon: <Car className="h-6 w-6" />, label: 'Car Verifier' };
-    if (userRoles.includes('RIDE_BUSINESS_VERIFIER')) return { title: 'Ride Business Verification', subtitle: 'Corporate Transport Review', icon: <Briefcase className="h-6 w-6" />, label: 'Ride Business Verifier' };
-    if (userRoles.includes('ASSET_BUSINESS_VERIFIER')) return { title: 'Asset Business Verification', subtitle: 'Corporate Real Estate Review', icon: <Briefcase className="h-6 w-6" />, label: 'Asset Business Verifier' };
-    if (userRoles.includes('SUPPORT')) return { title: 'Support & Resolution Hub', subtitle: 'Ticket & Dispute Management', icon: <MessageSquare className="h-6 w-6" />, label: 'Support' };
-    if (userRoles.includes('OPS')) return { title: 'Operations Dashboard', subtitle: 'Fleet & Audit Management', icon: <Activity className="h-6 w-6" />, label: 'Operations' };
-    if (userRoles.includes('LEGAL')) return { title: 'Legal & Dispute Review', subtitle: 'Compliance & Resolution', icon: <Shield className="h-6 w-6" />, label: 'Legal' };
-
-    return { title: 'Staff Workspace', subtitle: 'Operational Queue', icon: <Clock className="h-6 w-6" />, label: 'Staff' };
+    if (isSuperRole) return { title: 'Internal Task Dashboard', subtitle: 'Full Administrative Control', icon: <Shield className="h-6 w-6" />, label: 'Super Admin', accent: 'from-primary-600 to-primary-700' };
+    if (userRoles.includes('VERIFIER')) return { title: 'Verification Workspace', subtitle: 'Identity & Vehicle Review', icon: <CheckCircle className="h-6 w-6" />, label: 'Verifier', accent: 'from-emerald-600 to-emerald-700' };
+    if (userRoles.includes('CAR_VERIFIER')) return { title: 'Fleet Verification', subtitle: 'Vehicle & Asset Review', icon: <Car className="h-6 w-6" />, label: 'Car Verifier', accent: 'from-blue-600 to-blue-700' };
+    if (userRoles.includes('RIDE_BUSINESS_VERIFIER')) return { title: 'Ride Business Verification', subtitle: 'Corporate Transport Review', icon: <Briefcase className="h-6 w-6" />, label: 'Ride Business Verifier', accent: 'from-violet-600 to-violet-700' };
+    if (userRoles.includes('ASSET_BUSINESS_VERIFIER')) return { title: 'Asset Business Verification', subtitle: 'Corporate Real Estate Review', icon: <Briefcase className="h-6 w-6" />, label: 'Asset Business Verifier', accent: 'from-violet-600 to-violet-700' };
+    if (userRoles.includes('SUPPORT')) return { title: 'Support & Resolution Hub', subtitle: 'Ticket & Dispute Management', icon: <MessageSquare className="h-6 w-6" />, label: 'Support', accent: 'from-sky-600 to-sky-700' };
+    if (userRoles.includes('OPS')) return { title: 'Operations Dashboard', subtitle: 'Fleet & Audit Management', icon: <Activity className="h-6 w-6" />, label: 'Operations', accent: 'from-orange-600 to-orange-700' };
+    if (userRoles.includes('LEGAL')) return { title: 'Legal & Dispute Review', subtitle: 'Compliance & Resolution', icon: <Shield className="h-6 w-6" />, label: 'Legal', accent: 'from-rose-600 to-rose-700' };
+    return { title: 'Staff Workspace', subtitle: 'Operational Queue', icon: <Clock className="h-6 w-6" />, label: 'Staff', accent: 'from-gray-600 to-gray-700' };
   };
 
   const roleConfig = getRoleConfig();
@@ -54,13 +52,9 @@ export default function TaskDashboard() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isReviewMode, setIsReviewMode] = useState(false);
   const [staffUsers, setStaffUsers] = useState<any[]>([]);
-
-  // Assignment state
   const [assignTo, setAssignTo] = useState('');
   const [assignRole, setAssignRole] = useState('');
   const [assignPriority, setAssignPriority] = useState('');
-
-  // Custom Task Creation State
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [newTask, setNewTask] = useState({ title: '', description: '', priority: 'MEDIUM', assigned_to: '', assigned_role: '', attachments: '', assignType: 'person' });
   const [activeFilter, setActiveFilter] = useState('ALL');
@@ -69,15 +63,12 @@ export default function TaskDashboard() {
   // Dynamic Tabs based on roles/permissions
   const getTabs = () => {
     const tabs = [{ id: 'tasks', label: 'Operational Queue', icon: <Clock className="h-4 w-4" /> }];
-
     if (isSuperRole) {
       tabs.push({ id: 'analytics', label: 'Global Analytics', icon: <BarChart3 className="h-4 w-4" /> });
     }
-
     if (userRoles.includes('SUPPORT') || permissions.includes('DISPUTE_RESOLVE')) {
       tabs.push({ id: 'support', label: 'Support Center', icon: <MessageSquare className="h-4 w-4" /> });
     }
-
     return tabs;
   };
 
@@ -95,10 +86,8 @@ export default function TaskDashboard() {
     try {
       setIsLoading(true);
       const currentTab = tab || activeTab;
-
       let url = '/tasks/';
       if (currentTab === 'support') url = '/tasks/?task_type=SUPPORT_TICKET,DISPUTE_RESOLUTION';
-
       const [tasksRes, summaryRes] = await Promise.all([
         api.get(url),
         api.get('/tasks/dashboard_summary/')
@@ -138,7 +127,6 @@ export default function TaskDashboard() {
 
   const handleProcessTask = async (action: 'APPROVE' | 'REJECT' | 'REQUEST_CHANGES' | 'REVOKE' | 'SUBMIT_COMPLETION') => {
     if (!selectedTask) return;
-
     setIsProcessing(true);
     try {
       await api.post(`/tasks/${selectedTask.id}/process/`, {
@@ -162,7 +150,6 @@ export default function TaskDashboard() {
 
   const handleAssignTask = async () => {
     if (!selectedTask) return;
-
     setIsProcessing(true);
     try {
       await api.post(`/tasks/${selectedTask.id}/assign/`, {
@@ -184,7 +171,6 @@ export default function TaskDashboard() {
 
   const handleDeleteTask = async () => {
     if (!selectedTask || !window.confirm('Are you sure you want to delete this task? This action cannot be undone.')) return;
-
     setIsProcessing(true);
     try {
       await api.delete(`/tasks/${selectedTask.id}/`);
@@ -202,7 +188,6 @@ export default function TaskDashboard() {
   const handleCreateCustomTask = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTask.title) return toast.error('Title is required');
-
     setIsProcessing(true);
     try {
       const payload: any = {
@@ -211,13 +196,11 @@ export default function TaskDashboard() {
         priority: newTask.priority.toUpperCase(),
         attachments: newTask.attachments ? [{ type: 'link', url: newTask.attachments }] : []
       };
-
       if (newTask.assignType === 'person' && newTask.assigned_to) {
         payload.assigned_to = newTask.assigned_to;
       } else if (newTask.assignType === 'role' && newTask.assigned_role) {
         payload.assigned_role = newTask.assigned_role;
       }
-
       await api.post('/tasks/create_custom/', payload);
       toast.success('Custom task created successfully');
       setIsCreateModalOpen(false);
@@ -239,10 +222,15 @@ export default function TaskDashboard() {
       case 'SUPPORT_TICKET': return <MessageSquare className="h-6 w-6" />;
       case 'DISPUTE_RESOLUTION': return <AlertCircle className="h-6 w-6" />;
       case 'CUSTOM_TASK': return <PenTool className="h-6 w-6" />;
+      case 'CORPORATE_RIDE_VERIFICATION': case 'CORPORATE_ASSET_VERIFICATION': return <Briefcase className="h-6 w-6" />;
+      case 'ASSET_AUDIT': return <Activity className="h-6 w-6" />;
       default: return <Shield className="h-6 w-6" />;
     }
   };
 
+  // ═══════════════════════════════════════════════════════════
+  // RESOURCE DETAILS RENDERER — each task type gets a rich card
+  // ═══════════════════════════════════════════════════════════
   const renderResourceDetails = (task: any) => {
     const detail = task.resource_detail;
     if (!detail) return <p className="text-gray-500 italic">No additional details available.</p>;
@@ -256,27 +244,14 @@ export default function TaskDashboard() {
                 <Briefcase className="h-3 w-3" /> Business Identity
               </h3>
               <div className="space-y-4">
-                <div>
-                  <p className="text-[10px] font-bold text-gray-500 uppercase">Company Name</p>
-                  <p className="text-sm font-black text-gray-900">{detail.company_name}</p>
-                </div>
+                <div><p className="text-[10px] font-bold text-gray-500 uppercase">Company Name</p><p className="text-sm font-black text-gray-900">{detail.company_name}</p></div>
                 <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-[10px] font-bold text-gray-500 uppercase">Reg. Number</p>
-                    <p className="text-xs font-bold text-gray-900">{detail.registration_number}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-bold text-gray-500 uppercase">Tax ID / TIN</p>
-                    <p className="text-xs font-bold text-gray-900">{detail.tax_id}</p>
-                  </div>
+                  <div><p className="text-[10px] font-bold text-gray-500 uppercase">Reg. Number</p><p className="text-xs font-bold text-gray-900">{detail.registration_number}</p></div>
+                  <div><p className="text-[10px] font-bold text-gray-500 uppercase">Tax ID / TIN</p><p className="text-xs font-bold text-gray-900">{detail.tax_id}</p></div>
                 </div>
-                <div>
-                  <p className="text-[10px] font-bold text-gray-500 uppercase">Represented By</p>
-                  <p className="text-sm font-black text-primary-600">{detail.user_email}</p>
-                </div>
+                <div><p className="text-[10px] font-bold text-gray-500 uppercase">Represented By</p><p className="text-sm font-black text-primary-600">{detail.user_email}</p></div>
               </div>
             </div>
-
             <div className="card p-6">
               <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
                 <FileText className="h-3 w-3" /> Verification Documents
@@ -287,37 +262,22 @@ export default function TaskDashboard() {
                     <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-transparent">
                       <div className="flex items-center gap-3">
                         <FileText className="h-4 w-4 text-gray-400" />
-                        <div>
-                          <p className="text-xs font-bold text-gray-900">{doc.name}</p>
-                          <p className="text-[8px] font-black text-gray-400 uppercase">Size: {(doc.size / 1024).toFixed(1)} KB</p>
-                        </div>
+                        <div><p className="text-xs font-bold text-gray-900">{doc.name}</p><p className="text-[8px] font-black text-gray-400 uppercase">Size: {(doc.size / 1024).toFixed(1)} KB</p></div>
                       </div>
                       <span className="text-[10px] font-black text-primary-600 uppercase">STAMPED</span>
                     </div>
                   ))
-                ) : (
-                  <p className="text-xs italic text-gray-500">No digital documents attached.</p>
-                )}
+                ) : (<p className="text-xs italic text-gray-500">No digital documents attached.</p>)}
               </div>
             </div>
-
             <div className="md:col-span-2 card p-6 bg-primary-50/50 border-primary-100">
               <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
                 <CreditCard className="h-3 w-3" /> Subscription & Payment
               </h3>
               <div className="flex flex-wrap gap-8">
-                <div>
-                  <p className="text-[10px] font-bold text-gray-500 uppercase">Payment Ref</p>
-                  <p className="text-sm font-black text-gray-900 uppercase">{detail.payment_reference || 'N/A'}</p>
-                </div>
-                <div>
-                  <p className="text-[10px] font-bold text-gray-500 uppercase">Plan</p>
-                  <span className="bg-primary-600 text-white text-[10px] font-black px-2 py-0.5 rounded uppercase">{detail.plan_type}</span>
-                </div>
-                <div>
-                  <p className="text-[10px] font-bold text-gray-500 uppercase">Amount</p>
-                  <p className="text-sm font-black text-emerald-600"><Price amount={detail.amount_paid} /></p>
-                </div>
+                <div><p className="text-[10px] font-bold text-gray-500 uppercase">Payment Ref</p><p className="text-sm font-black text-gray-900 uppercase">{detail.payment_reference || 'N/A'}</p></div>
+                <div><p className="text-[10px] font-bold text-gray-500 uppercase">Plan</p><span className="bg-primary-600 text-white text-[10px] font-black px-2 py-0.5 rounded uppercase">{detail.plan_type}</span></div>
+                <div><p className="text-[10px] font-bold text-gray-500 uppercase">Amount</p><p className="text-sm font-black text-emerald-600"><Price amount={detail.amount_paid} /></p></div>
               </div>
             </div>
           </div>
@@ -327,56 +287,33 @@ export default function TaskDashboard() {
         return (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="card p-6">
-              <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                <User className="h-3 w-3" /> Applicant & Resource
-              </h3>
+              <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2"><User className="h-3 w-3" /> Applicant & Resource</h3>
               <div className="space-y-4">
-                <div>
-                  <p className="text-[10px] font-bold text-gray-500 uppercase">Owner</p>
-                  <p className="text-sm font-black text-gray-900">{detail.owner_email}</p>
-                </div>
-                <div>
-                  <p className="text-[10px] font-bold text-gray-500 uppercase">Location</p>
-                  <p className="text-sm font-black text-gray-900">{detail.city}, {detail.country}</p>
-                </div>
+                <div><p className="text-[10px] font-bold text-gray-500 uppercase">Owner</p><p className="text-sm font-black text-gray-900">{detail.owner_email}</p></div>
+                <div><p className="text-[10px] font-bold text-gray-500 uppercase">Location</p><p className="text-sm font-black text-gray-900">{detail.city}, {detail.country}</p></div>
                 <div className="grid grid-cols-2 gap-4">
                   {Object.entries(detail.properties || {}).map(([key, val]) => (
-                    <div key={key}>
-                      <p className="text-[10px] font-bold text-gray-500 uppercase">{key.replace('_', ' ')}</p>
-                      <p className="text-xs font-bold text-primary-600">{val as string}</p>
-                    </div>
+                    <div key={key}><p className="text-[10px] font-bold text-gray-500 uppercase">{key.replace('_', ' ')}</p><p className="text-xs font-bold text-primary-600">{val as string}</p></div>
                   ))}
                 </div>
               </div>
             </div>
-
             <div className="card p-6">
-              <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                <FileText className="h-3 w-3" /> Uploaded Documents
-              </h3>
+              <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2"><FileText className="h-3 w-3" /> Uploaded Documents</h3>
               <div className="space-y-3">
                 {detail.documents?.map((doc: any) => (
                   <a key={doc.id} href={getMediaUrl(doc.file)} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-3 bg-gray-50 rounded-xl hover:bg-primary-50 transition-all border border-transparent group">
-                    <div className="flex items-center gap-3">
-                      <FileText className="h-4 w-4 text-gray-400" />
-                      <div>
-                        <p className="text-xs font-bold text-gray-900">{doc.name}</p>
-                        <p className="text-[8px] font-black text-primary-600 uppercase">{doc.document_type}</p>
-                      </div>
-                    </div>
+                    <div className="flex items-center gap-3"><FileText className="h-4 w-4 text-gray-400" /><div><p className="text-xs font-bold text-gray-900">{doc.name}</p><p className="text-[8px] font-black text-primary-600 uppercase">{doc.document_type}</p></div></div>
                     <ExternalLink className="h-3 w-3 text-gray-300 group-hover:text-primary-600" />
                   </a>
                 ))}
               </div>
             </div>
-
             {detail.photos && detail.photos.length > 0 && (
               <div className="card p-6 md:col-span-2">
                 <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Resource Photos</h3>
                 <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
-                  {detail.photos.map((photo: any) => (
-                    <img key={photo.id} src={getMediaUrl(photo.url)} alt="" className="h-32 w-48 object-cover rounded-xl shadow-md flex-shrink-0" />
-                  ))}
+                  {detail.photos.map((photo: any) => (<img key={photo.id} src={getMediaUrl(photo.url)} alt="" className="h-32 w-48 object-cover rounded-xl shadow-md flex-shrink-0" />))}
                 </div>
               </div>
             )}
@@ -387,9 +324,7 @@ export default function TaskDashboard() {
         return (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="card p-6">
-              <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                <User className="h-3 w-3" /> User Identity Profile
-              </h3>
+              <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2"><User className="h-3 w-3" /> User Identity Profile</h3>
               <div className="space-y-4">
                 <div><p className="text-[10px] font-bold text-gray-500 uppercase">Full Name</p><p className="text-sm font-black text-gray-900">{detail.first_name} {detail.last_name}</p></div>
                 <div><p className="text-[10px] font-bold text-gray-500 uppercase">Email Address</p><p className="text-sm font-black text-gray-900">{detail.email}</p></div>
@@ -415,8 +350,7 @@ export default function TaskDashboard() {
         );
 
       case 'SUPPORT_TICKET':
-      case 'DISPUTE_RESOLUTION':
-        // Determine the client user (who is not the current admin user)
+      case 'DISPUTE_RESOLUTION': {
         const getClientUser = () => {
           if (detail.participants && detail.participants.length > 0) {
             return detail.participants.find((p: any) => p.email !== user?.email) || detail.participants[0];
@@ -440,85 +374,50 @@ export default function TaskDashboard() {
                 </span>
               )}
             </div>
-
             <div className="space-y-6">
               {detail.id ? (
-                // This is a Thread/Feedback object mapped natively
                 <div className="bg-white rounded-2xl p-6 shadow-sm border border-blue-100">
                   <div className="flex items-center gap-4 mb-6 pb-6 border-b border-gray-100">
-                    <div className="h-12 w-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-lg border-2 border-white shadow-sm">
-                      {clientInitial}
-                    </div>
-                    <div>
-                      <h4 className="text-base font-black text-gray-900 leading-tight">
-                        {clientName}
-                      </h4>
-                      <p className="text-xs font-medium text-gray-500 mt-0.5">
-                        {clientUser?.email || detail.user_email || task.created_by_email}
-                      </p>
-                    </div>
+                    <div className="h-12 w-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-lg border-2 border-white shadow-sm">{clientInitial}</div>
+                    <div><h4 className="text-base font-black text-gray-900 leading-tight">{clientName}</h4><p className="text-xs font-medium text-gray-500 mt-0.5">{clientUser?.email || detail.user_email || task.created_by_email}</p></div>
                   </div>
-
                   <div className="bg-gray-50 rounded-xl p-4 mb-6 border border-gray-100">
                     <h5 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center justify-between">
                       <span>Subject: {detail.subject || 'Support Request'}</span>
-                      {detail.last_message && (
-                        <span className="text-[10px] bg-white px-2 py-0.5 rounded border border-gray-200">Latest</span>
-                      )}
+                      {detail.last_message && (<span className="text-[10px] bg-white px-2 py-0.5 rounded border border-gray-200">Latest</span>)}
                     </h5>
                     <p className="text-sm font-medium text-gray-700 italic border-l-2 border-primary-200 pl-3 py-1">
                       "{detail.last_message?.content || detail.message || 'No messages yet.'}"
                     </p>
-                    {detail.last_message && (
-                      <p className="text-[10px] text-gray-400 mt-3 text-right font-medium pr-1">
-                        {new Date(detail.last_message.created_at).toLocaleString()}
-                      </p>
-                    )}
+                    {detail.last_message && (<p className="text-[10px] text-gray-400 mt-3 text-right font-medium pr-1">{new Date(detail.last_message.created_at).toLocaleString()}</p>)}
                   </div>
-
                   {detail.is_resolved !== undefined ? (
-                    // Feedback Form
-                    <div className="flex items-center gap-2 px-4 py-3 bg-blue-50 rounded-xl text-sm font-bold text-blue-800 border border-blue-100">
-                      <AlertCircle className="h-5 w-5 text-blue-500 flex-shrink-0" />
-                      Feedback form submitted — please reach out via email.
-                    </div>
+                    <div className="flex items-center gap-2 px-4 py-3 bg-blue-50 rounded-xl text-sm font-bold text-blue-800 border border-blue-100"><AlertCircle className="h-5 w-5 text-blue-500 flex-shrink-0" />Feedback form submitted — please reach out via email.</div>
                   ) : (
-                    // Messaging Thread
                     <div className="flex items-center justify-end mt-4">
-                      <button
-                        onClick={() => navigate(`/messages/${detail.id}`)}
-                        className="btn-primary w-full sm:w-auto px-6 py-2.5 rounded-xl shadow-md shadow-primary-500/20 flex items-center justify-center gap-2 hover:translate-y-[-1px] transition-all"
-                      >
-                        <MessageSquare className="h-4 w-4" />
-                        Enter Live Chat
+                      <button onClick={() => navigate(`/messages/${detail.id}`)} className="btn-primary w-full sm:w-auto px-6 py-2.5 rounded-xl shadow-md shadow-primary-500/20 flex items-center justify-center gap-2 hover:translate-y-[-1px] transition-all">
+                        <MessageSquare className="h-4 w-4" /> Enter Live Chat
                       </button>
                     </div>
                   )}
                 </div>
               ) : (
-                <div className="bg-white rounded-2xl p-6 shadow-sm border border-red-50 text-center">
-                  <AlertCircle className="h-8 w-8 text-red-400 mx-auto mb-3" />
-                  <p className="text-sm font-medium text-gray-900">No direct connection found.</p>
-                  <p className="text-xs text-gray-500 mt-1 italic">This support ticket is missing its threaded context.</p>
-                </div>
+                <div className="bg-white rounded-2xl p-6 shadow-sm border border-red-50 text-center"><AlertCircle className="h-8 w-8 text-red-400 mx-auto mb-3" /><p className="text-sm font-medium text-gray-900">No direct connection found.</p><p className="text-xs text-gray-500 mt-1 italic">This support ticket is missing its threaded context.</p></div>
               )}
             </div>
           </div>
         );
+      }
 
       case 'CUSTOM_TASK':
         return (
           <div className="card p-6 border-l-4 border-l-purple-500 bg-purple-50/10">
-            <h3 className="text-xs font-black text-purple-600 uppercase tracking-widest mb-4 flex items-center gap-2">
-              <PenTool className="h-4 w-4" /> Administrative Task Request
-            </h3>
+            <h3 className="text-xs font-black text-purple-600 uppercase tracking-widest mb-4 flex items-center gap-2"><PenTool className="h-4 w-4" /> Administrative Task Request</h3>
             {detail.custom_attachments && detail.custom_attachments.length > 0 && (
               <div className="space-y-3 mt-4">
                 <p className="text-[10px] font-bold text-gray-500 uppercase">Attached Context</p>
                 {detail.custom_attachments.map((att: any, i: number) => (
-                  <a key={i} href={att.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-xs font-bold text-primary-600 bg-primary-50 px-3 py-2 rounded-lg border border-primary-100 hover:bg-primary-100 transition-colors max-w-max">
-                    <ExternalLink className="h-3 w-3" /> External Link Reference
-                  </a>
+                  <a key={i} href={att.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-xs font-bold text-primary-600 bg-primary-50 px-3 py-2 rounded-lg border border-primary-100 hover:bg-primary-100 transition-colors max-w-max"><ExternalLink className="h-3 w-3" /> External Link Reference</a>
                 ))}
               </div>
             )}
@@ -530,91 +429,46 @@ export default function TaskDashboard() {
         return (
           <div className="space-y-6 animate-in slide-in-from-bottom-2 duration-500 relative">
             <div className="absolute -inset-4 bg-gradient-to-br from-indigo-500/5 via-purple-500/5 to-pink-500/5 rounded-[3rem] blur-3xl -z-10" />
-
             <div className="card p-8 bg-white/70 backdrop-blur-2xl border border-white shadow-xl shadow-indigo-900/5 relative overflow-hidden group hover:border-indigo-100/50 transition-all duration-500">
               <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-indigo-100/30 to-purple-100/30 rounded-full blur-3xl -mr-32 -mt-32 transition-transform duration-700 group-hover:scale-110" />
-
               <div className="relative z-10">
                 <div className="flex items-center gap-4 mb-8">
-                  <div className="h-12 w-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl shadow-lg shadow-indigo-500/30 flex items-center justify-center text-white transform group-hover:scale-105 transition-transform duration-300">
-                    <Briefcase className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h3 className="text-base font-black text-gray-900 tracking-tight">Corporate Entity Profile</h3>
-                    <p className="text-[10px] font-black text-indigo-500 uppercase tracking-widest mt-0.5">Registration & Tax Details</p>
-                  </div>
+                  <div className="h-12 w-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl shadow-lg shadow-indigo-500/30 flex items-center justify-center text-white transform group-hover:scale-105 transition-transform duration-300"><Briefcase className="h-5 w-5" /></div>
+                  <div><h3 className="text-base font-black text-gray-900 tracking-tight">Corporate Entity Profile</h3><p className="text-[10px] font-black text-indigo-500 uppercase tracking-widest mt-0.5">Registration & Tax Details</p></div>
                 </div>
-
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="bg-white/60 rounded-2xl p-5 border border-white hover:bg-white hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
-                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 drop-shadow-sm">Registered Company Name</p>
-                    <p className="text-sm font-black text-gray-900 tracking-tight">{detail.company_name || 'N/A'}</p>
-                  </div>
-                  <div className="bg-white/60 rounded-2xl p-5 border border-white hover:bg-white hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
-                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 drop-shadow-sm">Business Category</p>
-                    <div className="inline-flex items-center px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg text-xs font-black uppercase ring-1 ring-indigo-100">{detail.business_category || 'N/A'}</div>
-                  </div>
-                  <div className="bg-white/60 rounded-2xl p-5 border border-white hover:bg-white hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
-                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 drop-shadow-sm">Registration Number</p>
-                    <p className="text-sm font-bold text-gray-700 font-mono tracking-tight bg-gray-50/50 inline-block px-2 py-0.5 rounded border border-gray-100">{detail.registration_number || 'N/A'}</p>
-                  </div>
-                  <div className="bg-white/60 rounded-2xl p-5 border border-white hover:bg-white hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
-                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 drop-shadow-sm">Tax Identification (TIN)</p>
-                    <p className="text-sm font-bold text-gray-700 font-mono tracking-tight bg-gray-50/50 inline-block px-2 py-0.5 rounded border border-gray-100">{detail.tax_id || 'N/A'}</p>
-                  </div>
+                  <div className="bg-white/60 rounded-2xl p-5 border border-white hover:bg-white hover:shadow-md hover:-translate-y-0.5 transition-all duration-300"><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 drop-shadow-sm">Registered Company Name</p><p className="text-sm font-black text-gray-900 tracking-tight">{detail.company_name || 'N/A'}</p></div>
+                  <div className="bg-white/60 rounded-2xl p-5 border border-white hover:bg-white hover:shadow-md hover:-translate-y-0.5 transition-all duration-300"><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 drop-shadow-sm">Business Category</p><div className="inline-flex items-center px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg text-xs font-black uppercase ring-1 ring-indigo-100">{detail.business_category || 'N/A'}</div></div>
+                  <div className="bg-white/60 rounded-2xl p-5 border border-white hover:bg-white hover:shadow-md hover:-translate-y-0.5 transition-all duration-300"><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 drop-shadow-sm">Registration Number</p><p className="text-sm font-bold text-gray-700 font-mono tracking-tight bg-gray-50/50 inline-block px-2 py-0.5 rounded border border-gray-100">{detail.registration_number || 'N/A'}</p></div>
+                  <div className="bg-white/60 rounded-2xl p-5 border border-white hover:bg-white hover:shadow-md hover:-translate-y-0.5 transition-all duration-300"><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 drop-shadow-sm">Tax Identification (TIN)</p><p className="text-sm font-bold text-gray-700 font-mono tracking-tight bg-gray-50/50 inline-block px-2 py-0.5 rounded border border-gray-100">{detail.tax_id || 'N/A'}</p></div>
                   <div className="bg-white/60 rounded-2xl p-5 border border-white hover:bg-white hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 md:col-span-2 flex items-center justify-between group/contact">
-                    <div>
-                      <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 drop-shadow-sm">Primary Contact Email</p>
-                      <p className="text-sm font-black text-gray-900">{detail.user_email || 'N/A'}</p>
-                    </div>
-                    {detail.user_email && (
-                      <a href={`mailto:${detail.user_email}`} className="h-10 w-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center group-hover/contact:bg-indigo-600 group-hover/contact:text-white transition-all shadow-sm ring-1 ring-indigo-100 group-hover/contact:ring-indigo-600">
-                        <ExternalLink className="h-4 w-4" />
-                      </a>
-                    )}
+                    <div><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 drop-shadow-sm">Primary Contact Email</p><p className="text-sm font-black text-gray-900">{detail.user_email || 'N/A'}</p></div>
+                    {detail.user_email && (<a href={`mailto:${detail.user_email}`} className="h-10 w-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center group-hover/contact:bg-indigo-600 group-hover/contact:text-white transition-all shadow-sm ring-1 ring-indigo-100 group-hover/contact:ring-indigo-600"><ExternalLink className="h-4 w-4" /></a>)}
                   </div>
                 </div>
               </div>
             </div>
-
             <div className="card p-8 border border-gray-100 shadow-xl shadow-gray-200/20 bg-white/90 backdrop-blur-md">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-4">
-                  <div className="h-12 w-12 bg-gray-50 text-gray-600 rounded-2xl border border-gray-200 flex items-center justify-center shadow-inner">
-                    <FileText className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h3 className="text-base font-black text-gray-900 tracking-tight">Corporate Documents</h3>
-                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-0.5">{detail.verification_documents?.length || 0} Files Attached</p>
-                  </div>
+                  <div className="h-12 w-12 bg-gray-50 text-gray-600 rounded-2xl border border-gray-200 flex items-center justify-center shadow-inner"><FileText className="h-5 w-5" /></div>
+                  <div><h3 className="text-base font-black text-gray-900 tracking-tight">Corporate Documents</h3><p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-0.5">{detail.verification_documents?.length || 0} Files Attached</p></div>
                 </div>
-                {detail.verification_documents && detail.verification_documents.length > 0 && (
-                  <span className="px-3 py-1 bg-green-50 text-green-600 text-[10px] font-black uppercase tracking-widest rounded-full ring-1 ring-green-200">Documents Received</span>
-                )}
+                {detail.verification_documents && detail.verification_documents.length > 0 && (<span className="px-3 py-1 bg-green-50 text-green-600 text-[10px] font-black uppercase tracking-widest rounded-full ring-1 ring-green-200">Documents Received</span>)}
               </div>
-
               {detail.verification_documents && detail.verification_documents.length > 0 ? (
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                   {detail.verification_documents.map((doc: any, idx: number) => (
                     <a key={doc.id} href={getMediaUrl(doc.file)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 hover:border-indigo-300 hover:shadow-xl hover:shadow-indigo-500/10 hover:-translate-y-1 transition-all duration-300 group">
-                      <div className="h-12 w-12 rounded-xl bg-gray-50 flex items-center justify-center group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors border border-gray-100">
-                        <FileText className="h-5 w-5 text-gray-400 group-hover:text-indigo-500 transition-colors" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-black text-gray-900 truncate group-hover:text-indigo-900 transition-colors">{doc.name || `Document ${idx + 1}`}</p>
-                        <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mt-1">{doc.document_type || 'Corporate File'}</p>
-                      </div>
-                      <div className="h-8 w-8 rounded-full bg-gray-50 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-sm border border-gray-100 group-hover:border-indigo-600">
-                        <ExternalLink className="h-3 w-3 text-gray-400 group-hover:text-white transition-colors" />
-                      </div>
+                      <div className="h-12 w-12 rounded-xl bg-gray-50 flex items-center justify-center group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors border border-gray-100"><FileText className="h-5 w-5 text-gray-400 group-hover:text-indigo-500 transition-colors" /></div>
+                      <div className="flex-1 min-w-0"><p className="text-sm font-black text-gray-900 truncate group-hover:text-indigo-900 transition-colors">{doc.name || `Document ${idx + 1}`}</p><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mt-1">{doc.document_type || 'Corporate File'}</p></div>
+                      <div className="h-8 w-8 rounded-full bg-gray-50 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-sm border border-gray-100 group-hover:border-indigo-600"><ExternalLink className="h-3 w-3 text-gray-400 group-hover:text-white transition-colors" /></div>
                     </a>
                   ))}
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center py-12 px-4 text-center bg-gray-50/50 rounded-[2rem] border-2 border-dashed border-gray-200">
-                  <div className="h-16 w-16 bg-white rounded-full flex items-center justify-center shadow-sm mb-4 border border-gray-100">
-                    <AlertCircle className="h-8 w-8 text-gray-300" />
-                  </div>
+                  <div className="h-16 w-16 bg-white rounded-full flex items-center justify-center shadow-sm mb-4 border border-gray-100"><AlertCircle className="h-8 w-8 text-gray-300" /></div>
                   <h4 className="text-sm font-black text-gray-900 mb-1">No Documents Available</h4>
                   <p className="text-xs font-medium text-gray-500 max-w-[200px]">The user has not uploaded any required corporate files yet.</p>
                 </div>
@@ -626,19 +480,13 @@ export default function TaskDashboard() {
       case 'ASSET_AUDIT':
         return (
           <div className="card p-6 border-l-4 border-l-orange-500 bg-orange-50/10">
-            <h3 className="text-xs font-black text-orange-600 uppercase tracking-widest mb-4 flex items-center gap-2">
-              <Activity className="h-4 w-4" /> Physical Asset Audit
-            </h3>
+            <h3 className="text-xs font-black text-orange-600 uppercase tracking-widest mb-4 flex items-center gap-2"><Activity className="h-4 w-4" /> Physical Asset Audit</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div><p className="text-[10px] font-bold text-gray-500 uppercase">Target Asset Category</p><p className="text-sm font-black text-gray-900">{detail.category || 'N/A'}</p></div>
               <div><p className="text-[10px] font-bold text-gray-500 uppercase">Owner Identification</p><p className="text-sm font-black text-gray-900">{detail.owner?.first_name} {detail.owner?.last_name} ({detail.owner?.email})</p></div>
             </div>
-
             {detail.location && (
-              <div className="bg-white p-4 rounded-xl border border-gray-100 flex items-center gap-3">
-                <Flag className="h-5 w-5 text-gray-400" />
-                <div><p className="text-[10px] font-bold text-gray-500 uppercase mb-0.5">Reported Location</p><p className="text-xs font-bold text-gray-900">{detail.location.address || 'Coordinates provided'}</p></div>
-              </div>
+              <div className="bg-white p-4 rounded-xl border border-gray-100 flex items-center gap-3"><Flag className="h-5 w-5 text-gray-400" /><div><p className="text-[10px] font-bold text-gray-500 uppercase mb-0.5">Reported Location</p><p className="text-xs font-bold text-gray-900">{detail.location.address || 'Coordinates provided'}</p></div></div>
             )}
           </div>
         );
@@ -646,16 +494,16 @@ export default function TaskDashboard() {
       default:
         return (
           <div className="card p-6 border-l-4 border-l-gray-300 bg-gray-50">
-            <div className="flex items-center gap-2 mb-4">
-              <AlertCircle className="h-4 w-4 text-gray-400" />
-              <h3 className="text-xs font-black text-gray-600 uppercase tracking-widest">Unparsed Payload Data</h3>
-            </div>
+            <div className="flex items-center gap-2 mb-4"><AlertCircle className="h-4 w-4 text-gray-400" /><h3 className="text-xs font-black text-gray-600 uppercase tracking-widest">Unparsed Payload Data</h3></div>
             <pre className="text-[10px] font-mono bg-white p-4 rounded-xl border border-gray-200 overflow-auto shadow-inner text-gray-600">{JSON.stringify(detail, null, 2)}</pre>
           </div>
         );
     }
   };
 
+  // ═══════════════════════════════════════════════════════════
+  // ANALYTICS — recharts
+  // ═══════════════════════════════════════════════════════════
   const renderAnalytics = () => {
     if (!analytics) return null;
     const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
@@ -685,7 +533,6 @@ export default function TaskDashboard() {
             <h3 className="text-3xl font-black tracking-tighter">{analytics.assets.total.toLocaleString()}</h3>
           </div>
         </div>
-
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 card p-8">
             <h3 className="text-lg font-black text-gray-900 tracking-tight flex items-center gap-2 mb-8"><TrendingUp className="h-5 w-5 text-primary-600" /> Growth Trajectory</h3>
@@ -712,319 +559,304 @@ export default function TaskDashboard() {
     );
   };
 
+  // ═══════════════════════════════════════════════════════════
+  // FILTERS & PROCESSING
+  // ═══════════════════════════════════════════════════════════
   if (isLoading) return <div className="flex items-center justify-center min-h-[60vh]"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div></div>;
 
   const filterOptions = [
     { id: 'ALL', label: 'All' },
     { id: 'PENDING', label: 'Pending' }
   ];
-
-  if (isSuperRole || userRoles.includes('SUPPORT')) {
-    filterOptions.push({ id: 'SUPPORT_TICKET', label: 'Support' });
-  }
-
-  if (isSuperRole || userRoles.includes('VERIFIER') || userRoles.includes('CAR_VERIFIER') || userRoles.includes('OPS')) {
-    filterOptions.push({ id: 'VEHICLE_VERIFICATION', label: 'Vehicles' });
-  }
-
-  if (isSuperRole || userRoles.includes('VERIFIER') || userRoles.includes('IDENTITY_VERIFIER')) {
-    filterOptions.push({ id: 'IDENTITY_VERIFICATION', label: 'Identity' });
-  }
-
-  if (isSuperRole || userRoles.includes('RIDE_BUSINESS_VERIFIER') || userRoles.includes('ASSET_BUSINESS_VERIFIER')) {
-    filterOptions.push({ id: 'CORPORATE_RIDE_VERIFICATION', label: 'Corporate' });
-  }
-
+  if (isSuperRole || userRoles.includes('SUPPORT')) filterOptions.push({ id: 'SUPPORT_TICKET', label: 'Support' });
+  if (isSuperRole || userRoles.includes('VERIFIER') || userRoles.includes('CAR_VERIFIER') || userRoles.includes('OPS')) filterOptions.push({ id: 'VEHICLE_VERIFICATION', label: 'Vehicles' });
+  if (isSuperRole || userRoles.includes('VERIFIER') || userRoles.includes('IDENTITY_VERIFIER')) filterOptions.push({ id: 'IDENTITY_VERIFICATION', label: 'Identity' });
+  if (isSuperRole || userRoles.includes('RIDE_BUSINESS_VERIFIER') || userRoles.includes('ASSET_BUSINESS_VERIFIER')) filterOptions.push({ id: 'CORPORATE_RIDE_VERIFICATION', label: 'Corporate' });
   filterOptions.push({ id: 'CUSTOM_TASK', label: 'Custom' });
 
   const processedTasks = tasks.filter(t => {
-    // 1. Filter by text search
-    if (searchQuery && !t.title.toLowerCase().includes(searchQuery.toLowerCase()) && !t.task_type.toLowerCase().includes(searchQuery.toLowerCase())) {
-      return false;
-    }
-    // 2. Filter by pill
+    if (searchQuery && !t.title.toLowerCase().includes(searchQuery.toLowerCase()) && !t.task_type.toLowerCase().includes(searchQuery.toLowerCase())) return false;
     if (activeFilter === 'ALL') return true;
     if (activeFilter === 'PENDING') return t.status === 'PENDING';
     return t.task_type === activeFilter;
   });
 
+  const selectTask = (task: any) => {
+    setSelectedTask(task);
+    setAssignTo(task.assigned_to || '');
+    setAssignRole(task.assigned_role || '');
+    setAssignPriority(task.priority || '');
+    setProcessNotes('');
+    setFeedbackAttachment('');
+    if (!isSuperRole) setIsReviewMode(true);
+  };
+
+  const getStatusConfig = (status: string) => {
+    const c: Record<string, { color: string; bg: string; icon: any }> = {
+      PENDING: { color: 'text-amber-600', bg: 'bg-amber-50 border-amber-200', icon: <Clock className="h-3 w-3" /> },
+      ASSIGNED: { color: 'text-blue-600', bg: 'bg-blue-50 border-blue-200', icon: <UserPlus className="h-3 w-3" /> },
+      IN_PROGRESS: { color: 'text-indigo-600', bg: 'bg-indigo-50 border-indigo-200', icon: <Activity className="h-3 w-3" /> },
+      COMPLETED: { color: 'text-green-600', bg: 'bg-green-50 border-green-200', icon: <CheckCircle className="h-3 w-3" /> },
+      REJECTED: { color: 'text-red-600', bg: 'bg-red-50 border-red-200', icon: <XCircle className="h-3 w-3" /> },
+      CHANGES_REQUESTED: { color: 'text-orange-600', bg: 'bg-orange-50 border-orange-200', icon: <RotateCcw className="h-3 w-3" /> },
+      CANCELLED: { color: 'text-gray-500', bg: 'bg-gray-50 border-gray-200', icon: <X className="h-3 w-3" /> },
+    };
+    return c[status] || c.PENDING;
+  };
+
+  const timeAgo = (date: string) => {
+    const d = Date.now() - new Date(date).getTime();
+    const m = Math.floor(d / 60000);
+    if (m < 60) return `${m}m ago`;
+    const h = Math.floor(m / 60);
+    if (h < 24) return `${h}h ago`;
+    return `${Math.floor(h / 24)}d ago`;
+  };
+
+  const pendingCount = tasks.filter(t => t.status === 'PENDING').length;
+  const assignedCount = tasks.filter(t => t.status === 'ASSIGNED' || t.status === 'IN_PROGRESS').length;
+  const completedCount = tasks.filter(t => t.status === 'COMPLETED').length;
+  const rejectedCount = tasks.filter(t => t.status === 'REJECTED').length;
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between pb-6 border-b border-gray-100">
-        <div className="flex items-center gap-4">
-          <div className="h-12 w-12 bg-primary-50 text-primary-600 rounded-2xl flex items-center justify-center">{roleConfig.icon}</div>
-          <div><h1 className="text-2xl font-black text-gray-900 tracking-tight">{roleConfig.title}</h1><p className="text-xs font-bold text-gray-400 tracking-widest mt-1">{roleConfig.subtitle}</p></div>
-        </div>
-        <div className="flex flex-col items-end gap-2">
-          <div className="flex items-center gap-2 text-[10px] font-black text-primary-600 bg-primary-50 px-3 py-1.5 rounded-lg border border-primary-100 tracking-widest shadow-sm"><Shield className="h-3 w-3" />{roleConfig.label} Mode</div>
-          <div className="flex flex-wrap gap-1 max-w-[250px] justify-end">{user?.roles?.map(r => (<span key={r.role} className="text-[7px] font-black bg-gray-100 text-gray-500 px-1 py-0.5 rounded border border-gray-200">{r.role}</span>))}{isSuperRole && <span className="text-[7px] font-black bg-primary-100 text-primary-600 px-1 py-0.5 rounded border border-primary-200">Full Access</span>}</div>
-        </div>
-      </div>
-
-      <div className="flex gap-4 border-b border-gray-200">
-        {dashboardTabs.map(tab => (
-          <button key={tab.id} onClick={() => handleTabChange(tab.id)} className={`pb-4 px-2 text-sm font-black tracking-widest transition-all relative flex items-center gap-2 ${activeTab === tab.id ? 'text-primary-600' : 'text-gray-400 hover:text-gray-600'}`}>{tab.icon}{tab.label}{activeTab === tab.id && <div className="absolute bottom-0 left-0 right-0 h-1 bg-primary-600 rounded-t-full" />}</button>
-        ))}
-      </div>
-
-      {activeTab === 'analytics' ? renderAnalytics() : isReviewMode && selectedTask ? (
-        <div className="animate-in slide-in-from-bottom-4 duration-500">
-          <button onClick={() => setIsReviewMode(false)} className="flex items-center gap-2 text-xs font-black text-gray-400 tracking-widest mb-6 hover:text-primary-600 transition-colors"><ArrowLeft className="h-3 w-3" /> Back to Task Queue</button>
-          <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
-            <div className="xl:col-span-8 space-y-8">
-              <div className="flex items-center justify-between bg-white p-8 rounded-[2rem] border border-gray-100 shadow-sm">
-                <div className="flex items-center gap-4"><div className="h-16 w-16 bg-primary-50 text-primary-600 rounded-3xl flex items-center justify-center">{getTaskIcon(selectedTask.task_type)}</div><div><p className="text-[10px] font-black text-primary-600 tracking-widest mb-1">{selectedTask.task_type.replace('_', ' ')}</p><h1 className="text-3xl font-black text-gray-900 tracking-tighter">{selectedTask.title}</h1></div></div>
-                <div className="text-right"><p className="text-[10px] font-black text-gray-400 tracking-widest">Priority</p><span className={`text-xs font-black ${selectedTask.priority === 'URGENT' ? 'text-red-600' : 'text-gray-900'}`}>{selectedTask.priority}</span></div>
-              </div>
-              <div className="bg-white p-2 rounded-[2.5rem] border border-gray-100">{renderResourceDetails(selectedTask)}</div>
+      {/* HEADER */}
+      <div className={`bg-gradient-to-r ${roleConfig.accent} text-white rounded-2xl p-6 shadow-lg relative overflow-hidden`}>
+        <div className="absolute top-0 right-0 w-72 h-72 bg-white/5 rounded-full blur-3xl -mr-36 -mt-36" />
+        <div className="relative flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="h-14 w-14 bg-white/15 rounded-2xl flex items-center justify-center backdrop-blur border border-white/20">{roleConfig.icon}</div>
+            <div>
+              <h1 className="text-2xl font-black tracking-tight">{roleConfig.title}</h1>
+              <p className="text-white/60 text-sm font-medium">{roleConfig.subtitle}</p>
             </div>
-            <div className="xl:col-span-4 space-y-6">
-              <div className="sticky top-8">
-                {selectedTask.task_type === 'CUSTOM_TASK' && !isSuperRole && !['COMPLETED', 'REJECTED'].includes(selectedTask.status) ? (
-                  <div className="card p-8 bg-indigo-950 text-white border-none shadow-2xl shadow-indigo-900/20 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-600 rounded-full blur-3xl -mr-16 -mt-16 opacity-30" />
-                    <div className="relative z-10">
-                      <div className="flex items-center gap-2 mb-6">
-                        <PenTool className="h-5 w-5 text-indigo-400" />
-                        <h3 className="text-lg font-black tracking-tight">Task Completion Report</h3>
-                      </div>
-                      <div className="space-y-6">
-                        <div>
-                          <label className="text-[10px] font-black text-indigo-300 uppercase tracking-widest mb-3 block">Summary of Work Done</label>
-                          <textarea className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-sm font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none min-h-[120px] placeholder:text-indigo-200/50" placeholder="Detail what actions were taken..." value={processNotes} onChange={(e) => setProcessNotes(e.target.value)} />
-                        </div>
-                        <div>
-                          <label className="text-[10px] font-black text-indigo-300 uppercase tracking-widest mb-3 block">Attachment Link &lt;span className="text-xs lowercase normal-case italic font-normal"&gt;(Optional)&lt;/span&gt;</label>
-                          <input type="url" className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-sm font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none placeholder:text-indigo-200/50" placeholder="https://..." value={feedbackAttachment} onChange={(e) => setFeedbackAttachment(e.target.value)} />
-                        </div>
-                        <button onClick={() => handleProcessTask('SUBMIT_COMPLETION')} disabled={isProcessing || !processNotes} className="w-full py-4 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-black rounded-2xl shadow-lg shadow-indigo-900/50 transition-all flex items-center justify-center gap-2">
-                          <CheckCircle className="h-4 w-4" /> Submit Task Assignment
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-6">
-                    {selectedTask.task_type === 'CUSTOM_TASK' && selectedTask.extra_data?.completion_feedback && (
-                      <div className="card p-6 bg-indigo-50 border-l-4 border-l-indigo-500 shadow-sm animate-in fade-in duration-500">
-                        <div className="flex items-center gap-2 mb-4">
-                          <MessageSquare className="h-4 w-4 text-indigo-600" />
-                          <h3 className="text-xs font-black text-indigo-900 uppercase tracking-widest">Staff Completion Feedback</h3>
-                        </div>
-                        <p className="text-sm font-medium text-gray-700 leading-relaxed mb-4">{selectedTask.extra_data.completion_feedback}</p>
-                        {selectedTask.extra_data.completion_attachment && (
-                          <a href={selectedTask.extra_data.completion_attachment} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-xs font-black text-indigo-600 bg-white px-4 py-2 rounded-xl border border-indigo-100 hover:bg-indigo-100 transition-colors shadow-sm">
-                            <ExternalLink className="h-3 w-3" /> View Attached Source
-                          </a>
-                        )}
-                      </div>
-                    )}
+          </div>
+          <div className="flex items-center gap-3 flex-wrap">
+            <span className="text-xs font-bold px-3 py-1.5 rounded-lg border bg-amber-400/20 text-amber-200 border-amber-400/30 flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />{pendingCount} Pending</span>
+            <span className="text-xs font-bold px-3 py-1.5 rounded-lg border bg-blue-400/20 text-blue-200 border-blue-400/30">{assignedCount} Active</span>
+            <span className="text-xs font-bold px-3 py-1.5 rounded-lg border bg-green-400/20 text-green-200 border-green-400/30">{completedCount} Done</span>
+            <span className="text-xs font-bold px-3 py-1.5 rounded-lg border bg-red-400/20 text-red-200 border-red-400/30">{rejectedCount} Rejected</span>
+            <span className="text-xs font-black text-white/30 bg-white/10 px-2 py-1 rounded border border-white/10">{roleConfig.label}</span>
+          </div>
+        </div>
+      </div>
 
-                    <div className="card p-8 bg-gray-900 text-white border-none shadow-2xl shadow-gray-200">
-                      <div className="flex items-center gap-2 mb-6"><Shield className="h-5 w-5 text-primary-400" /><h3 className="text-lg font-black tracking-tight">Final Decision</h3></div>
-                      <div className="space-y-6">
-                        <div><label htmlFor="processNotesSuper" className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 block">Official Reviewer Notes</label><textarea id="processNotesSuper" name="processNotesSuper" className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-sm font-medium focus:ring-2 focus:ring-primary-500 focus:outline-none min-h-[150px] placeholder:text-gray-600" placeholder="Provide detailed feedback..." value={processNotes} onChange={(e) => setProcessNotes(e.target.value)} /></div>
-                        {selectedTask.status === 'COMPLETED' || selectedTask.status === 'REJECTED' ? (
-                          <button onClick={() => handleProcessTask('REVOKE')} disabled={isProcessing} className="w-full py-4 bg-orange-900/50 hover:bg-orange-800/50 text-orange-400 border border-orange-500/30 font-black rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2"><RotateCcw className="h-4 w-4" /> Revoke & Reopen Case</button>
-                        ) : (
-                          <div className="space-y-3"><button onClick={() => handleProcessTask('APPROVE')} disabled={isProcessing} className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-2xl shadow-lg transition-all">Confirm & Approve</button><div className="grid grid-cols-2 gap-3"><button onClick={() => handleProcessTask('REJECT')} disabled={isProcessing} className="py-3 bg-white/5 hover:bg-red-950/30 text-red-400 border border-white/10 font-black rounded-xl transition-all">Reject</button><button onClick={() => handleProcessTask('REQUEST_CHANGES')} disabled={isProcessing} className="py-3 bg-white/5 hover:bg-orange-950/30 text-orange-400 border border-white/10 font-black rounded-xl transition-all">Re-evaluate</button></div></div>
-                        )}
-                      </div>
+      {/* TAB BAR */}
+      <div className="flex items-center justify-between border-b border-gray-200">
+        <div className="flex">
+          {dashboardTabs.map(tab => (
+            <button key={tab.id} onClick={() => handleTabChange(tab.id)} className={`flex items-center gap-2 px-5 py-3.5 text-sm font-bold transition-all relative ${activeTab === tab.id ? 'text-primary-600' : 'text-gray-400 hover:text-gray-600'}`}>
+              {tab.icon} {tab.label}
+              {activeTab === tab.id && <div className="absolute bottom-0 inset-x-2 h-0.5 bg-primary-600 rounded-full" />}
+            </button>
+          ))}
+        </div>
+        {isSuperRole && <button onClick={() => setIsCreateModalOpen(true)} className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-xl transition-colors border border-primary-100"><Plus className="h-4 w-4" /> New Task</button>}
+      </div>
+
+      {/* CONTENT */}
+      {activeTab === 'analytics' ? renderAnalytics() : isReviewMode && selectedTask ? (
+        /* REVIEW MODE — full width */
+        <div className="animate-in slide-in-from-bottom-4 duration-500">
+          <button onClick={() => setIsReviewMode(false)} className="flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-primary-600 transition-colors mb-6"><ArrowLeft className="h-4 w-4" /> Back to Queue</button>
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+            <div className="xl:col-span-2 space-y-6">
+              <div className="card p-6">
+                <div className="flex items-start gap-4">
+                  <div className="h-14 w-14 bg-primary-50 text-primary-600 rounded-2xl flex items-center justify-center flex-shrink-0">{getTaskIcon(selectedTask.task_type)}</div>
+                  <div className="flex-1">
+                    <p className="text-xs font-black text-primary-600 uppercase tracking-widest mb-1">{selectedTask.task_type.replace(/_/g, ' ')}</p>
+                    <h2 className="text-xl font-black text-gray-900 tracking-tight">{selectedTask.title}</h2>
+                    {selectedTask.description && <p className="text-sm text-gray-600 mt-2">{selectedTask.description}</p>}
+                    <div className="flex items-center gap-3 mt-4 pt-4 border-t border-gray-100 flex-wrap">
+                      <span className={`inline-flex items-center gap-1 text-xs font-bold px-3 py-1 rounded-full border ${getStatusConfig(selectedTask.status).bg} ${getStatusConfig(selectedTask.status).color}`}>{getStatusConfig(selectedTask.status).icon} {selectedTask.status}</span>
+                      <span className="text-xs font-bold text-gray-500">{selectedTask.priority}</span>
+                      <span className="text-xs text-gray-400">{timeAgo(selectedTask.created_at)}</span>
                     </div>
                   </div>
-                )}
+                </div>
               </div>
+              {renderResourceDetails(selectedTask)}
+            </div>
+            <div className="sticky top-6 space-y-4">
+              {selectedTask.task_type === 'CUSTOM_TASK' && !isSuperRole && !['COMPLETED', 'REJECTED'].includes(selectedTask.status) ? (
+                <div className="card p-6 bg-gray-900 text-white border-gray-800">
+                  <h3 className="text-sm font-black mb-4 flex items-center gap-2"><PenTool className="h-4 w-4 text-indigo-400" /> Completion Report</h3>
+                  <div className="space-y-4">
+                    <textarea className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm focus:outline-none min-h-[120px] placeholder:text-gray-600" placeholder="Describe what was done..." value={processNotes} onChange={e => setProcessNotes(e.target.value)} />
+                    <input type="url" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm focus:outline-none placeholder:text-gray-600" placeholder="Attachment URL (optional)" value={feedbackAttachment} onChange={e => setFeedbackAttachment(e.target.value)} />
+                    <button onClick={() => handleProcessTask('SUBMIT_COMPLETION')} disabled={isProcessing || !processNotes} className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white font-black rounded-xl"><CheckCircle className="h-4 w-4 inline mr-2" />Submit</button>
+                  </div>
+                </div>
+              ) : (
+                <div className="card p-6 bg-gray-900 text-white border-gray-800">
+                  {selectedTask.task_type === 'CUSTOM_TASK' && selectedTask.extra_data?.completion_feedback && (
+                    <div className="bg-indigo-900/30 rounded-xl p-4 mb-4 border border-indigo-500/20">
+                      <p className="text-xs font-bold text-indigo-400 uppercase mb-2">Staff Feedback</p>
+                      <p className="text-sm text-gray-300">{selectedTask.extra_data.completion_feedback}</p>
+                      {selectedTask.extra_data.completion_attachment && <a href={selectedTask.extra_data.completion_attachment} target="_blank" rel="noopener noreferrer" className="text-xs text-indigo-400 hover:underline mt-2 inline-flex items-center gap-1"><ExternalLink className="h-3 w-3" /> Attachment</a>}
+                    </div>
+                  )}
+                  <h3 className="text-sm font-black mb-4 flex items-center gap-2"><Shield className="h-4 w-4 text-primary-400" /> Decision</h3>
+                  <textarea className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm focus:outline-none min-h-[100px] placeholder:text-gray-600 mb-4" placeholder="Notes..." value={processNotes} onChange={e => setProcessNotes(e.target.value)} />
+                  {['COMPLETED', 'REJECTED'].includes(selectedTask.status) ? (
+                    <button onClick={() => handleProcessTask('REVOKE')} disabled={isProcessing} className="w-full py-3 bg-orange-900/50 text-orange-400 border border-orange-500/30 font-black rounded-xl"><RotateCcw className="h-4 w-4 inline mr-2" />Revoke & Reopen</button>
+                  ) : (
+                    <div className="space-y-2">
+                      <button onClick={() => handleProcessTask('APPROVE')} disabled={isProcessing} className="w-full py-3 bg-green-600 hover:bg-green-500 text-white font-black rounded-xl"><ThumbsUp className="h-4 w-4 inline mr-2" />Approve</button>
+                      <div className="grid grid-cols-2 gap-2">
+                        <button onClick={() => handleProcessTask('REJECT')} disabled={isProcessing} className="py-2.5 bg-white/5 text-red-400 border border-white/10 font-black rounded-xl text-sm">Reject</button>
+                        <button onClick={() => handleProcessTask('REQUEST_CHANGES')} disabled={isProcessing} className="py-2.5 bg-white/5 text-orange-400 border border-white/10 font-black rounded-xl text-sm">Re-evaluate</button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-1 space-y-4">
-            <div className="flex items-center gap-2">
-              <div className="card p-3 flex items-center gap-3 bg-gray-50/50 border-gray-200 flex-1"><Search className="h-4 w-4 text-gray-400" /><input type="text" placeholder="Search tasks..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="bg-transparent border-none focus:outline-none text-xs w-full font-bold" /></div>
-              {isSuperRole && <button onClick={() => setIsCreateModalOpen(true)} className="btn-primary h-12 w-12 flex items-center justify-center rounded-2xl shadow-md flex-shrink-0" title="Create Custom Task"><Plus className="h-5 w-5" /></button>}
+        /* TASK QUEUE — full-width cards */
+        <div className="space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <input type="text" placeholder="Search tasks..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white border border-gray-200 focus:border-primary-300 focus:ring-2 focus:ring-primary-100 focus:outline-none text-sm" />
             </div>
-
-            <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+            <div className="flex items-center gap-2 overflow-x-auto scrollbar-none">
               {filterOptions.map(opt => (
-                <button
-                  key={opt.id}
-                  onClick={() => setActiveFilter(opt.id)}
-                  className={`px-4 py-2 rounded-full text-[11px] font-black uppercase tracking-widest whitespace-nowrap transition-colors ${activeFilter === opt.id ? 'bg-gray-200 text-gray-900 border border-gray-300' : 'bg-gray-100/50 text-gray-500 hover:bg-gray-200/50'}`}
-                >
-                  {opt.label}
-                </button>
+                <button key={opt.id} onClick={() => setActiveFilter(opt.id)} className={`px-3.5 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-all border ${activeFilter === opt.id ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-500 border-gray-200 hover:border-gray-300'}`}>{opt.label}</button>
               ))}
             </div>
+          </div>
 
-            <div className="space-y-6">
-              {processedTasks.length === 0 ? <div className="card p-12 text-center bg-gray-50 border-dashed border-2"><p className="text-[10px] font-black text-gray-300 uppercase tracking-widest">Queue Empty</p></div> : (
-                <>
-                  {[
-                    { title: 'Verification & Audits', items: processedTasks.filter(t => ['VEHICLE_VERIFICATION', 'IDENTITY_VERIFICATION', 'CORPORATE_RIDE_VERIFICATION', 'CORPORATE_ASSET_VERIFICATION', 'ASSET_AUDIT'].includes(t.task_type)) },
-                    { title: 'Support & Disputes', items: processedTasks.filter(t => ['SUPPORT_TICKET', 'DISPUTE_RESOLUTION'].includes(t.task_type)) },
-                    { title: 'Administrative Tasks', items: processedTasks.filter(t => t.task_type === 'CUSTOM_TASK') },
-                    { title: 'Other Processes', items: processedTasks.filter(t => !['VEHICLE_VERIFICATION', 'IDENTITY_VERIFICATION', 'CORPORATE_RIDE_VERIFICATION', 'CORPORATE_ASSET_VERIFICATION', 'ASSET_AUDIT', 'SUPPORT_TICKET', 'DISPUTE_RESOLUTION', 'CUSTOM_TASK'].includes(t.task_type)) }
-
-                  ].map((group, idx) => group.items.length > 0 && (
-                    <div key={idx} className="space-y-2">
-                      <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">{group.title} <span className="text-gray-300">({group.items.length})</span></h4>
-                      {group.items.sort((a: any, b: any) => {
-                        const aFinalized = a.status === 'COMPLETED' || a.status === 'REJECTED';
-                        const bFinalized = b.status === 'COMPLETED' || b.status === 'REJECTED';
-
-                        if (aFinalized && !bFinalized) return 1;
-                        if (!aFinalized && bFinalized) return -1;
-
-                        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-                      }).map((task: any) => (
-                        <button key={task.id} onClick={() => { setSelectedTask(task); setAssignTo(task.assigned_to || ''); setAssignRole(task.assigned_role || ''); setAssignPriority(task.priority || ''); if (!isSuperRole) setIsReviewMode(true); }} className={`w-full text-left p-4 rounded-2xl transition-all border-l-4 ${selectedTask?.id === task.id ? 'bg-white border-l-primary-600 shadow-md' : 'bg-gray-50 border-l-transparent hover:bg-gray-100'}`}>
-                          <div className="flex justify-between items-start mb-2">
-                            <div className="flex items-center gap-2">
-                              <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${task.status === 'PENDING' ? 'bg-orange-100 text-orange-600' : task.status === 'COMPLETED' ? 'bg-green-100 text-green-600' : task.status === 'REJECTED' ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-600'}`}>{task.status}</span>
-                              {task.status === 'PENDING' && (
-                                <span className="flex items-center gap-1 text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-red-100 text-red-600 shadow-sm animate-pulse">
-                                  <span className="h-1.5 w-1.5 rounded-full bg-red-500"></span> Unattended
-                                </span>
-                              )}
-                            </div>
-                            <span className="text-[8px] font-bold text-gray-400">{new Date(task.created_at).toLocaleDateString()}</span>
-                          </div>
-                          <h3 className={`text-xs font-black mb-1 leading-tight ${(task.status === 'COMPLETED' || task.status === 'REJECTED') ? 'text-gray-400 line-through' : 'text-gray-900'}`}>{task.title}</h3>
-                          <div className="flex items-center justify-between mt-3"><div className="flex items-center gap-2 text-[8px] font-black text-gray-400 uppercase tracking-tighter">{task.task_type.replace('_', ' ')}</div></div>
-                        </button>
-                      ))}
+          {processedTasks.length === 0 ? (
+            <div className="py-20 text-center card"><Layers className="h-12 w-12 text-gray-200 mx-auto mb-4" /><p className="text-base font-bold text-gray-400">Queue Empty</p><p className="text-sm text-gray-400 mt-1">No tasks match your filters</p></div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+              {processedTasks.map((task: any) => {
+                const sc = getStatusConfig(task.status);
+                const done = ['COMPLETED', 'REJECTED'].includes(task.status);
+                return (
+                  <button key={task.id} onClick={() => selectTask(task)} className={`text-left card p-5 transition-all group hover:shadow-lg hover:-translate-y-0.5 ${selectedTask?.id === task.id ? 'ring-2 ring-primary-500 border-primary-200' : ''} ${done ? 'opacity-60' : ''}`}>
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${done ? 'bg-gray-100 text-gray-400' : 'bg-primary-50 text-primary-600'}`}>{getTaskIcon(task.task_type)}</div>
+                        <span className={`inline-flex items-center gap-1 text-[10px] font-black uppercase px-2 py-0.5 rounded-full border ${sc.bg} ${sc.color}`}>{sc.icon} {task.status === 'CHANGES_REQUESTED' ? 'CHANGES' : task.status}</span>
+                      </div>
+                      {task.priority === 'URGENT' && <span className="text-[10px] font-black text-red-600 bg-red-50 px-2 py-0.5 rounded-full border border-red-200 animate-pulse">URGENT</span>}
+                      {task.priority === 'HIGH' && <span className="text-[10px] font-black text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full border border-orange-200">HIGH</span>}
                     </div>
-                  ))}
-                </>
-              )}
+                    <h3 className={`text-sm font-bold leading-snug mb-2 group-hover:text-primary-600 transition-colors ${done ? 'text-gray-400 line-through' : 'text-gray-900'}`}>{task.title}</h3>
+                    <div className="flex items-center justify-between mt-auto pt-2 border-t border-gray-100">
+                      <span className="text-[10px] font-bold text-gray-400 uppercase">{task.task_type.replace(/_/g, ' ')}</span>
+                      <div className="flex items-center gap-2">
+                        {task.assigned_to_email && <span className="text-[10px] font-bold text-primary-600 bg-primary-50 px-2 py-0.5 rounded-full">{task.assigned_to_email.split('@')[0]}</span>}
+                        <span className="text-[10px] text-gray-400">{timeAgo(task.created_at)}</span>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* SELECTED TASK DETAIL (super admin — expands below grid) */}
+      {selectedTask && !isReviewMode && isSuperRole && (
+        <div className="card p-0 overflow-hidden border-t-4 border-t-primary-600 animate-in slide-in-from-bottom-4 duration-500">
+          <div className="p-6 bg-gray-900 text-white">
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-4">
+                <div className="h-12 w-12 bg-primary-600 rounded-2xl flex items-center justify-center text-white shadow-lg">{getTaskIcon(selectedTask.task_type)}</div>
+                <div>
+                  <p className="text-xs font-black text-primary-400 uppercase tracking-widest mb-1">{selectedTask.task_type.replace(/_/g, ' ')}</p>
+                  <h2 className="text-xl font-black tracking-tight">{selectedTask.title}</h2>
+                  {selectedTask.description && <p className="text-sm text-gray-400 mt-1">{selectedTask.description}</p>}
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <button onClick={() => setSelectedTask(null)} className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-xl"><X className="h-4 w-4" /></button>
+                <button onClick={handleDeleteTask} className="p-2 text-red-400 hover:text-red-300 hover:bg-red-900/20 rounded-xl"><Trash2 className="h-4 w-4" /></button>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 mt-4 flex-wrap">
+              <span className={`inline-flex items-center gap-1 text-xs font-bold px-3 py-1 rounded-full border ${getStatusConfig(selectedTask.status).bg} ${getStatusConfig(selectedTask.status).color}`}>{getStatusConfig(selectedTask.status).icon} {selectedTask.status}</span>
+              <span className="text-xs font-bold text-gray-500">{selectedTask.priority}</span>
+              <span className="text-xs text-gray-400">{timeAgo(selectedTask.created_at)}</span>
+              {selectedTask.assigned_to_email && <span className="text-xs font-bold text-primary-400">→ {selectedTask.assigned_to_email}</span>}
             </div>
           </div>
-          <div className="lg:col-span-2">
-            {selectedTask ? (
-              <div className="space-y-6">
-                <div className={`card p-6 ${isSuperRole ? 'bg-gray-900 text-white' : 'bg-white border-2 border-gray-100'} relative overflow-hidden`}>
-                  <div className="relative">
-                    <div className="flex justify-between items-start mb-4">
-                      <div className="flex items-center gap-3"><div className={`h-10 w-10 ${isSuperRole ? 'bg-primary-600' : 'bg-gray-100 text-gray-900'} rounded-xl flex items-center justify-center`}>{getTaskIcon(selectedTask.task_type)}</div><div><p className={`text-[9px] font-black uppercase tracking-widest ${isSuperRole ? 'text-primary-400' : 'text-gray-400'} mb-0.5`}>{selectedTask.task_type.replace('_', ' ')}</p><h2 className="text-xl font-black tracking-tight leading-none">{selectedTask.title}</h2></div></div>
-                      {isSuperRole && <button onClick={handleDeleteTask} className="p-2 text-red-400 hover:text-red-500 hover:bg-white/5 rounded-xl transition-all"><Trash2 className="h-5 w-5" /></button>}
-                    </div>
-                    <p className={`text-sm font-medium leading-relaxed ${isSuperRole ? 'text-gray-400' : 'text-gray-600'}`}>{selectedTask.description}</p>
-                  </div>
-                </div>
-                {isSuperRole && (
-                  <div className="card p-6 border-2 border-dashed border-gray-200 bg-gray-50/50">
-                    <div className="flex items-center gap-2 mb-4"><UserPlus className="h-4 w-4 text-primary-600" /><h3 className="text-[10px] font-black text-gray-900 uppercase tracking-[0.2em]">Administrative Control</h3></div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-                      <div><label htmlFor="assignTo" className="text-[10px] font-black text-gray-400 uppercase mb-1.5 block">Assign Individual</label><select id="assignTo" name="assignTo" className="input text-xs h-10 font-bold border-gray-200" value={assignTo} onChange={(e) => setAssignTo(e.target.value)}><option value="">Auto (Unassigned)</option>{staffUsers.map(u => (<option key={u.id} value={u.id}>{u.first_name} {u.last_name} ({u.email})</option>))}</select></div>
-                      <div><label htmlFor="assignRole" className="text-[10px] font-black text-gray-400 uppercase mb-1.5 block">Assign Role</label><select id="assignRole" name="assignRole" className="input text-xs h-10 font-bold border-gray-200" value={assignRole} onChange={(e) => setAssignRole(e.target.value)}><option value="">Open to all</option><option value="VERIFIER">Verifier</option><option value="CAR_VERIFIER">Car Verifier</option><option value="RIDE_BUSINESS_VERIFIER">Ride Business Verifier</option><option value="ASSET_BUSINESS_VERIFIER">Asset Business Verifier</option><option value="OPS">Operations</option><option value="SUPPORT">Support</option><option value="SUPER_ADMIN">Super Admin</option></select></div>
-                      <div className="flex gap-2"><div className="flex-1"><label htmlFor="assignPriority" className="text-[10px] font-black text-gray-400 uppercase mb-1.5 block">Set Priority</label><select id="assignPriority" name="assignPriority" className="input text-xs h-10 font-bold border-gray-200" value={assignPriority} onChange={(e) => setAssignPriority(e.target.value)}><option value="LOW">Low</option><option value="MEDIUM">Medium</option><option value="HIGH">High</option><option value="URGENT">Urgent</option></select></div><button onClick={handleAssignTask} disabled={isProcessing} className="btn-primary h-10 px-4 flex items-center justify-center gap-2 shadow-lg">{isProcessing ? <RotateCcw className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}</button></div>
-                    </div>
-                  </div>
-                )}
-                {renderResourceDetails(selectedTask)}
-                {selectedTask.status === 'PENDING' || selectedTask.status === 'ASSIGNED' || selectedTask.status === 'IN_PROGRESS' || isSuperRole ? (
-                  <div className={`card p-6 ${isSuperRole ? 'border-2 border-primary-100 bg-primary-50/10' : 'border border-gray-200'}`}>
-                    <div className="flex items-center gap-2 mb-6"><MessageSquare className="h-4 w-4 text-primary-600" /><h3 className="text-sm font-black text-gray-900 tracking-tight">Review Decision</h3></div>
-                    <div className="space-y-6">
-                      <div><label htmlFor="processNotesPrimary" className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 block">Decision Notes</label><textarea id="processNotesPrimary" name="processNotesPrimary" className="input min-h-[100px] text-sm font-medium" placeholder="Provide reasons..." value={processNotes} onChange={(e) => setProcessNotes(e.target.value)} /></div>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4"><button onClick={() => handleProcessTask('APPROVE')} disabled={isProcessing} className="btn-primary py-3 bg-emerald-600 hover:bg-emerald-700 border-none shadow-lg">Approve</button><button onClick={() => handleProcessTask('REJECT')} disabled={isProcessing} className="btn-secondary py-3 text-red-600 border-red-100 hover:bg-red-50">Reject</button><button onClick={() => handleProcessTask('REQUEST_CHANGES')} disabled={isProcessing} className="btn-secondary py-3 text-orange-600 border-orange-100 hover:bg-orange-50">Re-evaluate</button></div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-6">
-                    <div className="card p-6 bg-gray-50 border-gray-100"><div className="flex items-center gap-3 mb-4">{selectedTask.status === 'COMPLETED' ? <CheckCircle className="h-8 w-8 text-emerald-500" /> : <XCircle className="h-8 w-8 text-red-500" />}<div><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Resolution</p><h3 className="text-sm font-black text-gray-900 uppercase tracking-tight">{selectedTask.status}</h3></div></div><div className="bg-white p-4 rounded-xl border border-gray-100"><p className="text-xs font-medium text-gray-700 leading-relaxed">"{selectedTask.reviewer_notes || 'No notes provided.'}"</p></div></div>
-                    <div className="card p-6 border-2 border-red-50 bg-red-50/10"><div className="flex items-center gap-2 mb-4"><RotateCcw className="h-4 w-4 text-red-600" /><h3 className="text-sm font-black text-gray-900 tracking-tight">Re-evaluate Task</h3></div><p className="text-xs text-gray-500 mb-6 font-medium">Revoke status and return to queue.</p><div className="space-y-4"><textarea className="input min-h-[80px] text-xs font-medium bg-white" placeholder="Reason for revocation..." value={processNotes} onChange={(e) => setProcessNotes(e.target.value)} /><button onClick={() => handleProcessTask('REVOKE')} disabled={isProcessing || !processNotes} className="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-black rounded-xl text-xs transition-all shadow-lg disabled:opacity-50">Revoke & Re-open Task</button></div></div>
-                  </div>
-                )}
+          <div className="p-5 bg-gray-50 border-b border-gray-200">
+            <h3 className="text-xs font-black text-gray-900 uppercase tracking-widest mb-4 flex items-center gap-2"><UserPlus className="h-4 w-4 text-primary-600" /> Assignment</h3>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
+              <div><label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">Person</label><select className="w-full rounded-xl border-gray-200 text-sm h-10 px-3" value={assignTo} onChange={e => setAssignTo(e.target.value)}><option value="">Unassigned</option>{staffUsers.map(u => <option key={u.id} value={u.id}>{u.first_name} {u.last_name}</option>)}</select></div>
+              <div><label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">Role</label><select className="w-full rounded-xl border-gray-200 text-sm h-10 px-3" value={assignRole} onChange={e => setAssignRole(e.target.value)}><option value="">Open</option><option value="VERIFIER">Verifier</option><option value="CAR_VERIFIER">Car Verifier</option><option value="RIDE_BUSINESS_VERIFIER">Ride Biz</option><option value="ASSET_BUSINESS_VERIFIER">Asset Biz</option><option value="OPS">Ops</option><option value="SUPPORT">Support</option><option value="SUPER_ADMIN">Super Admin</option></select></div>
+              <div><label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">Priority</label><select className="w-full rounded-xl border-gray-200 text-sm h-10 px-3" value={assignPriority} onChange={e => setAssignPriority(e.target.value)}><option value="LOW">Low</option><option value="MEDIUM">Medium</option><option value="HIGH">High</option><option value="URGENT">Urgent</option></select></div>
+              <button onClick={handleAssignTask} disabled={isProcessing} className="btn-primary h-10 flex items-center justify-center gap-2 rounded-xl">{isProcessing ? <RotateCcw className="h-4 w-4 animate-spin" /> : <><Save className="h-4 w-4" /> Save</>}</button>
+            </div>
+          </div>
+          <div className="p-6">{renderResourceDetails(selectedTask)}</div>
+          <div className="p-6 border-t border-gray-200">
+            <h3 className="text-xs font-black text-gray-900 uppercase tracking-widest mb-4 flex items-center gap-2"><Shield className="h-4 w-4 text-primary-600" /> Review Decision</h3>
+            {selectedTask.task_type === 'CUSTOM_TASK' && selectedTask.extra_data?.completion_feedback && (
+              <div className="card p-4 bg-indigo-50 border-indigo-100 mb-4">
+                <p className="text-xs font-bold text-indigo-600 uppercase mb-2">Staff Feedback</p>
+                <p className="text-sm text-gray-700">{selectedTask.extra_data.completion_feedback}</p>
+                {selectedTask.extra_data.completion_attachment && <a href={selectedTask.extra_data.completion_attachment} target="_blank" rel="noopener noreferrer" className="text-xs text-indigo-600 hover:underline mt-2 inline-flex items-center gap-1"><ExternalLink className="h-3 w-3" /> Attachment</a>}
               </div>
-            ) : <div className="card h-[500px] flex flex-col items-center justify-center text-center p-12 bg-gray-50 border-dashed border-2"><p className="text-[10px] font-black text-gray-300 uppercase tracking-widest">Select a task</p></div>}
+            )}
+            <textarea className="w-full rounded-xl border-gray-200 p-4 text-sm min-h-[80px] focus:ring-2 focus:ring-primary-100 focus:border-primary-300 focus:outline-none mb-4" placeholder="Decision notes..." value={processNotes} onChange={e => setProcessNotes(e.target.value)} />
+            {['COMPLETED', 'REJECTED'].includes(selectedTask.status) ? (
+              <div className="space-y-3">
+                <div className="card p-4 bg-gray-50 flex items-center gap-3">{selectedTask.status === 'COMPLETED' ? <CheckCircle className="h-5 w-5 text-green-500" /> : <XCircle className="h-5 w-5 text-red-500" />}<div><p className="text-sm font-bold text-gray-900">{selectedTask.status}</p><p className="text-xs text-gray-500 italic">"{selectedTask.reviewer_notes || 'No notes.'}"</p></div></div>
+                <button onClick={() => handleProcessTask('REVOKE')} disabled={isProcessing} className="w-full py-3 bg-orange-50 text-orange-600 border border-orange-200 font-black rounded-xl hover:bg-orange-100 flex items-center justify-center gap-2"><RotateCcw className="h-4 w-4" /> Revoke & Reopen</button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-3 gap-3">
+                <button onClick={() => handleProcessTask('APPROVE')} disabled={isProcessing} className="py-3 bg-green-600 hover:bg-green-700 text-white font-black rounded-xl flex items-center justify-center gap-2"><ThumbsUp className="h-4 w-4" /> Approve</button>
+                <button onClick={() => handleProcessTask('REJECT')} disabled={isProcessing} className="py-3 bg-white text-red-600 border border-red-200 font-black rounded-xl hover:bg-red-50 flex items-center justify-center gap-2"><ThumbsDown className="h-4 w-4" /> Reject</button>
+                <button onClick={() => handleProcessTask('REQUEST_CHANGES')} disabled={isProcessing} className="py-3 bg-white text-orange-600 border border-orange-200 font-black rounded-xl hover:bg-orange-50 flex items-center justify-center gap-2"><RotateCcw className="h-4 w-4" /> Re-evaluate</button>
+              </div>
+            )}
           </div>
         </div>
       )}
 
-      {/* Create Custom Task Modal */}
+      {/* CREATE MODAL */}
       {isCreateModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
-              <div className="flex items-center gap-3">
-                <div className="h-12 w-12 bg-primary-100 text-primary-600 rounded-2xl flex items-center justify-center">
-                  <PenTool className="h-5 w-5" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-black text-gray-900 tracking-tight">Create Custom Task</h2>
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Assign custom operational work</p>
-                </div>
-              </div>
-              <button onClick={() => setIsCreateModalOpen(false)} className="h-10 w-10 flex items-center justify-center rounded-xl bg-gray-100 text-gray-400 hover:bg-gray-200 hover:text-gray-600 transition-colors">
-                <X className="h-5 w-5" />
-              </button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50">
+              <div className="flex items-center gap-3"><div className="h-10 w-10 bg-primary-100 text-primary-600 rounded-xl flex items-center justify-center"><PenTool className="h-5 w-5" /></div><div><h2 className="text-lg font-black text-gray-900">Create Custom Task</h2><p className="text-xs text-gray-500 mt-0.5">Assign work to your team</p></div></div>
+              <button onClick={() => setIsCreateModalOpen(false)} className="h-9 w-9 flex items-center justify-center rounded-xl bg-gray-100 text-gray-400 hover:bg-gray-200"><X className="h-4 w-4" /></button>
             </div>
-
-            <div className="p-8 overflow-y-auto flex-1">
-              <form id="create-task-form" onSubmit={handleCreateCustomTask} className="space-y-6">
-                <div>
-                  <label htmlFor="title" className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block">Task Title <span className="text-red-500">*</span></label>
-                  <input id="title" type="text" value={newTask.title} onChange={e => setNewTask({ ...newTask, title: e.target.value })} className="input font-bold text-sm" placeholder="E.g., Investigate User Report #1024" required />
+            <div className="p-6 overflow-y-auto flex-1">
+              <form id="create-task-form" onSubmit={handleCreateCustomTask} className="space-y-5">
+                <div><label className="text-xs font-bold text-gray-500 uppercase block mb-2">Title <span className="text-red-500">*</span></label><input type="text" value={newTask.title} onChange={e => setNewTask({ ...newTask, title: e.target.value })} className="w-full rounded-xl border-gray-200 font-bold text-sm py-3 px-4 focus:ring-2 focus:ring-primary-100 focus:border-primary-300 focus:outline-none" placeholder="E.g., Investigate Report #1024" required /></div>
+                <div><label className="text-xs font-bold text-gray-500 uppercase block mb-2">Instructions</label><textarea value={newTask.description} onChange={e => setNewTask({ ...newTask, description: e.target.value })} className="w-full rounded-xl border-gray-200 text-sm py-3 px-4 min-h-[120px] focus:ring-2 focus:ring-primary-100 focus:border-primary-300 focus:outline-none" placeholder="Context..." /></div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div><label className="text-xs font-bold text-gray-500 uppercase block mb-2">Priority</label><select value={newTask.priority} onChange={e => setNewTask({ ...newTask, priority: e.target.value })} className="w-full rounded-xl border-gray-200 font-bold text-sm h-12 px-3"><option value="LOW">Low</option><option value="MEDIUM">Medium</option><option value="HIGH">High</option><option value="URGENT">Urgent</option></select></div>
+                  <div><label className="text-xs font-bold text-gray-500 uppercase block mb-2">Link</label><input type="url" value={newTask.attachments} onChange={e => setNewTask({ ...newTask, attachments: e.target.value })} className="w-full rounded-xl border-gray-200 text-sm h-12 px-3" placeholder="https://..." /></div>
                 </div>
-
-                <div>
-                  <label htmlFor="description" className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block">Detailed Instructions</label>
-                  <textarea id="description" value={newTask.description} onChange={e => setNewTask({ ...newTask, description: e.target.value })} className="input font-medium text-sm min-h-[120px]" placeholder="Provide full context for the assignee..." />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label htmlFor="priority" className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block">Priority Level</label>
-                    <select id="priority" value={newTask.priority} onChange={e => setNewTask({ ...newTask, priority: e.target.value })} className="input font-bold text-xs h-12">
-                      <option value="LOW">Low - Routine</option>
-                      <option value="MEDIUM">Medium - Standard</option>
-                      <option value="HIGH">High - Important</option>
-                      <option value="URGENT">Urgent - Immediate Action</option>
-                    </select>
+                <div className="p-5 bg-gray-50 rounded-xl border border-gray-200 space-y-4">
+                  <h4 className="text-xs font-black text-gray-900 uppercase tracking-widest flex items-center gap-2"><UserPlus className="h-3.5 w-3.5 text-primary-600" /> Assignment</h4>
+                  <div className="flex gap-3 mb-3">
+                    <button type="button" onClick={() => setNewTask({ ...newTask, assignType: 'person' })} className={`flex-1 py-2 rounded-lg text-sm font-bold ${newTask.assignType === 'person' ? 'bg-primary-600 text-white' : 'bg-gray-100 text-gray-600'}`}>Person</button>
+                    <button type="button" onClick={() => setNewTask({ ...newTask, assignType: 'role' })} className={`flex-1 py-2 rounded-lg text-sm font-bold ${newTask.assignType === 'role' ? 'bg-primary-600 text-white' : 'bg-gray-100 text-gray-600'}`}>Role</button>
                   </div>
-                  <div>
-                    <label htmlFor="attachments" className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block">External Link / Reference (Optional)</label>
-                    <input id="attachments" type="url" value={newTask.attachments} onChange={e => setNewTask({ ...newTask, attachments: e.target.value })} className="input font-medium text-xs h-12" placeholder="https://..." />
-                  </div>
-                </div>
-
-                <div className="p-5 border-2 border-dashed border-gray-200 rounded-2xl bg-gray-50/50">
-                  <h4 className="text-[10px] font-black text-gray-900 uppercase tracking-widest mb-4 flex items-center gap-2"><UserPlus className="h-4 w-4 text-primary-600" /> Assignment Targeting</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label htmlFor="newAssignTo" className="text-[9px] font-bold text-gray-500 uppercase mb-1.5 block">Specific Person</label>
-                      <select id="newAssignTo" value={newTask.assigned_to} onChange={e => setNewTask({ ...newTask, assigned_to: e.target.value })} className="input font-bold text-xs h-10 border-gray-200">
-                        <option value="">Leave unassigned</option>
-                        {staffUsers.map(u => (
-                          <option key={u.id} value={u.id}>{u.first_name} {u.last_name} ({u.email})</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label htmlFor="newAssignRole" className="text-[9px] font-bold text-gray-500 uppercase mb-1.5 block">Or Required Role</label>
-                      <select id="newAssignRole" value={newTask.assigned_role} onChange={e => setNewTask({ ...newTask, assigned_role: e.target.value })} className="input font-bold text-xs h-10 border-gray-200">
-                        <option value="">Any Role / Open Queue</option>
-                        <option value="VERIFIER">Verifier</option>
-                        <option value="CAR_VERIFIER">Car Verifier</option>
-                        <option value="RIDE_BUSINESS_VERIFIER">Ride Business Verifier</option>
-                        <option value="ASSET_BUSINESS_VERIFIER">Asset Business Verifier</option>
-                        <option value="OPS">Operations</option>
-                        <option value="SUPPORT">Support</option>
-                      </select>
-                    </div>
-                  </div>
+                  {newTask.assignType === 'person' ? (
+                    <select value={newTask.assigned_to} onChange={e => setNewTask({ ...newTask, assigned_to: e.target.value })} className="w-full rounded-xl border-gray-200 font-bold text-sm h-10 px-3"><option value="">Unassigned</option>{staffUsers.map(u => <option key={u.id} value={u.id}>{u.first_name} {u.last_name}</option>)}</select>
+                  ) : (
+                    <select value={newTask.assigned_role} onChange={e => setNewTask({ ...newTask, assigned_role: e.target.value })} className="w-full rounded-xl border-gray-200 font-bold text-sm h-10 px-3"><option value="">Any</option><option value="VERIFIER">Verifier</option><option value="CAR_VERIFIER">Car Verifier</option><option value="RIDE_BUSINESS_VERIFIER">Ride Biz</option><option value="ASSET_BUSINESS_VERIFIER">Asset Biz</option><option value="OPS">Ops</option><option value="SUPPORT">Support</option></select>
+                  )}
                 </div>
               </form>
             </div>
-
-            <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
-              <button onClick={() => setIsCreateModalOpen(false)} className="px-6 py-3 font-bold text-sm text-gray-600 hover:bg-gray-200 rounded-xl transition-colors">Cancel</button>
-              <button type="submit" form="create-task-form" disabled={isProcessing || !newTask.title} className="btn-primary px-8 py-3 rounded-xl shadow-lg shadow-primary-500/20 disabled:opacity-50 flex items-center gap-2">
-                {isProcessing ? <RotateCcw className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                Create & Assign Task
-              </button>
+            <div className="p-5 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
+              <button onClick={() => setIsCreateModalOpen(false)} className="px-5 py-2.5 font-bold text-sm text-gray-600 hover:bg-gray-200 rounded-xl">Cancel</button>
+              <button type="submit" form="create-task-form" disabled={isProcessing || !newTask.title} className="btn-primary px-6 py-2.5 rounded-xl shadow-lg disabled:opacity-50 flex items-center gap-2">{isProcessing ? <RotateCcw className="h-4 w-4 animate-spin" /> : <><Save className="h-4 w-4" /> Create Task</>}</button>
             </div>
           </div>
         </div>

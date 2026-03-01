@@ -39,6 +39,9 @@ import TaskDashboard from './pages/staff/TaskDashboard';
 import RideManifestPage from './pages/rides/RideManifestPage';
 import RideEditPage from './pages/rides/RideEditPage';
 import BusinessDashboard from './pages/business/BusinessDashboard';
+import UpgradePage from './pages/business/UpgradePage';
+import PlusDashboard from './pages/plus/PlusDashboard';
+import BusinessRegistrationForm from './pages/business/BusinessRegistrationForm';
 
 // Protected Route Component
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -142,6 +145,9 @@ function App() {
         <Route path="/vehicles" element={<MyVehiclesPage />} />
         <Route path="/vehicles/register" element={<RegisterVehiclePage />} />
         <Route path="/business" element={<BusinessDashboard />} />
+        <Route path="/business/register" element={<BusinessRegistrationForm />} />
+        <Route path="/upgrade" element={<UpgradePage />} />
+        <Route path="/plus" element={<PlusDashboard />} />
         <Route path="/staff/tasks" element={<TaskDashboard />} />
         <Route path="/payments" element={<PaymentsPage />} />
         <Route path="/settings" element={<SettingsPage />} />

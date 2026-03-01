@@ -164,24 +164,26 @@ export default function ThreadPage() {
             <ArrowLeft className="h-5 w-5 text-gray-500" />
           </Link>
           <div className="flex items-center">
-            <div className="h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-bold border-2 border-white shadow-sm overflow-hidden">
-              {otherUser?.profile?.avatar ? (
-                <img src={otherUser.profile.avatar} alt="" className="h-full w-full object-cover" />
-              ) : (
-                <span>{otherUser?.first_name?.[0]}{otherUser?.last_name?.[0]}</span>
-              )}
-            </div>
-            <div className="ml-3">
-              <h1 className="text-sm font-bold text-gray-900 leading-tight">
-                {otherUser ? `${otherUser.first_name} ${otherUser.last_name}` : 'Unknown User'}
-              </h1>
-              <div className="flex items-center">
-                <span className={`h-2 w-2 rounded-full mr-2 ${thread.status === 'OPEN' ? 'bg-green-500' : 'bg-gray-400'}`}></span>
-                <span className="text-xs text-gray-500 capitalize">{thread.thread_type.toLowerCase()}</span>
-                {thread.subject && <span className="text-xs text-gray-400 mx-1">•</span>}
-                {thread.subject && <span className="text-xs text-gray-500 truncate max-w-[150px]">{thread.subject}</span>}
+            <Link to={otherUser ? `/users/${otherUser.id}` : '#'} className="flex items-center hover:opacity-80 transition-opacity">
+              <div className="h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-bold border-2 border-white shadow-sm overflow-hidden">
+                {otherUser?.profile?.avatar ? (
+                  <img src={otherUser.profile.avatar} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  <span>{otherUser?.first_name?.[0]}{otherUser?.last_name?.[0]}</span>
+                )}
               </div>
-            </div>
+              <div className="ml-3">
+                <h1 className="text-sm font-bold text-gray-900 leading-tight hover:text-primary-600 transition-colors">
+                  {otherUser ? `${otherUser.first_name} ${otherUser.last_name}` : 'Unknown User'}
+                </h1>
+                <div className="flex items-center">
+                  <span className={`h-2 w-2 rounded-full mr-2 ${thread.status === 'OPEN' ? 'bg-green-500' : 'bg-gray-400'}`}></span>
+                  <span className="text-xs text-gray-500 capitalize">{thread.thread_type.toLowerCase()}</span>
+                  {thread.subject && <span className="text-xs text-gray-400 mx-1">•</span>}
+                  {thread.subject && <span className="text-xs text-gray-500 truncate max-w-[150px]">{thread.subject}</span>}
+                </div>
+              </div>
+            </Link>
           </div>
         </div>
         <div className="flex items-center space-x-2">

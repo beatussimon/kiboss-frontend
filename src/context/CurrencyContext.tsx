@@ -61,13 +61,19 @@ export const CurrencyProvider: React.FC<{ children: ReactNode }> = ({ children }
     return amountInUsd * currency.rate;
   };
 
+  // Currencies that don't use decimal fractions (whole-number currencies)
+  const wholeNumberCurrencies: CurrencyCode[] = ['TZS', 'KES'];
+
   const formatPrice = (amount: number | string, fromCurrency: string = 'TZS'): string => {
     const converted = convertPrice(amount, fromCurrency);
+    const isWholeNumber = wholeNumberCurrencies.includes(selectedCode);
 
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: selectedCode,
       currencyDisplay: 'symbol',
+      minimumFractionDigits: isWholeNumber ? 0 : 2,
+      maximumFractionDigits: isWholeNumber ? 0 : 2,
     }).format(converted).replace(selectedCode, currency.symbol);
   };
 

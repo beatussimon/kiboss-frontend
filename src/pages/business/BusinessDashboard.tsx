@@ -31,7 +31,6 @@ import { Asset } from '../../types';
 import { getMediaUrl } from '../../utils/media';
 import VerificationBadge from '../../components/ui/VerificationBadge';
 import ContactButton from '../../components/messaging/ContactButton';
-import BusinessRegistrationForm from './BusinessRegistrationForm';
 import FeedbackForm from '../../components/common/FeedbackForm';
 import WorkerManagement from './WorkerManagement';
 import FleetCommand from './FleetCommand';
@@ -43,8 +42,6 @@ export default function BusinessDashboard() {
   const { user } = useSelector((state: RootState) => state.auth);
   const [properties, setProperties] = useState<Asset[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isRegistering, setIsRegistering] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<'MONTHLY' | 'YEARLY' | null>(null);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [businessStats, setBusinessStats] = useState({ tripCount: 0, driverCount: 0, serviceCount: 0 });
@@ -137,21 +134,6 @@ export default function BusinessDashboard() {
     }
   };
 
-  const handleRegisterBusiness = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    try {
-      await api.post('/users/corporate/register/', regData);
-      toast.success('Business registration submitted for verification!');
-      // Refresh user data would be ideal here via dispatch
-      window.location.reload();
-    } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Registration failed');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleCancelApplication = async () => {
     if (!window.confirm("Are you sure you want to completely cancel and delete your corporate application? This action cannot be undone.")) {
       return;
@@ -170,7 +152,34 @@ export default function BusinessDashboard() {
     }
   };
 
-  if (isLoading && !isRegistering && !isEditing && properties.length === 0 && user?.corporate_profile) {
+  // TIER GUARD: Allow if account_tier is BUSINESS *or* user has a corporate_profile
+  // (handles legacy users who registered before the tier system)
+  if (user?.account_tier !== 'BUSINESS' && !user?.corporate_profile) {
+    return (
+      <div className="max-w-4xl mx-auto py-20 space-y-10 px-4">
+        <div className="max-w-2xl mx-auto text-center space-y-6">
+          <div className="h-24 w-24 bg-primary-50 text-primary-600 rounded-[2.5rem] flex items-center justify-center mx-auto shadow-inner">
+            <Building2 className="h-12 w-12" />
+          </div>
+          <h1 className="text-4xl md:text-5xl font-black text-gray-900 tracking-tighter">Business Dashboard</h1>
+          <p className="text-gray-500 font-medium text-lg leading-relaxed">
+            Subscribe to the Business plan to access fleet management, analytics, team tools, and more.
+          </p>
+          <div className="pt-8">
+            <button
+              onClick={() => navigate('/upgrade')}
+              className="btn-primary px-10 py-4 rounded-2xl shadow-2xl shadow-primary-500/30 text-sm font-black uppercase tracking-widest flex items-center justify-center gap-3 mx-auto hover:scale-105 transition-transform"
+            >
+              Upgrade to Business <ChevronRight className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Loading state - only shown AFTER tier guard passes
+  if (isLoading && !isEditing && properties.length === 0 && user?.corporate_profile) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
@@ -178,30 +187,24 @@ export default function BusinessDashboard() {
     );
   }
 
-  // 1. UNVERIFIED / NO PROFILE VIEW
+  // 1. NO CORPORATE PROFILE — redirect to registration
   if (!user?.corporate_profile || (!isCorporateVerified && !isCorporatePending && !isCorporateRejected)) {
-    if (isRegistering) {
-      return <BusinessRegistrationForm onCancel={() => setIsRegistering(false)} />;
-    }
-
     return (
       <div className="max-w-4xl mx-auto py-20 space-y-10 px-4">
         <div className="max-w-2xl mx-auto text-center space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div className="h-24 w-24 bg-primary-50 text-primary-600 rounded-[2.5rem] flex items-center justify-center mx-auto shadow-inner">
             <Building2 className="h-12 w-12" />
           </div>
-          <h1 className="text-4xl md:text-5xl font-black text-gray-900 tracking-tighter">Business Partner Program</h1>
+          <h1 className="text-4xl md:text-5xl font-black text-gray-900 tracking-tighter">Register Your Business</h1>
           <p className="text-gray-500 font-medium text-lg leading-relaxed">
-            Join our exclusive network of verified corporate partners.
-            Register your business to access the Corporate HQ and start managing your properties, rooms, and services with institutional tools.
+            You're subscribed to the Business plan. Complete your business registration to access the dashboard.
           </p>
-
           <div className="pt-8">
             <button
-              onClick={() => setIsRegistering(true)}
+              onClick={() => navigate('/business/register')}
               className="btn-primary px-10 py-4 rounded-2xl shadow-2xl shadow-primary-500/30 text-sm font-black uppercase tracking-widest flex items-center justify-center gap-3 mx-auto hover:scale-105 transition-transform"
             >
-              Verify Your Business <ChevronRight className="h-5 w-5" />
+              Register Business <ChevronRight className="h-5 w-5" />
             </button>
           </div>
         </div>

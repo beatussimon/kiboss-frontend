@@ -7,7 +7,7 @@ import { fetchNotifications } from '../../features/notifications/notificationsSl
 import {
   MessageCircle, Bell, User, LogOut, Menu, X,
   Home, Car, Briefcase, Plus, Search, Settings,
-  Calendar, Shield, CreditCard, Globe, Facebook, Twitter, Instagram, Linkedin, CheckCircle, Heart, Building2, ChevronRight
+  Calendar, Shield, CreditCard, Globe, Facebook, Twitter, Instagram, Linkedin, CheckCircle, Heart, Building2, ChevronRight, Sparkles, Crown
 } from 'lucide-react';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import VerificationBadge from '../ui/VerificationBadge';
@@ -86,12 +86,22 @@ export default function Layout() {
   const isCorporateVerified = user?.corporate_profile?.verification_status === 'VERIFIED';
   const businessCategory = user?.corporate_profile?.business_category;
 
+  // Tier-derived helpers
+  const accountTier = user?.account_tier || 'FREE';
+  // Effective tier: staff have no tier upgrades, legacy users with corporate_profile are BUSINESS
+  const effectiveTier = isStaff ? 'STAFF' : (user?.corporate_profile ? 'BUSINESS' : accountTier);
+
   // Primary navigation - main features
   const primaryNav = [
     { name: 'Home', href: '/', icon: Home },
-    ...(!isCorporateVerified || businessCategory !== 'RIDE' ? [{ name: 'Assets', href: '/assets', icon: Briefcase }] : []),
-    ...(!isCorporateVerified || businessCategory !== 'ASSET' ? [{ name: 'Rides', href: '/rides', icon: Car }] : []),
-    { name: isCorporateVerified ? 'Corporate HQ' : 'Business+', href: '/business', icon: Building2 },
+    { name: 'Assets', href: '/assets', icon: Briefcase },
+    { name: 'Rides', href: '/rides', icon: Car },
+    // Tier-conditional business link
+    ...(effectiveTier === 'PLUS'
+      ? [{ name: 'Plus', href: '/plus', icon: Sparkles }]
+      : effectiveTier === 'BUSINESS'
+        ? [{ name: businessCategory === 'RIDE' ? 'Ride Business' : 'Asset Business', href: '/business', icon: Building2 }]
+        : []),
     ...(isStaff ? [{ name: 'Staff', href: '/staff/tasks', icon: Shield }] : []),
   ];
 
@@ -104,8 +114,8 @@ export default function Layout() {
 
   // Create actions (only when authenticated)
   const createActions = isAuthenticated ? [
-    ...(!isCorporateVerified || businessCategory !== 'RIDE' ? [{ name: 'List Asset', href: '/assets/create', icon: Plus }] : []),
-    ...(!isCorporateVerified || businessCategory !== 'ASSET' ? [{ name: 'Offer Ride', href: '/rides/create', icon: Car }] : []),
+    { name: 'List Asset', href: '/assets/create', icon: Plus },
+    { name: 'Offer Ride', href: '/rides/create', icon: Car },
   ] : [];
 
   const isActive = (path: string) => {
@@ -275,13 +285,46 @@ export default function Layout() {
                         Profile
                       </Link>
                       <Link
-                        to="/business"
+                        to="/assets"
                         onClick={() => setIsUserMenuOpen(false)}
-                        className="flex items-center px-4 py-2 text-sm text-gray-700 font-bold bg-gray-50 hover:bg-gray-100"
+                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                       >
-                        <Building2 className="h-4 w-4 mr-2 text-primary-600" />
-                        {isCorporateVerified ? 'Corporate HQ' : 'Business+'}
+                        <Briefcase className="h-4 w-4 mr-2" />
+                        My Listings
                       </Link>
+                      {/* Tier-Conditional Section */}
+                      {effectiveTier === 'FREE' && (
+                        <Link
+                          to="/upgrade"
+                          onClick={() => setIsUserMenuOpen(false)}
+                          className="flex items-center px-4 py-2 text-sm font-bold text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 mx-2 my-1 rounded-lg"
+                        >
+                          <Sparkles className="h-4 w-4 mr-2" />
+                          Upgrade Plan
+                        </Link>
+                      )}
+                      {effectiveTier === 'PLUS' && (
+                        <Link
+                          to="/plus"
+                          onClick={() => setIsUserMenuOpen(false)}
+                          className="flex items-center px-4 py-2 text-sm font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 mx-2 my-1 rounded-lg"
+                        >
+                          <Crown className="h-3.5 w-3.5 mr-2" />
+                          Plus Dashboard
+                        </Link>
+                      )}
+                      {effectiveTier === 'BUSINESS' && (
+                        <Link
+                          to="/business"
+                          onClick={() => setIsUserMenuOpen(false)}
+                          className="flex items-center px-4 py-2 text-sm text-gray-700 font-bold bg-gray-50 hover:bg-gray-100"
+                        >
+                          <Building2 className="h-4 w-4 mr-2 text-primary-600" />
+                          {isCorporateVerified
+                            ? (businessCategory === 'RIDE' ? 'Ride Business' : 'Asset Business')
+                            : 'Verification Pending'}
+                        </Link>
+                      )}
                       {isStaff && (
                         <Link
                           to="/staff/tasks"
@@ -450,14 +493,38 @@ export default function Layout() {
                   <User className="h-5 w-5 mr-3" />
                   Profile
                 </Link>
-                <Link
-                  to="/business"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center px-3 py-2 rounded-lg text-base font-medium text-primary-600 font-bold hover:bg-gray-50"
-                >
-                  <Building2 className="h-5 w-5 mr-3" />
-                  {isCorporateVerified ? 'Corporate HQ' : 'Business+'}
-                </Link>
+                {effectiveTier === 'FREE' && (
+                  <Link
+                    to="/upgrade"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center px-3 py-2 rounded-lg text-base font-bold text-white bg-gradient-to-r from-blue-600 to-purple-600 mx-1 my-1"
+                  >
+                    <Sparkles className="h-5 w-5 mr-3" />
+                    Upgrade Plan
+                  </Link>
+                )}
+                {effectiveTier === 'PLUS' && (
+                  <Link
+                    to="/plus"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center px-3 py-2 rounded-lg text-base font-bold text-purple-700 bg-purple-50 hover:bg-purple-100"
+                  >
+                    <Crown className="h-5 w-5 mr-3" />
+                    Plus Dashboard
+                  </Link>
+                )}
+                {effectiveTier === 'BUSINESS' && (
+                  <Link
+                    to="/business"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center px-3 py-2 rounded-lg text-base font-medium text-primary-600 font-bold hover:bg-gray-50"
+                  >
+                    <Building2 className="h-5 w-5 mr-3" />
+                    {isCorporateVerified
+                      ? (businessCategory === 'RIDE' ? 'Ride Business' : 'Asset Business')
+                      : 'Verification Pending'}
+                  </Link>
+                )}
                 <Link
                   to="/payments"
                   onClick={() => setIsMobileMenuOpen(false)}

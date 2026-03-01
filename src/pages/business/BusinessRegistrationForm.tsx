@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../app/store';
 import {
   Building2,
   FileText,
@@ -35,13 +37,17 @@ interface Props {
 
 export default function BusinessRegistrationForm({ initialPlan = 'MONTHLY', onCancel }: Props) {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { user } = useSelector((state: RootState) => state.auth);
+  const categoryFromUrl = searchParams.get('category') as 'RIDE' | 'ASSET' | null;
+  const hasCategoryFromUrl = !!categoryFromUrl;
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [isConfigLoading, setIsConfigLoading] = useState(true);
   const [config, setConfig] = useState<BusinessConfig | null>(null);
 
   const [formData, setFormData] = useState({
-    business_category: 'ASSET' as 'RIDE' | 'ASSET',
+    business_category: categoryFromUrl || 'ASSET',
     company_name: '',
     registration_number: '',
     tax_id: '',
@@ -112,13 +118,48 @@ export default function BusinessRegistrationForm({ initialPlan = 'MONTHLY', onCa
 
       toast.success('Business application submitted successfully!');
       // Navigate to dashboard where they can see the pending status
-      navigate('/business/dashboard');
+      navigate('/business');
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Submission failed');
     } finally {
       setIsLoading(false);
     }
   };
+
+  // Guard: If user already has a corporate profile, redirect to dashboard
+  if (user?.corporate_profile) {
+    const status = user.corporate_profile.verification_status;
+    return (
+      <div className="max-w-4xl mx-auto py-20 text-center space-y-6 px-4">
+        <div className={`h-20 w-20 rounded-3xl flex items-center justify-center mx-auto ${status === 'VERIFIED' ? 'bg-emerald-100 text-emerald-600' :
+            status === 'PENDING' ? 'bg-orange-100 text-orange-600' :
+              'bg-red-100 text-red-600'
+          }`}>
+          {status === 'VERIFIED' ? <CheckCircle className="h-10 w-10" /> :
+            status === 'PENDING' ? <Clock className="h-10 w-10" /> :
+              <Building2 className="h-10 w-10" />}
+        </div>
+        <h1 className="text-3xl font-black text-gray-900">
+          {status === 'VERIFIED' ? 'Business Already Verified' :
+            status === 'PENDING' ? 'Application In Review' :
+              'Application Rejected'}
+        </h1>
+        <p className="text-gray-500 max-w-md mx-auto">
+          {status === 'VERIFIED'
+            ? `Your business "${user.corporate_profile.company_name}" is already registered and verified.`
+            : status === 'PENDING'
+              ? `Your application for "${user.corporate_profile.company_name}" is being reviewed by our team.`
+              : `Your application was rejected. You can update and resubmit from the Business Dashboard.`}
+        </p>
+        <button
+          onClick={() => navigate('/business')}
+          className="btn-primary px-8 py-3 rounded-xl font-bold text-sm inline-flex items-center gap-2"
+        >
+          Go to Business Dashboard <ChevronRight className="h-4 w-4" />
+        </button>
+      </div>
+    );
+  }
 
   if (isConfigLoading) {
     return (
@@ -195,31 +236,47 @@ export default function BusinessRegistrationForm({ initialPlan = 'MONTHLY', onCa
                   <p className="text-gray-500 text-xs md:text-sm font-medium">Select your business type and enter official details.</p>
                 </div>
                 <div className="space-y-6">
-                  <div>
-                    <label className="text-[9px] md:text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 block">Business Category</label>
-                    <div className="grid grid-cols-2 gap-4">
-                      <button
-                        onClick={() => setFormData({ ...formData, business_category: 'RIDE' })}
-                        className={`flex flex-col items-center justify-center p-4 border-2 rounded-2xl transition-all ${formData.business_category === 'RIDE'
-                          ? 'border-primary-600 bg-primary-50 text-primary-900 shadow-md shadow-primary-200'
-                          : 'border-gray-100 bg-white text-gray-500 hover:border-primary-300'
-                          }`}
-                      >
-                        <Car className={`h-8 w-8 mb-2 ${formData.business_category === 'RIDE' ? 'text-primary-600' : 'text-gray-400'}`} />
-                        <span className="font-bold text-sm">Ride Business</span>
-                      </button>
-                      <button
-                        onClick={() => setFormData({ ...formData, business_category: 'ASSET' })}
-                        className={`flex flex-col items-center justify-center p-4 border-2 rounded-2xl transition-all ${formData.business_category === 'ASSET'
-                          ? 'border-primary-600 bg-primary-50 text-primary-900 shadow-md shadow-primary-200'
-                          : 'border-gray-100 bg-white text-gray-500 hover:border-primary-300'
-                          }`}
-                      >
-                        <Home className={`h-8 w-8 mb-2 ${formData.business_category === 'ASSET' ? 'text-primary-600' : 'text-gray-400'}`} />
-                        <span className="font-bold text-sm">Asset Business</span>
-                      </button>
+                  {hasCategoryFromUrl ? (
+                    /* Category pre-selected from upgrade flow — show locked badge */
+                    <div>
+                      <label className="text-[9px] md:text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 block">Business Category</label>
+                      <div className={`flex items-center gap-3 p-4 border-2 rounded-2xl border-primary-600 bg-primary-50 text-primary-900`}>
+                        {formData.business_category === 'RIDE'
+                          ? <Car className="h-6 w-6 text-primary-600" />
+                          : <Home className="h-6 w-6 text-primary-600" />
+                        }
+                        <span className="font-bold text-sm">{formData.business_category === 'RIDE' ? 'Ride Business' : 'Asset Business'}</span>
+                        <span className="ml-auto text-[9px] font-black text-primary-600 uppercase tracking-widest">Selected</span>
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    /* No URL param — let user choose */
+                    <div>
+                      <label className="text-[9px] md:text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 block">Business Category</label>
+                      <div className="grid grid-cols-2 gap-4">
+                        <button
+                          onClick={() => setFormData({ ...formData, business_category: 'RIDE' })}
+                          className={`flex flex-col items-center justify-center p-4 border-2 rounded-2xl transition-all ${formData.business_category === 'RIDE'
+                            ? 'border-primary-600 bg-primary-50 text-primary-900 shadow-md shadow-primary-200'
+                            : 'border-gray-100 bg-white text-gray-500 hover:border-primary-300'
+                            }`}
+                        >
+                          <Car className={`h-8 w-8 mb-2 ${formData.business_category === 'RIDE' ? 'text-primary-600' : 'text-gray-400'}`} />
+                          <span className="font-bold text-sm">Ride Business</span>
+                        </button>
+                        <button
+                          onClick={() => setFormData({ ...formData, business_category: 'ASSET' })}
+                          className={`flex flex-col items-center justify-center p-4 border-2 rounded-2xl transition-all ${formData.business_category === 'ASSET'
+                            ? 'border-primary-600 bg-primary-50 text-primary-900 shadow-md shadow-primary-200'
+                            : 'border-gray-100 bg-white text-gray-500 hover:border-primary-300'
+                            }`}
+                        >
+                          <Home className={`h-8 w-8 mb-2 ${formData.business_category === 'ASSET' ? 'text-primary-600' : 'text-gray-400'}`} />
+                          <span className="font-bold text-sm">Asset Business</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
 
                   <div>
                     <label className="text-[9px] md:text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 block">Official Company Name</label>
@@ -344,7 +401,7 @@ export default function BusinessRegistrationForm({ initialPlan = 'MONTHLY', onCa
 
             <div className="mt-auto pt-8 flex gap-3 flex-col sm:flex-row">
               <button
-                onClick={() => step === 1 ? (onCancel ? onCancel() : navigate(-1)) : setStep(step - 1)}
+                onClick={() => step === 1 ? (onCancel ? onCancel() : navigate('/business')) : setStep(step - 1)}
                 className="order-2 sm:order-1 px-6 py-3 md:py-4 bg-white border-2 border-gray-100 rounded-xl md:rounded-2xl font-black text-gray-400 uppercase tracking-widest hover:bg-gray-50 transition-all flex items-center justify-center gap-2 text-xs"
               >
                 <ChevronLeft className="h-3 w-3 md:h-4 md:w-4" /> {step === 1 ? 'Cancel' : 'Back'}

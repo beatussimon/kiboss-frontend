@@ -5,6 +5,7 @@ import { AppDispatch, RootState } from '../../app/store';
 import { fetchPublicProfile, followUser, unfollowUser } from '../../features/social/socialSlice';
 import { getMediaUrl } from '../../utils/media';
 import { User, MapPin, Calendar, Star, MessageCircle, Edit } from 'lucide-react';
+import { Price } from '../../context/CurrencyContext';
 import { useState } from 'react';
 import { PublicUser } from '../../types';
 import VerificationBadge from '../../components/ui/VerificationBadge';
@@ -148,6 +149,30 @@ export default function PublicProfilePage() {
             {user.bio && (
               <p className="mt-4 text-gray-700">{user.bio}</p>
             )}
+
+            {/* Instagram-style Stats Row */}
+            <div className="flex gap-6 mt-5 pt-4 border-t border-gray-100">
+              <div className="text-center">
+                <span className="block text-xl font-black text-gray-900">{user.listings?.length || 0}</span>
+                <span className="text-xs text-gray-500 uppercase tracking-wide">Listings</span>
+              </div>
+              <div className="text-center">
+                <span className="block text-xl font-black text-gray-900">{user.rides?.length || 0}</span>
+                <span className="text-xs text-gray-500 uppercase tracking-wide">Rides</span>
+              </div>
+              <div className="text-center">
+                <span className="block text-xl font-black text-gray-900">{user.review_count || 0}</span>
+                <span className="text-xs text-gray-500 uppercase tracking-wide">Reviews</span>
+              </div>
+              <div className="text-center">
+                <span className="block text-xl font-black text-gray-900">{user.follower_count || 0}</span>
+                <span className="text-xs text-gray-500 uppercase tracking-wide">Followers</span>
+              </div>
+              <div className="text-center">
+                <span className="block text-xl font-black text-gray-900">{user.following_count || 0}</span>
+                <span className="text-xs text-gray-500 uppercase tracking-wide">Following</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -193,7 +218,7 @@ export default function PublicProfilePage() {
                     <div className="p-4">
                       <h3 className="font-semibold">{listing.title}</h3>
                       <p className="text-sm text-gray-500">{listing.type}</p>
-                      <p className="text-primary-600 font-bold mt-2">${listing.price}/day</p>
+                      <p className="text-primary-600 font-bold mt-2"><Price amount={listing.price} />/day</p>
                     </div>
                   </Link>
                 ))
@@ -219,7 +244,7 @@ export default function PublicProfilePage() {
                           {new Date(ride.departure_time).toLocaleString()}
                         </p>
                       </div>
-                      <p className="text-primary-600 font-bold">${ride.price}/seat</p>
+                      <p className="text-primary-600 font-bold"><Price amount={ride.price} />/seat</p>
                     </div>
                   </Link>
                 ))

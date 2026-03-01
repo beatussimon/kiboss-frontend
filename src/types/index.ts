@@ -14,6 +14,7 @@ export interface User {
   is_blocked: boolean;
   is_staff?: boolean;
   is_superuser?: boolean;
+  account_tier?: 'FREE' | 'PLUS' | 'BUSINESS';
   verification_tier?: string;
   verification_badge?: {
     tier: string;
@@ -402,6 +403,7 @@ export interface Notification {
   title: string;
   message: string;
   status: NotificationStatus;
+  action_url?: string;
   data: Record<string, unknown>;
   created_at: string;
   read_at: string | null;
@@ -452,6 +454,8 @@ export interface PublicUser {
   date_joined: string;
   rating: number;
   review_count: number;
+  follower_count: number;
+  following_count: number;
   is_following: boolean;
   verification_badge?: {
     tier: string;
@@ -490,7 +494,9 @@ export interface Review {
 export interface Like {
   id: string;
   user: User;
-  asset: Asset;
+  entity_type: 'ASSET' | 'RIDE' | 'OWNER' | 'REVIEW';
+  entity_id: string;
+  asset?: Asset;
   created_at: string;
 }
 
