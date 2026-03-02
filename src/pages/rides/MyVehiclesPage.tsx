@@ -3,8 +3,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../app/store';
 import { fetchMyDrives } from '../../features/rides/ridesSlice';
-import { 
-  Car, Shield, ShieldAlert, ShieldCheck, Clock, 
+import {
+  Car, Shield, ShieldAlert, ShieldCheck, Clock,
   Plus, AlertCircle, ChevronRight, FileText, Trash2,
   Calendar, Users, MapPin, Star, Edit, List, ArrowRight
 } from 'lucide-react';
@@ -29,7 +29,7 @@ export default function MyVehiclesPage() {
   const fetchVehicles = async () => {
     try {
       setIsLoading(true);
-      const res = await api.get('/assets/', { params: { asset_type: 'VEHICLE', owner: 'me', is_active: 'any' } });
+      const res = await api.get('/assets/', { params: { asset_type: 'VEHICLE', owner: 'me', is_active: 'any', context: 'personal' } });
       const allAssets = res.data.results || res.data;
       setVehicles(allAssets);
     } catch (error) {
@@ -47,7 +47,7 @@ export default function MyVehiclesPage() {
       fetchVehicles();
     } catch (error: any) {
       console.error('Failed to submit verification:', error);
-      
+
       let message = 'Failed to submit verification request';
       if (error.response?.data) {
         const data = error.response.data;
@@ -61,7 +61,7 @@ export default function MyVehiclesPage() {
           message = Array.isArray(firstVal) ? `${firstKey}: ${firstVal[0]}` : `${firstKey}: ${firstVal}`;
         }
       }
-      
+
       toast.error(message);
     }
   };
@@ -162,51 +162,50 @@ export default function MyVehiclesPage() {
                         </div>
                         <div>
                           <h3 className="text-lg font-black text-gray-900 leading-tight">{ride.route_name}</h3>
-                          <p className="text-[10px] font-black text-primary-600  tracking-widest">{new Date(ride.departure_time).toLocaleDateString()} · {new Date(ride.departure_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
+                          <p className="text-[10px] font-black text-primary-600  tracking-widest">{new Date(ride.departure_time).toLocaleDateString()} · {new Date(ride.departure_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                         </div>
                       </div>
-                      <span className={`text-[8px] font-black  tracking-[0.2em] px-2 py-1 rounded-md ${
-                        ride.status === 'OPEN' ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-100 text-gray-600'
-                      }`}>
+                      <span className={`text-[8px] font-black  tracking-[0.2em] px-2 py-1 rounded-md ${ride.status === 'OPEN' ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-100 text-gray-600'
+                        }`}>
                         {ride.status}
                       </span>
                     </div>
 
                     <div className="flex items-center gap-4 mb-6 p-3 bg-gray-50 rounded-2xl border border-gray-100">
-                       <div className="flex-1">
-                         <p className="text-[8px] font-black text-gray-400  tracking-widest mb-1">Origin</p>
-                         <p className="text-xs font-bold text-gray-700 truncate">{ride.origin}</p>
-                       </div>
-                       <ArrowRight className="h-3 w-3 text-gray-300" />
-                       <div className="flex-1 text-right">
-                         <p className="text-[8px] font-black text-gray-400  tracking-widest mb-1">Destination</p>
-                         <p className="text-xs font-bold text-gray-700 truncate">{ride.destination}</p>
-                       </div>
+                      <div className="flex-1">
+                        <p className="text-[8px] font-black text-gray-400  tracking-widest mb-1">Origin</p>
+                        <p className="text-xs font-bold text-gray-700 truncate">{ride.origin}</p>
+                      </div>
+                      <ArrowRight className="h-3 w-3 text-gray-300" />
+                      <div className="flex-1 text-right">
+                        <p className="text-[8px] font-black text-gray-400  tracking-widest mb-1">Destination</p>
+                        <p className="text-xs font-bold text-gray-700 truncate">{ride.destination}</p>
+                      </div>
                     </div>
 
                     <div className="flex items-center justify-between mb-6">
-                       <div className="flex items-center gap-4">
-                          <div>
-                            <p className="text-[8px] font-black text-gray-400  tracking-widest">Booked</p>
-                            <p className="text-sm font-black text-gray-900">{ride.total_seats - ride.available_seats} / {ride.total_seats}</p>
-                          </div>
-                          <div className="h-8 w-px bg-gray-100" />
-                          <div>
-                            <p className="text-[8px] font-black text-gray-400  tracking-widest">Revenue</p>
-                            <p className="text-sm font-black text-emerald-600"><Price amount={ride.seat_price * (ride.total_seats - ride.available_seats)} /></p>
-                          </div>
-                       </div>
-                       <div className="flex gap-2">
-                          <Link to={`/rides/${ride.id}/manifest`} className="p-2.5 bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-900 hover:text-white transition-all shadow-sm" title="Passenger Manifest">
-                            <Users className="h-4 w-4" />
-                          </Link>
-                          <Link to={`/rides/${ride.id}/edit`} className="p-2.5 bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-900 hover:text-white transition-all shadow-sm" title="Edit Trip">
-                            <Edit className="h-4 w-4" />
-                          </Link>
-                          <Link to={`/rides/${ride.id}`} className="p-2.5 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-all shadow-lg shadow-primary-200" title="View Details">
-                            <ChevronRight className="h-4 w-4" />
-                          </Link>
-                       </div>
+                      <div className="flex items-center gap-4">
+                        <div>
+                          <p className="text-[8px] font-black text-gray-400  tracking-widest">Booked</p>
+                          <p className="text-sm font-black text-gray-900">{ride.total_seats - ride.available_seats} / {ride.total_seats}</p>
+                        </div>
+                        <div className="h-8 w-px bg-gray-100" />
+                        <div>
+                          <p className="text-[8px] font-black text-gray-400  tracking-widest">Revenue</p>
+                          <p className="text-sm font-black text-emerald-600"><Price amount={ride.seat_price * (ride.total_seats - ride.available_seats)} /></p>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Link to={`/rides/${ride.id}/manifest`} className="p-2.5 bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-900 hover:text-white transition-all shadow-sm" title="Passenger Manifest">
+                          <Users className="h-4 w-4" />
+                        </Link>
+                        <Link to={`/rides/${ride.id}/edit`} className="p-2.5 bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-900 hover:text-white transition-all shadow-sm" title="Edit Trip">
+                          <Edit className="h-4 w-4" />
+                        </Link>
+                        <Link to={`/rides/${ride.id}`} className="p-2.5 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-all shadow-lg shadow-primary-200" title="View Details">
+                          <ChevronRight className="h-4 w-4" />
+                        </Link>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -226,9 +225,9 @@ export default function MyVehiclesPage() {
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {vehicles.map((vehicle) => (
-                <div key={vehicle.id} className="card p-0 overflow-hidden group hover:shadow-2xl transition-all border-none ring-1 ring-gray-100">
-                  <div className="flex">
-                    <div className="w-32 h-auto bg-gray-100 relative overflow-hidden">
+                <div key={vehicle.id} className="card p-0 overflow-hidden group hover:shadow-2xl transition-all border-none ring-1 ring-gray-100 relative">
+                  <div className={`flex h-full ${vehicle.verification_status === 'PENDING' ? 'opacity-40 blur-[2px] grayscale-[50%]' : ''}`}>
+                    <div className="w-32 h-auto bg-gray-100 relative overflow-hidden shrink-0">
                       {vehicle.photos?.[0] ? (
                         <img src={getMediaUrl(vehicle.photos[0].url)} alt="" className="w-full h-full object-cover" />
                       ) : (
@@ -250,8 +249,11 @@ export default function MyVehiclesPage() {
                             {vehicle.properties?.make as string} {vehicle.properties?.model as string} • {vehicle.properties?.year as string}
                           </p>
                         </div>
+                        <Link to={`/vehicles/${vehicle.id}/manage`} className="p-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-primary-600 hover:text-white transition-colors" title="Manage Vehicle">
+                          <Edit className="h-4 w-4" />
+                        </Link>
                       </div>
-                      
+
                       <div className="mt-4 flex items-center gap-4">
                         <div className="px-2 py-1 bg-gray-100 rounded text-[10px] font-black text-gray-600 ">
                           {vehicle.properties?.license_plate as string}
@@ -263,29 +265,37 @@ export default function MyVehiclesPage() {
 
                       {vehicle.verification_status !== 'VERIFIED' && (
                         <div className="mt-6 pt-4 border-t border-gray-50 flex items-center justify-between">
-                           <div>
-                             <p className="text-[10px] font-bold text-orange-600  flex items-center gap-1 mb-1">
-                               <AlertCircle className="h-3 w-3" /> Verification required
-                             </p>
-                             {vehicle.verification_notes && (
-                               <p className="text-[8px] text-gray-500 italic truncate max-w-[150px]">
-                                 "{vehicle.verification_notes}"
-                               </p>
-                             )}
-                           </div>
-                           
-                           {(vehicle.verification_status === 'UNVERIFIED' || vehicle.verification_status === 'REJECTED') && (
-                             <button 
+                          <div>
+                            <p className="text-[10px] font-bold text-orange-600  flex items-center gap-1 mb-1">
+                              <AlertCircle className="h-3 w-3" /> Verification required
+                            </p>
+                            {vehicle.verification_notes && (
+                              <p className="text-[8px] text-gray-500 italic truncate max-w-[150px]">
+                                "{vehicle.verification_notes}"
+                              </p>
+                            )}
+                          </div>
+
+                          {(vehicle.verification_status === 'UNVERIFIED' || vehicle.verification_status === 'REJECTED') && (
+                            <button
                               onClick={() => handleSubmitVerification(vehicle.id)}
-                              className="px-3 py-1.5 bg-primary-600 text-white text-[10px] font-black  tracking-widest rounded-lg hover:bg-primary-700 transition-colors shadow-lg shadow-primary-200"
-                             >
-                               Verify Now
-                             </button>
-                           )}
+                              className="px-3 py-1.5 bg-primary-600 text-white text-[10px] font-black  tracking-widest rounded-lg hover:bg-primary-700 transition-colors shadow-lg shadow-primary-200 cursor-pointer"
+                            >
+                              Verify Now
+                            </button>
+                          )}
                         </div>
                       )}
                     </div>
                   </div>
+
+                  {vehicle.verification_status === 'PENDING' && (
+                    <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none bg-white/10">
+                      <div className="bg-orange-500/90 backdrop-blur-md text-white px-6 py-2 rounded-2xl font-black tracking-widest text-lg shadow-2xl uppercase transform -rotate-6 border border-orange-400">
+                        Pending Review
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -303,7 +313,7 @@ export default function MyVehiclesPage() {
           <div>
             <h2 className="text-2xl font-black tracking-tight  mb-2">Safe & Trusted Rides</h2>
             <p className="text-primary-200 font-medium max-w-2xl">
-              Every vehicle on KIBOSS must undergo a manual verification process. This includes checking registration documents, 
+              Every vehicle on KIBOSS must undergo a manual verification process. This includes checking registration documents,
               insurance validity, and safety inspections to ensure the best experience for our community.
             </p>
           </div>

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Users, Plus, X, UserCheck, UserX, Shield, Mail, Briefcase, Car, HeadphonesIcon } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Users, Plus, X, UserCheck, UserX, Shield, Mail, Briefcase, Car, HeadphonesIcon, MessageSquare } from 'lucide-react';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
 
@@ -27,10 +28,12 @@ const ROLE_OPTIONS = [
 ];
 
 export default function WorkerManagement() {
+    const navigate = useNavigate();
     const [workers, setWorkers] = useState<Worker[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isInviteOpen, setIsInviteOpen] = useState(false);
-    const [inviteData, setInviteData] = useState({ email: '', name: '', role: 'DRIVER' });
+    const [workerData, setWorkerData] = useState({ email: '', password: '', name: '', role: 'DRIVER' });
+    const [credentialsModal, setCredentialsModal] = useState<{ email: string; password: string; name?: string } | null>(null);
 
     useEffect(() => {
         fetchWorkers();
@@ -48,16 +51,49 @@ export default function WorkerManagement() {
         }
     };
 
-    const handleInvite = async (e: React.FormEvent) => {
+    const handleAddWorker = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            await api.post('/users/corporate/workers/', inviteData);
-            toast.success(`Worker invited: ${inviteData.email}`);
-            setInviteData({ email: '', name: '', role: 'DRIVER' });
+            const res = await api.post('/users/corporate/workers/', workerData);
+            toast.success(`Worker added successfully`);
+            setWorkerData({ email: '', password: '', name: '', role: 'DRIVER' });
             setIsInviteOpen(false);
+            if (res.data.credentials) {
+                setCredentialsModal(res.data.credentials);
+            }
             fetchWorkers();
         } catch (error: any) {
-            toast.error(error.response?.data?.error || 'Failed to invite worker');
+            toast.error(error.response?.data?.error || 'Failed to add worker');
+        }
+    };
+
+    const handleResetPassword = async (workerId: string) => {
+        if (!window.confirm("Reset this worker's password? They will be logged out of current sessions.")) return;
+        try {
+            const res = await api.post('/users/corporate/workers/reset-password/', { worker_id: workerId });
+            toast.success('Password reset successfully');
+            if (res.data.credentials) {
+                setCredentialsModal(res.data.credentials);
+            }
+        } catch (error: any) {
+            toast.error(error.response?.data?.error || 'Failed to reset password');
+        }
+    };
+
+    const handleChat = async (workerUser: string | null) => {
+        if (!workerUser) {
+            toast.error("This worker hasn't setup their account yet.");
+            return;
+        }
+        try {
+            const res = await api.post('/messaging/threads/create_contextual/', {
+                target_user_id: workerUser,
+                thread_type: 'DIRECT',
+                subject: 'Internal Chat'
+            });
+            navigate(`/messages/${res.data.id}`);
+        } catch (error: any) {
+            toast.error(error.response?.data?.error || 'Failed to initiate chat');
         }
     };
 
@@ -129,48 +165,92 @@ export default function WorkerManagement() {
                     className="btn-primary px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-2"
                 >
                     <Plus className="h-4 w-4" />
-                    Invite Worker
+                    Add Worker
                 </button>
             </div>
 
-            {/* Invite Modal */}
+            {/* Add Worker Modal */}
             {isInviteOpen && (
                 <div className="card p-6 border-2 border-primary-200 bg-primary-50/30 space-y-4">
                     <div className="flex items-center justify-between">
-                        <h3 className="font-bold text-gray-900">Invite New Team Member</h3>
+                        <h3 className="font-bold text-gray-900">Add New Team Member</h3>
                         <button onClick={() => setIsInviteOpen(false)} className="p-1 hover:bg-gray-100 rounded-lg">
                             <X className="h-4 w-4" />
                         </button>
                     </div>
-                    <form onSubmit={handleInvite} className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <input
-                            type="email"
-                            placeholder="Email address"
-                            value={inviteData.email}
-                            onChange={e => setInviteData(prev => ({ ...prev, email: e.target.value }))}
-                            className="input"
-                            required
-                        />
+                    <form onSubmit={handleAddWorker} className="grid grid-cols-1 md:grid-cols-5 gap-4">
                         <input
                             type="text"
-                            placeholder="Display name (optional)"
-                            value={inviteData.name}
-                            onChange={e => setInviteData(prev => ({ ...prev, name: e.target.value }))}
-                            className="input"
+                            placeholder="Full name (Required)"
+                            value={workerData.name}
+                            onChange={e => setWorkerData(prev => ({ ...prev, name: e.target.value }))}
+                            className="input md:col-span-2"
+                            required
                         />
                         <select
-                            value={inviteData.role}
-                            onChange={e => setInviteData(prev => ({ ...prev, role: e.target.value }))}
+                            value={workerData.role}
+                            onChange={e => setWorkerData(prev => ({ ...prev, role: e.target.value }))}
                             className="input"
                         >
                             {ROLE_OPTIONS.map(r => (
                                 <option key={r.value} value={r.value}>{r.label}</option>
                             ))}
                         </select>
-                        <button type="submit" className="btn-primary px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest">
-                            <Mail className="h-4 w-4 mr-1 inline" /> Send Invite
+                        <input
+                            type="email"
+                            placeholder="Email (Auto-generated if empty)"
+                            value={workerData.email}
+                            onChange={e => setWorkerData(prev => ({ ...prev, email: e.target.value }))}
+                            className="input"
+                        />
+                        <input
+                            type="text"
+                            placeholder="Password (Auto-generated if empty)"
+                            value={workerData.password}
+                            onChange={e => setWorkerData(prev => ({ ...prev, password: e.target.value }))}
+                            className="input"
+                        />
+                        <button type="submit" className="btn-primary md:col-span-5 px-4 py-3 rounded-xl text-xs font-black uppercase tracking-widest flex items-center justify-center">
+                            <Plus className="h-4 w-4 mr-1 inline" /> Add Worker
                         </button>
                     </form>
+                </div>
+            )}
+
+            {/* Credentials Modal */}
+            {credentialsModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 animate-in zoom-in-95 duration-200">
+                        <div className="h-12 w-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <Shield className="h-6 w-6 text-green-600" />
+                        </div>
+                        <h3 className="text-xl font-bold text-center text-gray-900 mb-2">Worker Credentials</h3>
+                        <p className="text-sm text-center text-gray-500 mb-6">
+                            Please provide these login details to your team member. They will not be shown again.
+                        </p>
+
+                        <div className="card p-4 bg-gray-50 space-y-3 mb-6">
+                            <div>
+                                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-1">Email / Username</label>
+                                <div className="font-mono text-sm text-gray-900 break-all select-all bg-white px-3 py-2 border rounded-lg">
+                                    {credentialsModal.email}
+                                </div>
+                            </div>
+                            <div>
+                                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-1">Password</label>
+                                <div className="font-mono text-sm text-gray-900 break-all select-all bg-white px-3 py-2 border rounded-lg">
+                                    {credentialsModal.password}
+                                </div>
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={() => setCredentialsModal(null)}
+                            className="btn-primary w-full py-3 rounded-xl font-bold"
+                        >
+                            I have saved them
+                        </button>
+                    </div>
                 </div>
             )}
 
@@ -201,8 +281,8 @@ export default function WorkerManagement() {
                                     <div className="flex items-center gap-2">
                                         <h4 className="font-bold text-gray-900 truncate">{worker.user_name}</h4>
                                         <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${worker.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-700' :
-                                                worker.status === 'INVITED' ? 'bg-yellow-100 text-yellow-700' :
-                                                    'bg-gray-100 text-gray-500'
+                                            worker.status === 'INVITED' ? 'bg-yellow-100 text-yellow-700' :
+                                                'bg-gray-100 text-gray-500'
                                             }`}>
                                             {worker.status_display}
                                         </span>
@@ -224,12 +304,28 @@ export default function WorkerManagement() {
                                     <button
                                         onClick={() => handleToggleStatus(worker.id, worker.status)}
                                         className={`p-2 rounded-lg text-xs ${isDeactivated
-                                                ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100'
-                                                : 'bg-orange-50 text-orange-600 hover:bg-orange-100'
+                                            ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100'
+                                            : 'bg-orange-50 text-orange-600 hover:bg-orange-100'
                                             }`}
                                         title={isDeactivated ? 'Reactivate' : 'Deactivate'}
                                     >
                                         {isDeactivated ? <UserCheck className="h-4 w-4" /> : <UserX className="h-4 w-4" />}
+                                    </button>
+
+                                    <button
+                                        onClick={() => handleChat(worker.user)}
+                                        className="p-2 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100"
+                                        title="Message Worker"
+                                    >
+                                        <MessageSquare className="h-4 w-4" />
+                                    </button>
+
+                                    <button
+                                        onClick={() => handleResetPassword(worker.id)}
+                                        className="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100"
+                                        title="Reset Password"
+                                    >
+                                        <Shield className="h-4 w-4" />
                                     </button>
 
                                     <button

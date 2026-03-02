@@ -15,15 +15,17 @@ export default function CreateBookingPage() {
   const { currentAsset: asset, isLoading: assetLoading } = useSelector((state: RootState) => state.assets);
   const { isLoading: bookingLoading } = useSelector((state: RootState) => state.bookings);
   const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
-  
+
   const assetId = searchParams.get('asset_id');
-  
+
   const [formData, setFormData] = useState({
     start_time: '',
     end_time: '',
     quantity: 1,
     renter_notes: '',
     payment_method: 'CREDIT_CARD',
+    driver_license_number: '',
+    driving_experience_years: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -33,7 +35,7 @@ export default function CreateBookingPage() {
       navigate('/login');
       return;
     }
-    
+
     if (assetId) {
       dispatch(fetchAsset(assetId));
     }
@@ -41,7 +43,7 @@ export default function CreateBookingPage() {
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
-    
+
     if (!formData.start_time) {
       newErrors.start_time = 'Start time is required';
     }
@@ -61,28 +63,46 @@ export default function CreateBookingPage() {
     if (formData.quantity < 1) {
       newErrors.quantity = 'Quantity must be at least 1';
     }
-    
+
+    if (asset?.asset_type === 'VEHICLE') {
+      if (!formData.driver_license_number) {
+        newErrors.driver_license_number = "Driver's License Number is required for vehicles";
+      }
+      if (formData.driving_experience_years === '') {
+        newErrors.driving_experience_years = "Driving experience is required for vehicles";
+      } else if (parseInt(formData.driving_experience_years as string) < 0) {
+        newErrors.driving_experience_years = "Experience cannot be negative";
+      }
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm() || !assetId) {
       return;
     }
 
     try {
-      const result = await dispatch(createBooking({
+      const payload: any = {
         asset_id: assetId,
         start_time: new Date(formData.start_time).toISOString(),
         end_time: new Date(formData.end_time).toISOString(),
         quantity: formData.quantity,
         payment_method: formData.payment_method,
         renter_notes: formData.renter_notes,
-      })).unwrap();
-      
+      };
+
+      if (asset?.asset_type === 'VEHICLE') {
+        payload.driver_license_number = formData.driver_license_number;
+        payload.driving_experience_years = parseInt(formData.driving_experience_years as string) || 0;
+      }
+
+      const result = await dispatch(createBooking(payload)).unwrap();
+
       toast.success('Booking created successfully!');
       navigate(`/bookings/${result.id}`);
     } catch (error) {
@@ -107,14 +127,14 @@ export default function CreateBookingPage() {
     if (!asset?.pricing_rules?.[0] || !formData.start_time || !formData.end_time) {
       return null;
     }
-    
+
     const start = new Date(formData.start_time);
     const end = new Date(formData.end_time);
     const hours = Math.max(1, Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60)));
-    const pricePerUnit = typeof asset.pricing_rules[0].price === 'string' 
-      ? parseFloat(asset.pricing_rules[0].price) 
+    const pricePerUnit = typeof asset.pricing_rules[0].price === 'string'
+      ? parseFloat(asset.pricing_rules[0].price)
       : asset.pricing_rules[0].price || 0;
-    
+
     return {
       hours,
       subtotal: hours * pricePerUnit * formData.quantity,
@@ -214,7 +234,7 @@ export default function CreateBookingPage() {
                 <p className="text-sm text-red-500 mt-1">{errors.start_time}</p>
               )}
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 End Time <span className="text-red-500">*</span>
@@ -250,6 +270,49 @@ export default function CreateBookingPage() {
               <p className="text-sm text-red-500 mt-1">{errors.quantity}</p>
             )}
           </div>
+
+          {asset.asset_type === 'VEHICLE' && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 rounded-xl border border-gray-100">
+              <div className="md:col-span-2">
+                <h3 className="font-bold text-gray-900 mb-1">Driver Qualifications</h3>
+                <p className="text-xs text-gray-500 mb-3">Please provide your driver's license details to rent this vehicle.</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Driver's License Number <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="driver_license_number"
+                  value={formData.driver_license_number}
+                  onChange={handleInputChange}
+                  className={`input ${errors.driver_license_number ? 'border-red-500' : ''}`}
+                  placeholder="e.g. DL-12345678"
+                />
+                {errors.driver_license_number && (
+                  <p className="text-sm text-red-500 mt-1">{errors.driver_license_number}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Driving Experience (Years) <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  name="driving_experience_years"
+                  value={formData.driving_experience_years}
+                  onChange={handleInputChange}
+                  className={`input ${errors.driving_experience_years ? 'border-red-500' : ''}`}
+                  min="0"
+                />
+                {errors.driving_experience_years && (
+                  <p className="text-sm text-red-500 mt-1">{errors.driving_experience_years}</p>
+                )}
+              </div>
+            </div>
+          )}
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">

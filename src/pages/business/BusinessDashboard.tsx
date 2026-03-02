@@ -87,7 +87,8 @@ export default function BusinessDashboard() {
         params: {
           owner: 'me',
           asset_type: assetTypes,
-          is_active: 'any'
+          is_active: 'any',
+          context: 'corporate'
         }
       });
       const data = res.data.results || res.data;
@@ -109,7 +110,7 @@ export default function BusinessDashboard() {
         setBusinessStats(prev => ({ ...prev, tripCount }));
       } else {
         // Count services (child assets under corporate properties)
-        const servicesRes = await api.get('/assets/', { params: { owner: 'me', asset_type: 'HOTEL_ROOM,CONFERENCE_HALL,DINING_TABLE' } });
+        const servicesRes = await api.get('/assets/', { params: { owner: 'me', asset_type: 'HOTEL_ROOM,CONFERENCE_HALL,DINING_TABLE', context: 'corporate' } });
         const serviceCount = servicesRes.data.count ?? (servicesRes.data.results?.length || 0);
         setBusinessStats(prev => ({ ...prev, serviceCount }));
       }
@@ -473,7 +474,7 @@ export default function BusinessDashboard() {
               variant="outline"
               className="flex-1 md:flex-none px-6 py-3 bg-white rounded-2xl text-xs font-black uppercase tracking-widest border border-gray-200 hover:bg-gray-50 hover:border-gray-300 shadow-sm"
             />
-            <Link to={isRide ? "/assets/create?type=VEHICLE&mode=business" : "/assets/create?mode=business"} className="flex-1 md:flex-none btn-primary px-8 py-3 rounded-2xl flex items-center justify-center gap-2 shadow-xl shadow-primary-500/30">
+            <Link to={isRide ? "/vehicles/register" : "/assets/create?mode=business"} className="flex-1 md:flex-none btn-primary px-8 py-3 rounded-2xl flex items-center justify-center gap-2 shadow-xl shadow-primary-500/30">
               <Plus className="h-5 w-5" />
               {isRide ? 'Register Vehicle' : 'Add Property'}
             </Link>
@@ -594,7 +595,7 @@ export default function BusinessDashboard() {
                   </p>
                 </div>
                 <Link
-                  to={isRide ? '/assets/create?type=VEHICLE&mode=business' : '/assets/create?mode=business'}
+                  to={isRide ? '/vehicles/register' : '/assets/create?mode=business'}
                   className="inline-flex btn-primary px-8 py-3 rounded-2xl text-sm font-black uppercase tracking-widest items-center gap-2 shadow-lg shadow-primary-500/20"
                 >
                   <Plus className="h-5 w-5" />
@@ -605,15 +606,17 @@ export default function BusinessDashboard() {
           ) : (
             <div className="grid grid-cols-1 gap-5">
               {properties.map((prop) => (
-                <div key={prop.id} className="group card p-3 overflow-hidden bg-white hover:shadow-2xl transition-all duration-300 border-none ring-1 ring-gray-200/60 flex flex-col md:flex-row gap-6 items-center">
+                <div key={prop.id} className={`group card p-3 overflow-hidden bg-white transition-all duration-300 border-none ring-1 ring-gray-200/60 flex flex-col md:flex-row gap-6 items-center relative ${prop.verification_status === 'PENDING' ? 'opacity-50 grayscale-[50%]' : 'hover:shadow-2xl'}`}>
                   <div className="w-full md:w-64 h-48 md:h-40 rounded-2xl overflow-hidden bg-gray-100 relative flex-shrink-0">
-                    {prop.photos?.[0] ? (
-                      <img src={getMediaUrl(prop.photos[0].url)} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-gray-50 text-gray-300 font-black text-[10px] uppercase tracking-widest px-4 text-center">
-                        {isRide ? 'VEHICLE PREVIEW' : 'PROPERTY PREVIEW'}
-                      </div>
-                    )}
+                    <div className={`w-full h-full ${prop.verification_status === 'PENDING' ? 'blur-[2px]' : ''}`}>
+                      {prop.photos?.[0] ? (
+                        <img src={getMediaUrl(prop.photos[0].url)} alt="" className={`w-full h-full object-cover transition-transform duration-500 ${prop.verification_status !== 'PENDING' ? 'group-hover:scale-105' : ''}`} />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gray-50 text-gray-300 font-black text-[10px] uppercase tracking-widest px-4 text-center">
+                          {isRide ? 'VEHICLE PREVIEW' : 'PROPERTY PREVIEW'}
+                        </div>
+                      )}
+                    </div>
                     <div className="absolute top-3 left-3">
                       <span className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest shadow-md backdrop-blur-sm ${prop.verification_status === 'VERIFIED' ? 'bg-emerald-500/90 text-white' : 'bg-orange-500/90 text-white'
                         }`}>
@@ -622,7 +625,7 @@ export default function BusinessDashboard() {
                     </div>
                   </div>
 
-                  <div className="flex-1 w-full py-2 pr-4 flex flex-col justify-between h-full">
+                  <div className="flex-1 w-full py-2 pr-4 flex flex-col justify-between h-full relative z-10">
                     <div>
                       <div className="flex justify-between items-start mb-2">
                         <div>
@@ -652,7 +655,7 @@ export default function BusinessDashboard() {
                       </div>
 
                       <div className="flex gap-2">
-                        {!isRide && (
+                        {!isRide && prop.verification_status !== 'PENDING' && (
                           <Link
                             to={`/assets/create?parent=${prop.id}&mode=service`}
                             className="px-4 py-2 bg-white text-gray-700 border border-gray-200 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-gray-50 transition-all flex items-center gap-1.5 shadow-sm"
@@ -661,16 +664,30 @@ export default function BusinessDashboard() {
                             Add Service
                           </Link>
                         )}
-                        <Link
-                          to={isRide ? `/rides/${prop.id}` : `/assets/${prop.id}`}
-                          className="px-4 py-2 bg-primary-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary-700 transition-all flex items-center gap-1.5 shadow-md shadow-primary-500/20"
-                        >
-                          Manage
-                          <ChevronRight className="h-3 w-3" />
-                        </Link>
+                        {prop.verification_status !== 'PENDING' ? (
+                          <Link
+                            to={isRide ? `/vehicles/${prop.id}/manage` : `/assets/${prop.id}`}
+                            className="px-4 py-2 bg-primary-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary-700 transition-all flex items-center gap-1.5 shadow-md shadow-primary-500/20"
+                          >
+                            Manage
+                            <ChevronRight className="h-3 w-3" />
+                          </Link>
+                        ) : (
+                          <button className="px-4 py-2 bg-gray-300 text-white rounded-xl text-[10px] font-black uppercase tracking-widest cursor-not-allowed">
+                            Awaiting Staff
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
+
+                  {prop.verification_status === 'PENDING' && (
+                    <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
+                      <div className="bg-orange-500/90 backdrop-blur-md text-white px-6 py-2 rounded-2xl font-black tracking-widest text-lg shadow-2xl uppercase transform -rotate-6 border border-orange-400">
+                        Pending Review
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

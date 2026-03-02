@@ -112,8 +112,8 @@ export default function Layout() {
     { name: 'Notifications', href: '/notifications', icon: Bell, badge: notificationUnreadCount },
   ] : [];
 
-  // Create actions (only when authenticated)
-  const createActions = isAuthenticated ? [
+  // Create actions (only when authenticated and user is allowed)
+  const createActions = (isAuthenticated && (!isStaff || user?.is_superuser)) ? [
     { name: 'List Asset', href: '/assets/create', icon: Plus },
     { name: 'Offer Ride', href: '/rides/create', icon: Car },
   ] : [];
@@ -159,7 +159,7 @@ export default function Layout() {
 
             {/* Center - Create Actions Dropdown (Desktop) */}
             <div className="hidden lg:flex items-center" ref={createMenuRef}>
-              {isAuthenticated && (
+              {createActions.length > 0 && (
                 <div className="relative">
                   <button
                     onClick={() => setIsCreateMenuOpen(!isCreateMenuOpen)}
@@ -442,20 +442,24 @@ export default function Layout() {
               ))}
 
               {/* Create Actions */}
-              <div className="pt-2 pb-1">
-                <p className="px-3 text-xs font-semibold text-gray-400  tracking-wider">Create</p>
-              </div>
-              {createActions.map((action) => (
-                <Link
-                  key={action.name}
-                  to={action.href}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center px-3 py-2 rounded-lg text-base font-medium text-primary-600 hover:bg-primary-50"
-                >
-                  <action.icon className="h-5 w-5 mr-3" />
-                  {action.name}
-                </Link>
-              ))}
+              {createActions.length > 0 && (
+                <>
+                  <div className="pt-2 pb-1">
+                    <p className="px-3 text-xs font-semibold text-gray-400  tracking-wider">Create</p>
+                  </div>
+                  {createActions.map((action) => (
+                    <Link
+                      key={action.name}
+                      to={action.href}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="flex items-center px-3 py-2 rounded-lg text-base font-medium text-primary-600 hover:bg-primary-50"
+                    >
+                      <action.icon className="h-5 w-5 mr-3" />
+                      {action.name}
+                    </Link>
+                  ))}
+                </>
+              )}
 
               {/* Secondary Nav */}
               <div className="pt-2 pb-1">

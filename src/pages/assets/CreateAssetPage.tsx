@@ -19,6 +19,7 @@ export default function CreateAssetPage() {
   const queryParams = new URLSearchParams(location.search);
   const parentId = queryParams.get('parent');
   const mode = queryParams.get('mode'); // 'business' (parent) or 'service' (child)
+  const typeParam = queryParams.get('type');
 
   const isBusinessTier = user?.verification_tier === 'business';
 
@@ -48,11 +49,13 @@ export default function CreateAssetPage() {
 
   useEffect(() => {
     if (mode === 'business') {
-      setFormData(prev => ({ ...prev, asset_type: 'HOTEL' }));
+      setFormData(prev => ({ ...prev, asset_type: typeParam === 'VEHICLE' ? 'VEHICLE' : 'HOTEL' }));
     } else if (parentId) {
       setFormData(prev => ({ ...prev, asset_type: 'HOTEL_ROOM' }));
+    } else if (typeParam) {
+      setFormData(prev => ({ ...prev, asset_type: typeParam as AssetType }));
     }
-  }, [mode, parentId]);
+  }, [mode, parentId, typeParam]);
 
   const uploadImages = async (assetId: string, files: File[]) => {
     if (files.length === 0) return;
@@ -112,7 +115,9 @@ export default function CreateAssetPage() {
 
   return (
     <div className="max-w-3xl mx-auto pb-20">
-      <h1 className="text-3xl font-black text-gray-900 mb-2 tracking-tighter uppercase">List Your Asset</h1>
+      <h1 className="text-3xl font-black text-gray-900 mb-2 tracking-tighter uppercase">
+        {formData.asset_type === 'VEHICLE' ? 'Register Vehicle' : 'List Your Asset'}
+      </h1>
       <p className="text-gray-500 font-medium mb-8">Share your resources with the KIBOSS community.</p>
 
       {isBusinessTier && (
@@ -123,7 +128,7 @@ export default function CreateAssetPage() {
           <div>
             <p className="text-sm font-black text-indigo-900 uppercase tracking-tight mb-1">Business Listing Policy</p>
             <p className="text-xs font-medium text-indigo-800 leading-relaxed">
-              As a verified business, all your assets (Hotels, Restaurants, and Services) must undergo manual verification by our operations team before they appear in public search results.
+              As a verified business, all your assets ({formData.asset_type === 'VEHICLE' ? 'Vehicles' : 'Hotels, Restaurants, and Services'}) must undergo manual verification by our operations team before they appear in public search results.
             </p>
           </div>
         </div>

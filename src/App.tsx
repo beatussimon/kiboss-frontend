@@ -35,6 +35,7 @@ import SearchPage from './pages/search/SearchPage';
 import FAQPage from './pages/faq/FAQPage';
 import RegisterVehiclePage from './pages/rides/RegisterVehiclePage';
 import MyVehiclesPage from './pages/rides/MyVehiclesPage';
+import VehicleManagePage from './pages/rides/VehicleManagePage';
 import TaskDashboard from './pages/staff/TaskDashboard';
 import RideManifestPage from './pages/rides/RideManifestPage';
 import RideEditPage from './pages/rides/RideEditPage';
@@ -144,6 +145,7 @@ function App() {
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/vehicles" element={<MyVehiclesPage />} />
         <Route path="/vehicles/register" element={<RegisterVehiclePage />} />
+        <Route path="/vehicles/:id/manage" element={<VehicleManagePage />} />
         <Route path="/business" element={<BusinessDashboard />} />
         <Route path="/business/register" element={<BusinessRegistrationForm />} />
         <Route path="/upgrade" element={<UpgradePage />} />

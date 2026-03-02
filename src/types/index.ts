@@ -96,6 +96,8 @@ export interface Asset {
   verification_notes?: string;
   owner: User;
   is_corporate: boolean;
+  is_listed: boolean;
+  is_active: boolean;
   pricing_rules: PricingRule[];
   availability_rules: AvailabilityRule[];
   capacities: Capacity[];

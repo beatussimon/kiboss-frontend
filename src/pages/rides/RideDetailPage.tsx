@@ -334,7 +334,7 @@ export default function RideDetailPage() {
               )}
             </div>
 
-            {/* Driver Info - Clickable to profile */}
+            {/* Driver/Business Info - Clickable to profile */}
             <Link
               to={`/users/${ride.driver.id}`}
               className="flex items-center gap-4 p-5 bg-white border border-gray-100/80 rounded-2xl hover:shadow-xl hover:border-primary-100 transition-all duration-300 group mt-8"
@@ -344,28 +344,42 @@ export default function RideDetailPage() {
                   {ride.driver.profile?.avatar ? (
                     <img
                       src={getMediaUrl(ride.driver.profile.avatar)}
-                      alt={ride.driver.first_name}
+                      alt={ride.driver.corporate_profile?.verification_status === 'VERIFIED' ? ride.driver.corporate_profile.company_name : ride.driver.first_name}
                       className="w-full h-full object-cover"
                     />
                   ) : (
                     <span className="text-xl font-black text-primary-700 uppercase tracking-tighter">
-                      {ride.driver.first_name?.[0]}{ride.driver.last_name?.[0]}
+                      {ride.driver.corporate_profile?.verification_status === 'VERIFIED'
+                        ? ride.driver.corporate_profile.company_name?.[0]
+                        : `${ride.driver.first_name?.[0] || ''}${ride.driver.last_name?.[0] || ''}`}
                     </span>
                   )}
                 </div>
                 <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-0.5 shadow-sm">
-                  <VerificationBadge
-                    tier={ride.driver.verification_badge?.tier}
-                    color={ride.driver.verification_badge?.color}
-                    size="xs"
-                  />
+                  {ride.driver.corporate_profile?.verification_status === 'VERIFIED' ? (
+                    <VerificationBadge
+                      tier="business"
+                      color="indigo"
+                      size="xs"
+                    />
+                  ) : (
+                    <VerificationBadge
+                      tier={ride.driver.verification_badge?.tier}
+                      color={ride.driver.verification_badge?.color}
+                      size="xs"
+                    />
+                  )}
                 </div>
               </div>
               <div className="flex-1">
-                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Driver</p>
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-0.5">
+                  {ride.driver.corporate_profile?.verification_status === 'VERIFIED' ? 'Transport Provider' : 'Driver'}
+                </p>
                 <div className="flex items-center gap-2">
                   <p className="font-bold text-lg text-gray-900 group-hover:text-primary-600 transition-colors leading-tight">
-                    {ride.driver.first_name} {ride.driver.last_name}
+                    {ride.driver.corporate_profile?.verification_status === 'VERIFIED'
+                      ? ride.driver.corporate_profile.company_name
+                      : `${ride.driver.first_name} ${ride.driver.last_name}`}
                   </p>
                 </div>
                 <div className="flex items-center gap-3 mt-1.5">
@@ -374,7 +388,7 @@ export default function RideDetailPage() {
                     {ride.driver.trust_score} Trust
                   </p>
                   <p className="text-[10px] font-bold text-gray-400">
-                    {ride.driver.total_ratings_count} Rides
+                    {ride.driver.total_ratings_count} {ride.driver.corporate_profile?.verification_status === 'VERIFIED' ? 'Trips' : 'Rides'}
                   </p>
                 </div>
               </div>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../app/store';
 import { createRide } from '../../features/rides/ridesSlice';
@@ -21,11 +21,16 @@ interface StopFormData {
 export default function CreateRidePage() {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const mode = queryParams.get('mode');
+
   const { user } = useSelector((state: RootState) => state.auth);
 
   const [isLoading, setIsLoading] = useState(false);
   const [isCheckingVehicles, setIsCheckingVehicles] = useState(true);
   const [vehicles, setVehicles] = useState<Asset[]>([]);
+  const [drivers, setDrivers] = useState<any[]>([]);
 
   const [images, setImages] = useState<File[]>([]);
   const [formData, setFormData] = useState({
@@ -45,14 +50,22 @@ export default function CreateRidePage() {
     vehicle_color: '',
     vehicle_license_plate: '',
     driver_notes: '',
+    assigned_driver: '',
   });
   const [stops, setStops] = useState<StopFormData[]>([]);
 
   useEffect(() => {
+    // Override initial ride type if mode is business
+    if (mode === 'business') {
+      setFormData(prev => ({ ...prev, ride_type: 'BUSINESS' }));
+    }
+
     const fetchUserVehicles = async () => {
       try {
-        // Use 'owner=me' to fetch from the user's vehicle pool rather than a global paginated list
-        const res = await api.get('/assets/', { params: { asset_type: 'VEHICLE', owner: 'me' } });
+        const params: any = { asset_type: 'VEHICLE', owner: 'me' };
+        if (mode === 'business') params.context = 'corporate';
+
+        const res = await api.get('/assets/', { params });
         const allAssets = res.data.results || res.data;
         const myVehicles = allAssets;
         setVehicles(myVehicles);
@@ -63,10 +76,23 @@ export default function CreateRidePage() {
       }
     };
 
+    const fetchDrivers = async () => {
+      if (mode !== 'business') return;
+      try {
+        const res = await api.get('/users/corporate/workers/');
+        // Filter active drivers
+        const activeDrivers = res.data.filter((w: any) => w.role === 'DRIVER' && w.status === 'ACTIVE');
+        setDrivers(activeDrivers);
+      } catch (error) {
+        console.error('Failed to fetch corporate drivers:', error);
+      }
+    };
+
     if (user) {
       fetchUserVehicles();
+      fetchDrivers();
     }
-  }, [user]);
+  }, [user, mode]);
 
   const verifiedVehicles = vehicles.filter(v => v.verification_status === 'VERIFIED');
   const hasVerifiedVehicle = verifiedVehicles.length > 0 || user?.roles?.some(r => r.role === 'SUPER_ADMIN');
@@ -154,7 +180,7 @@ export default function CreateRidePage() {
 
     setIsLoading(true);
     try {
-      const rideData: Partial<Ride> = {
+      const rideData: Partial<Ride> & { assigned_driver?: string } = {
         route_name: formData.route_name || `${formData.origin} → ${formData.destination}`,
         origin: formData.origin,
         destination: formData.destination,
@@ -172,6 +198,7 @@ export default function CreateRidePage() {
         vehicle_color: formData.vehicle_color || undefined,
         vehicle_license_plate: formData.vehicle_license_plate || undefined,
         driver_notes: formData.driver_notes || undefined,
+        assigned_driver: formData.assigned_driver || undefined,
         stops_data: stops.map((stop, index) => ({
           stop_type: stop.stop_type,
           name: stop.name,
@@ -427,7 +454,8 @@ export default function CreateRidePage() {
                 name="ride_type"
                 value={formData.ride_type}
                 onChange={handleInputChange}
-                className="input bg-white"
+                className="input bg-white disabled:bg-gray-100 disabled:text-gray-500"
+                disabled={mode === 'business'}
               >
                 <option value="PERSONAL">Personal Ride (Standard)</option>
                 <option value="BUSINESS">Business Ride (High Capacity / Bus / Van)</option>
@@ -448,6 +476,26 @@ export default function CreateRidePage() {
               </label>
             </div>
           </div>
+
+          {mode === 'business' && (
+            <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-6 bg-primary-50 p-4 rounded-xl border border-primary-100">
+              <div>
+                <label className="block text-sm font-bold text-primary-900 mb-1">Assigned Driver</label>
+                <select
+                  name="assigned_driver"
+                  value={formData.assigned_driver}
+                  onChange={handleInputChange}
+                  className="input bg-white"
+                >
+                  <option value="">-- Assign a driver (optional) --</option>
+                  {drivers.map(d => (
+                    <option key={d.id} value={d.id}>{d.name || d.user_name || d.email}</option>
+                  ))}
+                </select>
+                <p className="text-[10px] text-primary-700 font-medium mt-1">If unassigned, you will be the default driver.</p>
+              </div>
+            </div>
+          )}
 
           <div className="space-y-6">
             {/* Passenger Seats Options */}

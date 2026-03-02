@@ -85,14 +85,30 @@ export default function RideCard({ ride, distance = null, lastRideElementRef }: 
                         // Actually, letting it go to the Ride Detail page is fine, which then has the real driver link.
                     }}>
                         <div className="relative">
-                            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center text-xs font-black text-primary-700 shrink-0 border-2 border-white shadow-sm ring-1 ring-gray-100">
-                                {(ride as any).driver?.first_name?.[0]}{(ride as any).driver?.last_name?.[0]}
+                            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center text-xs font-black text-primary-700 shrink-0 border-2 border-white shadow-sm ring-1 ring-gray-100 overflow-hidden">
+                                {(ride as any).driver?.profile?.avatar ? (
+                                    <img
+                                        src={getMediaUrl((ride as any).driver.profile.avatar)}
+                                        alt="Avatar"
+                                        className="w-full h-full object-cover"
+                                    />
+                                ) : (ride as any).driver?.corporate_profile?.verification_status === 'VERIFIED' ? (
+                                    (ride as any).driver?.corporate_profile?.company_name?.[0]
+                                ) : (
+                                    `${(ride as any).driver?.first_name?.[0] || ''}${(ride as any).driver?.last_name?.[0] || ''}`
+                                )}
                             </div>
                             {/* little verified badge could go here */}
                         </div>
                         <div className="flex flex-col">
-                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Driver</p>
-                            <span className="text-sm font-bold text-gray-900 group-hover/driver:text-primary-600 transition-colors leading-none">{(ride as any).driver?.first_name} {(ride as any).driver?.last_name}</span>
+                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">
+                                {(ride as any).driver?.corporate_profile?.verification_status === 'VERIFIED' ? 'Transport Provider' : 'Driver'}
+                            </p>
+                            <span className="text-sm font-bold text-gray-900 group-hover/driver:text-primary-600 transition-colors leading-none truncate max-w-[150px]">
+                                {(ride as any).driver?.corporate_profile?.verification_status === 'VERIFIED'
+                                    ? (ride as any).driver?.corporate_profile?.company_name
+                                    : `${(ride as any).driver?.first_name} ${(ride as any).driver?.last_name}`}
+                            </span>
                         </div>
                     </div>
 

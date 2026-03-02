@@ -48,9 +48,9 @@ export default function FleetCommand() {
         try {
             setIsLoading(true);
             const [statsRes, vehiclesRes, tripsRes] = await Promise.all([
-                api.get('/rides/fleet_stats/'),
-                api.get('/assets/', { params: { owner: 'me', asset_type: 'VEHICLE' } }),
-                api.get('/rides/', { params: { driver: 'me', ride_type: 'BUSINESS' } }),
+                api.get('/rides/trips/fleet_stats/'),
+                api.get('/assets/', { params: { owner: 'me', asset_type: 'VEHICLE', context: 'corporate' } }),
+                api.get('/rides/trips/', { params: { driver: 'me', ride_type: 'BUSINESS' } }),
             ]);
             setStats(statsRes.data);
             setVehicles(vehiclesRes.data.results || vehiclesRes.data);
@@ -111,8 +111,8 @@ export default function FleetCommand() {
                         <Car className="h-5 w-5 text-gray-400" /> Vehicle Registry
                     </h3>
                     <Link
-                        to="/assets/create?type=VEHICLE&mode=business"
-                        className="btn-primary px-5 py-2 rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-1.5"
+                        to="/vehicles/register"
+                        className="btn-primary flex items-center gap-2 px-6 py-2.5 rounded-xl uppercase tracking-widest text-xs font-black shadow-lg shadow-primary-500/20"
                     >
                         <Plus className="h-4 w-4" /> Register Vehicle
                     </Link>
@@ -129,9 +129,15 @@ export default function FleetCommand() {
                             <Link
                                 key={vehicle.id}
                                 to={`/assets/${vehicle.id}`}
-                                className="card p-4 hover:shadow-lg transition-all group"
+                                className={`card p-4 transition-all group relative overflow-hidden ${vehicle.verification_status === 'PENDING' ? 'hover:shadow-none cursor-default' : 'hover:shadow-lg'
+                                    }`}
+                                onClick={(e) => {
+                                    if (vehicle.verification_status === 'PENDING') {
+                                        e.preventDefault();
+                                    }
+                                }}
                             >
-                                <div className="flex items-center gap-3">
+                                <div className={`flex items-center gap-3 ${vehicle.verification_status === 'PENDING' ? 'opacity-40 blur-[2px] grayscale-[50%]' : ''}`}>
                                     <div className="h-12 w-12 bg-gray-100 rounded-xl flex items-center justify-center text-gray-400 group-hover:bg-blue-50 group-hover:text-blue-500 transition-colors">
                                         <Car className="h-6 w-6" />
                                     </div>
@@ -148,6 +154,13 @@ export default function FleetCommand() {
                                     </div>
                                     <ChevronRight className="h-4 w-4 text-gray-300 group-hover:text-gray-500 transition-colors" />
                                 </div>
+                                {vehicle.verification_status === 'PENDING' && (
+                                    <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none bg-white/10">
+                                        <div className="bg-orange-500/90 backdrop-blur-sm text-white px-4 py-1.5 rounded-xl font-black tracking-widest text-xs shadow-xl uppercase transform -rotate-3 border border-orange-400">
+                                            Pending
+                                        </div>
+                                    </div>
+                                )}
                             </Link>
                         ))}
                     </div>

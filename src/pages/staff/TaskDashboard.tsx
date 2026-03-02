@@ -733,31 +733,46 @@ export default function TaskDashboard() {
           {processedTasks.length === 0 ? (
             <div className="py-20 text-center card"><Layers className="h-12 w-12 text-gray-200 mx-auto mb-4" /><p className="text-base font-bold text-gray-400">Queue Empty</p><p className="text-sm text-gray-400 mt-1">No tasks match your filters</p></div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-              {processedTasks.map((task: any) => {
-                const sc = getStatusConfig(task.status);
-                const done = ['COMPLETED', 'REJECTED'].includes(task.status);
-                return (
-                  <button key={task.id} onClick={() => selectTask(task)} className={`text-left card p-5 transition-all group hover:shadow-lg hover:-translate-y-0.5 ${selectedTask?.id === task.id ? 'ring-2 ring-primary-500 border-primary-200' : ''} ${done ? 'opacity-60' : ''}`}>
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${done ? 'bg-gray-100 text-gray-400' : 'bg-primary-50 text-primary-600'}`}>{getTaskIcon(task.task_type)}</div>
-                        <span className={`inline-flex items-center gap-1 text-[10px] font-black uppercase px-2 py-0.5 rounded-full border ${sc.bg} ${sc.color}`}>{sc.icon} {task.status === 'CHANGES_REQUESTED' ? 'CHANGES' : task.status}</span>
-                      </div>
-                      {task.priority === 'URGENT' && <span className="text-[10px] font-black text-red-600 bg-red-50 px-2 py-0.5 rounded-full border border-red-200 animate-pulse">URGENT</span>}
-                      {task.priority === 'HIGH' && <span className="text-[10px] font-black text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full border border-orange-200">HIGH</span>}
-                    </div>
-                    <h3 className={`text-sm font-bold leading-snug mb-2 group-hover:text-primary-600 transition-colors ${done ? 'text-gray-400 line-through' : 'text-gray-900'}`}>{task.title}</h3>
-                    <div className="flex items-center justify-between mt-auto pt-2 border-t border-gray-100">
-                      <span className="text-[10px] font-bold text-gray-400 uppercase">{task.task_type.replace(/_/g, ' ')}</span>
-                      <div className="flex items-center gap-2">
-                        {task.assigned_to_email && <span className="text-[10px] font-bold text-primary-600 bg-primary-50 px-2 py-0.5 rounded-full">{task.assigned_to_email.split('@')[0]}</span>}
-                        <span className="text-[10px] text-gray-400">{timeAgo(task.created_at)}</span>
-                      </div>
-                    </div>
-                  </button>
-                );
-              })}
+            <div className="space-y-8">
+              {(Object.entries(processedTasks.reduce((acc, task) => {
+                const type = task.task_type;
+                if (!acc[type]) acc[type] = [];
+                acc[type].push(task);
+                return acc;
+              }, {} as Record<string, any[]>)) as [string, any[]][]).map(([type, groupTasks]) => (
+                <div key={type} className="space-y-4">
+                  <h3 className="text-sm font-black text-gray-500 uppercase tracking-widest border-b border-gray-100 pb-2 flex items-center gap-2">
+                    {type.replace(/_/g, ' ')} <span className="text-[10px] font-bold bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{groupTasks.length}</span>
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                    {groupTasks.map((task: any) => {
+                      const sc = getStatusConfig(task.status);
+                      const done = ['COMPLETED', 'REJECTED'].includes(task.status);
+                      const isUrgentUnread = task.priority === 'URGENT' && task.status === 'PENDING';
+                      return (
+                        <button key={task.id} onClick={() => selectTask(task)} className={`text-left card p-5 transition-all group hover:shadow-lg hover:-translate-y-0.5 ${selectedTask?.id === task.id ? 'ring-2 ring-primary-500 border-primary-200' : ''} ${isUrgentUnread ? 'border-2 border-red-500' : ''} ${done ? 'opacity-60' : ''}`}>
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex items-center gap-3">
+                              <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${done ? 'bg-gray-100 text-gray-400' : 'bg-primary-50 text-primary-600'}`}>{getTaskIcon(task.task_type)}</div>
+                              <span className={`inline-flex items-center gap-1 text-[10px] font-black uppercase px-2 py-0.5 rounded-full border ${sc.bg} ${sc.color}`}>{sc.icon} {task.status === 'CHANGES_REQUESTED' ? 'CHANGES' : task.status}</span>
+                            </div>
+                            {task.priority === 'URGENT' && <span className="text-[10px] font-black text-red-600 bg-red-50 px-2 py-0.5 rounded-full border border-red-200 animate-pulse">URGENT</span>}
+                            {task.priority === 'HIGH' && <span className="text-[10px] font-black text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full border border-orange-200">HIGH</span>}
+                          </div>
+                          <h3 className={`text-sm font-bold leading-snug mb-2 group-hover:text-primary-600 transition-colors ${done ? 'text-gray-400 line-through' : 'text-gray-900'}`}>{task.title}</h3>
+                          <div className="flex items-center justify-between mt-auto pt-2 border-t border-gray-100">
+                            <span className="text-[10px] font-bold text-gray-400 uppercase">{task.task_type.replace(/_/g, ' ')}</span>
+                            <div className="flex items-center gap-2">
+                              {task.assigned_to_email && <span className="text-[10px] font-bold text-primary-600 bg-primary-50 px-2 py-0.5 rounded-full">{task.assigned_to_email.split('@')[0]}</span>}
+                              <span className="text-[10px] text-gray-400">{timeAgo(task.created_at)}</span>
+                            </div>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>
