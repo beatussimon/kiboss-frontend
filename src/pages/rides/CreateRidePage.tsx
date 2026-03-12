@@ -54,9 +54,12 @@ export default function CreateRidePage() {
   });
   const [stops, setStops] = useState<StopFormData[]>([]);
 
+  const isBusinessMode = mode === 'business';
+  const hasActiveBusinessSubscription = user?.account_tier === 'BUSINESS';
+
   useEffect(() => {
     // Override initial ride type if mode is business
-    if (mode === 'business') {
+    if (isBusinessMode) {
       setFormData(prev => ({ ...prev, ride_type: 'BUSINESS' }));
     }
 
@@ -267,6 +270,31 @@ export default function CreateRidePage() {
     );
   }
 
+  if (isBusinessMode && !hasActiveBusinessSubscription) {
+    return (
+      <div className="max-w-2xl mx-auto">
+        <div className="card p-12 text-center bg-red-50 border-red-200 border-2">
+          <div className="h-24 w-24 bg-white rounded-full flex items-center justify-center mx-auto mb-8 shadow-xl">
+            <AlertTriangle className="h-12 w-12 text-red-500" />
+          </div>
+          <h1 className="text-3xl font-black text-gray-900 mb-4 tracking-tighter uppercase">Subscription Required</h1>
+          <p className="text-gray-600 font-medium mb-8">
+            Your business subscription is inactive or expired. You need an active Business subscription to offer corporate rides.
+          </p>
+          <div className="space-y-4">
+            <Link to="/upgrade" className="btn-primary w-full py-4 text-lg font-black uppercase tracking-widest flex items-center justify-center gap-3 bg-red-600 hover:bg-red-700">
+              <ShieldCheck className="h-6 w-6" />
+              Upgrade Subscription
+            </Link>
+            <button onClick={() => navigate(-1)} className="text-sm font-bold text-gray-400 hover:text-gray-600 uppercase tracking-widest">
+              Go Back
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-3xl mx-auto">
       <div className="flex items-center justify-between mb-6">
@@ -458,7 +486,9 @@ export default function CreateRidePage() {
                 disabled={mode === 'business'}
               >
                 <option value="PERSONAL">Personal Ride (Standard)</option>
-                <option value="BUSINESS">Business Ride (High Capacity / Bus / Van)</option>
+                <option value="BUSINESS" disabled={!hasActiveBusinessSubscription}>
+                  Business Ride (High Capacity / Bus / Van) {!hasActiveBusinessSubscription && '(Subscription Required)'}
+                </option>
               </select>
             </div>
 
