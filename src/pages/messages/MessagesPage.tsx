@@ -36,6 +36,7 @@ export default function MessagesPage() {
     thread.thread_type === 'RIDE' || 
     thread.thread_type === 'INQUIRY' ||
     thread.thread_type === 'DISPUTE' ||
+    thread.thread_type === 'SUPPORT' ||
     thread.booking ||
     thread.ride
   );
@@ -57,6 +58,9 @@ export default function MessagesPage() {
     if (thread.thread_type === 'RIDE' || thread.ride) {
       return <Car className="h-4 w-4 text-green-600" />;
     }
+    if (thread.thread_type === 'SUPPORT') {
+      return <MessageCircle className="h-4 w-4 text-purple-600" />;
+    }
     return <Home className="h-4 w-4 text-gray-600" />;
   };
 
@@ -69,6 +73,9 @@ export default function MessagesPage() {
     }
     if (thread.thread_type === 'DISPUTE') {
       return 'Dispute';
+    }
+    if (thread.thread_type === 'SUPPORT') {
+      return 'Support';
     }
     return 'Inquiry';
   };
