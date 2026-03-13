@@ -83,7 +83,7 @@ export default function HomePage() {
                 <input
                   type="text"
                   placeholder="What are you looking for?"
-                  className="w-full border-none focus:ring-0 text-gray-900 font-bold placeholder:text-gray-400 placeholder:font-medium"
+                  className="w-full bg-transparent border-none outline-none focus:outline-none focus:ring-0 focus:ring-transparent focus:border-transparent text-gray-900 font-bold placeholder:text-gray-400 placeholder:font-medium"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />

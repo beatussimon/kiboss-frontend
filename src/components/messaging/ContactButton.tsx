@@ -18,6 +18,8 @@ interface ContactButtonProps {
   bookingId?: string;
   /** Optional ride ID */
   rideId?: string;
+  /** Optional initial message injection */
+  initialMessage?: string;
   /** Optional subject line */
   subject?: string;
   /** Button variant */
@@ -39,6 +41,7 @@ export default function ContactButton({
   listingId,
   bookingId,
   rideId,
+  initialMessage,
   subject,
   variant = 'primary',
   size = 'md',
@@ -74,6 +77,7 @@ export default function ContactButton({
         listing_id: listingId,
         booking_id: bookingId,
         ride_id: rideId,
+        initial_message: initialMessage,
       })).unwrap();
 
       // If callback provided, call it with thread ID

@@ -38,9 +38,10 @@ export default function UpgradePage() {
         const fetchMethods = async () => {
             try {
                 const response = await api.get('/payments/offline-methods/');
-                setMethods(response.data);
-                if (response.data.length > 0) {
-                    setSelectedMethod(response.data[0]);
+                const data = response.data.results || response.data;
+                setMethods(data);
+                if (data.length > 0) {
+                    setSelectedMethod(data[0]);
                 }
             } catch (error) {
                 console.error('Failed to fetch payment methods:', error);
@@ -64,7 +65,7 @@ export default function UpgradePage() {
         {
             id: 'PLUS',
             name: 'Plus Plan',
-            price: 15000,
+            price: 10000,
             icon: <Sparkles className="h-8 w-8" />,
             highlights: ['Up to 10 Active Listings', 'Available 100 Rides/mo', 'Listing Boosts Available', 'Priority Support'],
             accent: 'text-blue-600',
@@ -114,7 +115,7 @@ export default function UpgradePage() {
             const formData = new FormData();
             formData.append('plan_type', selectedPlan);
             formData.append('payment_method', selectedMethod.id.toString());
-            formData.append('amount', selectedPlan === 'PLUS' ? '15000' : '0');
+            formData.append('amount', selectedPlan === 'PLUS' ? '10000' : '0');
             formData.append('currency', 'TZS');
             
             if (confirmationMessage) formData.append('confirmation_message', confirmationMessage);
@@ -226,7 +227,7 @@ export default function UpgradePage() {
                             {/* Amount Due Box */}
                             <div className="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl p-6 text-white text-center shadow-inner mb-8">
                                 <p className="text-blue-100 font-bold uppercase tracking-widest text-xs mb-1">Total Amount Due</p>
-                                <p className="text-4xl font-black tracking-tight"><Price amount={15000} /></p>
+                                <p className="text-4xl font-black tracking-tight"><Price amount={10000} /></p>
                             </div>
 
                             {/* Method Selection */}

@@ -84,9 +84,9 @@ export default function PublicProfilePage() {
                     ) : (
                       <button
                         onClick={handleFollow}
-                        className={user.is_following ? 'btn-secondary border-indigo-200 text-indigo-700' : 'btn-primary bg-indigo-600 hover:bg-indigo-700'}
+                        className={user.is_following ? 'btn-secondary border-red-200 text-red-700 hover:bg-red-50' : 'btn-primary bg-indigo-600 hover:bg-indigo-700'}
                       >
-                        {user.is_following ? 'Following' : 'Follow'}
+                        {user.is_following ? 'Unfollow' : 'Follow'}
                       </button>
                     )}
                   </div>
@@ -120,9 +120,9 @@ export default function PublicProfilePage() {
                   ) : (
                     <button
                       onClick={handleFollow}
-                      className={user.is_following ? 'btn-secondary' : 'btn-primary'}
+                      className={user.is_following ? 'btn-secondary border-red-200 text-red-700 hover:bg-red-50' : 'btn-primary'}
                     >
-                      {user.is_following ? 'Following' : 'Follow'}
+                      {user.is_following ? 'Unfollow' : 'Follow'}
                     </button>
                   )}
                 </div>

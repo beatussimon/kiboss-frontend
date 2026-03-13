@@ -197,6 +197,7 @@ export default function AssetDetailPage() {
               subject={`Inquiry about ${asset.name}`}
               onThreadCreated={handleThreadCreated}
               variant="secondary"
+              initialMessage={`Hi, I'm interested in booking ${asset.name}.`}
             />
           )}
           {!isAuthenticated && (
@@ -335,6 +336,7 @@ export default function AssetDetailPage() {
                   onThreadCreated={handleThreadCreated}
                   variant="outline"
                   className="flex-1 md:flex-none justify-center"
+                  initialMessage={`Hi, I'm interested in booking ${asset.name}.`}
                 />
               )}
               <Link to={`/bookings/new?asset_id=${asset.id}`} className="btn-primary flex-1 md:flex-none flex items-center justify-center">

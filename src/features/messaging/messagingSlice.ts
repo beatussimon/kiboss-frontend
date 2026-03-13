@@ -107,6 +107,7 @@ export const createContextualThread = createAsyncThunk(
     listing_id?: string;
     booking_id?: string;
     ride_id?: string;
+    initial_message?: string;
   }, { rejectWithValue }) => {
     try {
       const response = await api.post<Thread>('/messaging/threads/create_contextual/', data);

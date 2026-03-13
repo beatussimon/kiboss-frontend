@@ -76,7 +76,7 @@ export default function BookingsPage() {
     return configs[status] || configs.PENDING;
   };
 
-  const bookingCount = bookings.length || count;
+  const bookingCount = count || bookings.length;
 
   return (
     <div>

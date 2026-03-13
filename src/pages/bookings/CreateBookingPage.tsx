@@ -130,14 +130,31 @@ export default function CreateBookingPage() {
 
     const start = new Date(formData.start_time);
     const end = new Date(formData.end_time);
-    const hours = Math.max(1, Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60)));
+    const diffMs = end.getTime() - start.getTime();
+    
+    const unitType = asset.pricing_rules[0].unit_type || 'HOUR';
+    let timeMultiplier = 1;
+
+    if (unitType === 'HOUR') {
+      timeMultiplier = Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60)));
+    } else if (unitType === 'DAY') {
+      timeMultiplier = Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
+    } else if (unitType === 'WEEK') {
+      timeMultiplier = Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24 * 7)));
+    } else if (unitType === 'MONTH') {
+      timeMultiplier = Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24 * 30)));
+    } else {
+      timeMultiplier = 1; // FIXED, UNIT, SEAT, MILE, KM
+    }
+
     const pricePerUnit = typeof asset.pricing_rules[0].price === 'string'
       ? parseFloat(asset.pricing_rules[0].price)
       : asset.pricing_rules[0].price || 0;
 
     return {
-      hours,
-      subtotal: hours * pricePerUnit * formData.quantity,
+      timeMultiplier,
+      unitType,
+      subtotal: timeMultiplier * pricePerUnit * formData.quantity,
       pricePerUnit,
     };
   };
@@ -392,7 +409,7 @@ export default function CreateBookingPage() {
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-500">
-                    ${priceInfo.pricePerUnit} × {priceInfo.hours} hours × {formData.quantity} unit(s)
+                    ${priceInfo.pricePerUnit} × {priceInfo.timeMultiplier} {priceInfo.unitType.toLowerCase()}(s) × {formData.quantity} unit(s)
                   </span>
                   <span>${priceInfo.subtotal.toFixed(2)}</span>
                 </div>

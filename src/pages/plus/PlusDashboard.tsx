@@ -400,14 +400,53 @@ export default function PlusDashboard() {
             {/* TAB CONTENT: AUDIENCE */}
             {activeTab === 'AUDIENCE' && (
                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                    <div className="card p-12 border-none shadow-lg text-center flex flex-col items-center justify-center">
-                        <div className="h-20 w-20 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mb-4">
-                            <Users className="h-10 w-10" />
-                        </div>
-                        <h2 className="text-2xl font-black text-gray-900">Audience Insights</h2>
-                        <p className="text-gray-500 max-w-md mt-2">
-                            Deep demographics, customer location data, and booking time heatmaps are being gathered for your listings. Check back next month as we compile your report!
-                        </p>
+                    <div className="card p-12 border-none shadow-lg bg-gradient-to-br from-blue-50 to-white relative overflow-hidden">
+                        <Users className="absolute -right-4 -top-4 h-32 w-32 text-blue-100 opacity-50" />
+                        <h2 className="text-2xl font-black text-gray-900 tracking-tight mb-6 relative z-10">Audience Insights</h2>
+                        
+                        {analytics?.advanced_analytics?.audience_insights ? (
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
+                                <div>
+                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Unique Customers</p>
+                                    <p className="text-4xl font-black text-blue-600">
+                                        {analytics.advanced_analytics.audience_insights.unique_customers}
+                                    </p>
+                                    <p className="text-xs text-gray-500 mt-2 font-medium">Individuals who have booked your assets</p>
+                                </div>
+                                
+                                <div>
+                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Repeat Customer Rate</p>
+                                    <p className="text-4xl font-black text-emerald-600">
+                                        {analytics.advanced_analytics.audience_insights.repeat_customer_rate}%
+                                    </p>
+                                    <p className="text-xs text-gray-500 mt-2 font-medium">Customers with more than one booking</p>
+                                </div>
+
+                                <div>
+                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Top Locations</p>
+                                    <ul className="space-y-2">
+                                        {analytics.advanced_analytics.audience_insights.top_locations.map((loc: any, idx: number) => (
+                                            <li key={idx} className="flex justify-between items-center text-sm font-bold text-gray-700 bg-white/60 px-3 py-2 rounded-lg">
+                                                <span>{loc.city}</span>
+                                                <span className="text-gray-500">{loc.count} bookings</span>
+                                            </li>
+                                        ))}
+                                        {analytics.advanced_analytics.audience_insights.top_locations.length === 0 && (
+                                            <li className="text-sm text-gray-500 italic">Not enough data yet</li>
+                                        )}
+                                    </ul>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="text-center flex flex-col items-center justify-center">
+                                <div className="h-20 w-20 bg-blue-100/50 text-blue-500 rounded-full flex items-center justify-center mb-4">
+                                    <Users className="h-10 w-10" />
+                                </div>
+                                <p className="text-gray-500 max-w-md mt-2">
+                                    Not enough data to generate insights yet. Insights update automatically as you complete bookings.
+                                </p>
+                            </div>
+                        )}
                     </div>
                 </div>
             )}

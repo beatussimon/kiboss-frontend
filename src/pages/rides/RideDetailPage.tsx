@@ -618,6 +618,7 @@ export default function RideDetailPage() {
                       subject={`Ride Inquiry: ${ride.origin} → ${ride.destination}`}
                       variant="outline"
                       className="w-full justify-center py-3 text-xs font-bold uppercase tracking-widest"
+                      initialMessage={`Hi, I have a question about the ride from ${ride.origin} to ${ride.destination}.`}
                     />
                   )}
                 </div>

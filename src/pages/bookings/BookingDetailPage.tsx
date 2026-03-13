@@ -175,6 +175,7 @@ export default function BookingDetailPage() {
                     variant="outline"
                     size="sm"
                     className="mt-2"
+                    initialMessage={`Hi, I am reaching out regarding booking #${booking.id} for ${booking.asset.name}.`}
                   />
                 )}
               </div>
