@@ -22,18 +22,19 @@ export default function AssetsPage() {
 
   const assetType = searchParams.get('asset_type') as AssetType | undefined;
   const city = searchParams.get('city') || undefined;
+  const owner = searchParams.get('owner') || undefined;
 
   const fetchedDependencies = useRef('');
 
   // Reset page when filters change
   useEffect(() => {
-    const currentDependencies = `${assetType}-${city}`;
+    const currentDependencies = `${assetType}-${city}-${owner}`;
     if (fetchedDependencies.current !== currentDependencies) {
       setPage(1);
-      dispatch(fetchAssets({ asset_type: assetType, city, page: 1 }));
+      dispatch(fetchAssets({ asset_type: assetType, city, owner, page: 1 }));
       fetchedDependencies.current = currentDependencies;
     }
-  }, [dispatch, assetType, city]);
+  }, [dispatch, assetType, city, owner]);
 
   // Infinite scroll observer
   const handleLoadMore = useCallback(async () => {
@@ -43,12 +44,12 @@ export default function AssetsPage() {
     const nextPage = page + 1;
 
     try {
-      await dispatch(fetchAssets({ asset_type: assetType, city, page: nextPage }));
+      await dispatch(fetchAssets({ asset_type: assetType, city, owner, page: nextPage }));
       setPage(nextPage);
     } finally {
       setIsLoadingMore(false);
     }
-  }, [dispatch, assetType, city, page, isLoadingMore, next]);
+  }, [dispatch, assetType, city, owner, page, isLoadingMore, next]);
 
   useEffect(() => {
     if (observerRef.current) {

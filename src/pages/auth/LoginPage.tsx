@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../app/store';
 import { login } from '../../features/auth/authSlice';
@@ -11,6 +11,7 @@ import LocationModal from '../../components/location/LocationModal';
 export default function LoginPage() {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { isLoading, error } = useSelector((state: RootState) => state.auth);
   const { userLocation, isLocationPermissionGranted } = useSelector((state: RootState) => state.location);
   const [email, setEmail] = useState('');
@@ -33,6 +34,12 @@ export default function LoginPage() {
       setShowLocationModal(true);
     }
   }, [dispatch]);
+
+  useEffect(() => {
+    if (searchParams.get('reason') === 'session_expired') {
+      toast.error('Session expired. Please log in again.', { duration: 5000 });
+    }
+  }, [searchParams]);
 
   const handleLoginSuccess = () => {
     toast.success('Welcome back!');

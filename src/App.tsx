@@ -42,6 +42,7 @@ import RideEditPage from './pages/rides/RideEditPage';
 import BusinessDashboard from './pages/business/BusinessDashboard';
 import UpgradePage from './pages/business/UpgradePage';
 import PlusDashboard from './pages/plus/PlusDashboard';
+import IncomingBookingsPage from './pages/plus/IncomingBookingsPage';
 import BusinessRegistrationForm from './pages/business/BusinessRegistrationForm';
 
 // Protected Route Component
@@ -150,6 +151,7 @@ function App() {
         <Route path="/business/register" element={<BusinessRegistrationForm />} />
         <Route path="/upgrade" element={<UpgradePage />} />
         <Route path="/plus" element={<PlusDashboard />} />
+        <Route path="/plus/bookings" element={<IncomingBookingsPage />} />
         <Route path="/staff/tasks" element={<TaskDashboard />} />
         <Route path="/payments" element={<PaymentsPage />} />
         <Route path="/settings" element={<SettingsPage />} />

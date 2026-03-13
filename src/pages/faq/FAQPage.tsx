@@ -1,123 +1,36 @@
-import { useState } from 'react';
-import { ChevronDown, ChevronUp, HelpCircle, Car, Home, CreditCard, Shield, MessageCircle, User, Briefcase, Send } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ChevronDown, ChevronUp, HelpCircle, Send } from 'lucide-react';
 import FeedbackForm from '../../components/common/FeedbackForm';
+import api from '../../services/api';
 
 interface FAQItem {
+  id?: number;
   question: string;
   answer: string;
 }
 
-interface FAQCategory {
-  title: string;
-  icon: React.ReactNode;
-  items: FAQItem[];
-}
-
-const faqCategories: FAQCategory[] = [
-  {
-    title: 'Business & Verification',
-    icon: <Briefcase className="h-5 w-5" />,
-    items: [
-      {
-        question: 'How do I register as a business?',
-        answer: 'Navigate to the "Business" section in your dashboard. You can choose a subscription plan and provide your company details, including registration number and tax ID.'
-      },
-      {
-        question: 'What documents are required for business verification?',
-        answer: 'You need to upload clear, stamped copies of your Business License, Tax Clearance, and proof of authorization. Our team manually reviews these documents.'
-      },
-      {
-        question: 'How long does verification take?',
-        answer: 'Identity and vehicle verifications typically take 24-48 hours. Business applications may take 3-5 business days depending on the complexity of the documentation.'
-      },
-      {
-        question: 'Can I edit my info while verification is in progress?',
-        answer: 'Yes! You can go to your Business Dashboard and click "Edit Application" to update your company details if you notice any errors while your review is still pending.'
-      }
-    ]
-  },
-  {
-    title: 'General',
-    icon: <HelpCircle className="h-5 w-5" />,
-    items: [
-      {
-        question: 'What is KIBOSS?',
-        answer: 'KIBOSS is a universal rental and sharing platform that allows you to list, discover, and book various assets including rooms, tools, vehicles, and ride-sharing services.'
-      },
-      {
-        question: 'How do I create an account?',
-        answer: 'Click the "Sign Up" button in the navigation bar and fill in your details. You\'ll need to verify your email address before you can start using the platform.'
-      },
-      {
-        question: 'Is KIBOSS free to use?',
-        answer: 'Creating an account and browsing listings is free. KIBOSS charges a small service fee on completed bookings to maintain the platform.'
-      }
-    ]
-  },
-  {
-    title: 'Listings & Assets',
-    icon: <Home className="h-5 w-5" />,
-    items: [
-      {
-        question: 'How do I list my asset?',
-        answer: 'Navigate to "Create Asset" from your dashboard. Fill in the details about your asset including location, pricing, availability, and photos.'
-      },
-      {
-        question: 'What types of assets can I list?',
-        answer: 'You can list various types of assets including Rooms/Spaces, Tools/Equipment, Vehicles, and Time-based Services.'
-      }
-    ]
-  },
-  {
-    title: 'Ride-Sharing',
-    icon: <Car className="h-5 w-5" />,
-    items: [
-      {
-        question: 'How do I offer a ride?',
-        answer: 'Click "Offer a Ride" from the navigation menu. Enter your route details, departure time, available seats, and price per seat.'
-      },
-      {
-        question: 'How do I book a seat in a ride?',
-        answer: 'Browse available rides from the Rides page. Select a ride, choose your seat(s), and complete the booking with payment.'
-      }
-    ]
-  },
-  {
-    title: 'Bookings & Payments',
-    icon: <CreditCard className="h-5 w-5" />,
-    items: [
-      {
-        question: 'How does the booking process work?',
-        answer: 'Select an asset or ride, choose your dates/time, and submit a request. For rides, booking is instant if seats are available.'
-      },
-      {
-        question: 'Are my payments secure?',
-        answer: 'Yes, all payments are processed through secure, encrypted payment gateways. Payments are held in escrow until the booking is complete.'
-      }
-    ]
-  },
-  {
-    title: 'Trust & Safety',
-    icon: <Shield className="h-5 w-5" />,
-    items: [
-      {
-        question: 'How does the verification system work?',
-        answer: 'Users can verify their identity through email, phone number, and government ID. Verified users get a badge on their profile.'
-      },
-      {
-        question: 'How do I report a problem?',
-        answer: 'You can report problems through the booking details page or by contacting support. All reports are reviewed within 24 hours.'
-      }
-    ]
-  }
-];
-
 export default function FAQPage() {
   const [openItems, setOpenItems] = useState<Record<string, boolean>>({});
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+  const [faqs, setFaqs] = useState<FAQItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const toggleItem = (categoryIndex: number, itemIndex: number) => {
-    const key = `${categoryIndex}-${itemIndex}`;
+  useEffect(() => {
+    const fetchFaqs = async () => {
+      try {
+        const response = await api.get('/common/faq/');
+        setFaqs(response.data.results || response.data);
+      } catch (error) {
+        console.error('Failed to fetch FAQs:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchFaqs();
+  }, []);
+
+  const toggleItem = (itemIndex: number) => {
+    const key = `item-${itemIndex}`;
     setOpenItems(prev => ({
       ...prev,
       [key]: !prev[key]
@@ -132,21 +45,29 @@ export default function FAQPage() {
       </div>
 
       <div className="space-y-6">
-        {faqCategories.map((category, categoryIndex) => (
-          <div key={categoryIndex} className="card overflow-hidden border-none shadow-sm ring-1 ring-gray-100">
+        {isLoading ? (
+          <div className="flex justify-center p-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+          </div>
+        ) : faqs.length === 0 ? (
+          <div className="text-center p-12 text-gray-500">
+            No FAQs available at the moment. Please check back later.
+          </div>
+        ) : (
+          <div className="card overflow-hidden border-none shadow-sm ring-1 ring-gray-100">
             <div className="bg-gray-50 px-6 py-4 border-b border-gray-100">
               <h2 className="text-sm font-black text-gray-900 uppercase tracking-widest flex items-center gap-2">
-                {category.icon}
-                {category.title}
+                <HelpCircle className="h-5 w-5" />
+                General Questions
               </h2>
             </div>
             <div className="divide-y divide-gray-50">
-              {category.items.map((item, itemIndex) => {
-                const isOpen = openItems[`${categoryIndex}-${itemIndex}`];
+              {faqs.map((item, itemIndex) => {
+                const isOpen = openItems[`item-${itemIndex}`];
                 return (
                   <div key={itemIndex} className="border-gray-100">
                     <button
-                      onClick={() => toggleItem(categoryIndex, itemIndex)}
+                      onClick={() => toggleItem(itemIndex)}
                       className="w-full px-6 py-5 text-left flex items-center justify-between hover:bg-gray-50/50 transition-colors"
                     >
                       <span className="font-bold text-gray-700">{item.question}</span>
@@ -158,7 +79,7 @@ export default function FAQPage() {
                     </button>
                     {isOpen && (
                       <div className="px-6 pb-6 animate-in fade-in slide-in-from-top-1">
-                        <p className="text-sm text-gray-500 font-medium leading-relaxed">{item.answer}</p>
+                        <p className="text-sm text-gray-500 font-medium leading-relaxed whitespace-pre-wrap">{item.answer}</p>
                       </div>
                     )}
                   </div>
@@ -166,7 +87,7 @@ export default function FAQPage() {
               })}
             </div>
           </div>
-        ))}
+        )}
       </div>
 
       <div className="card p-10 mt-12 text-center bg-primary-900 text-white border-none shadow-2xl relative overflow-hidden rounded-[2.5rem]">

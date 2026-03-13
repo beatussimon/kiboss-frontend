@@ -165,6 +165,7 @@ export interface AssetFilters {
   search?: string;
   page?: number;
   page_size?: number;
+  owner?: string;
 }
 
 // ==================== Booking Types ====================

@@ -76,7 +76,7 @@ api.interceptors.response.use(
         } catch (refreshError) {
           // Refresh failed - logout user
           storeRef?.dispatch({ type: 'auth/logout' });
-          window.location.href = '/login';
+          window.location.href = '/login?reason=session_expired';
           return Promise.reject(refreshError);
         }
       } else {
@@ -86,7 +86,7 @@ api.interceptors.response.use(
         // Only redirect if not already on an auth page
         const currentPath = window.location.pathname;
         if (currentPath !== '/login' && currentPath !== '/register') {
-          window.location.href = '/login';
+          window.location.href = '/login?reason=session_expired';
         }
       }
     }

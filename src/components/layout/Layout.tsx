@@ -284,14 +284,10 @@ export default function Layout() {
                         <User className="h-4 w-4 mr-2" />
                         Profile
                       </Link>
-                      <Link
-                        to="/assets"
-                        onClick={() => setIsUserMenuOpen(false)}
-                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                      >
-                        <Briefcase className="h-4 w-4 mr-2" />
+                      <a href="/assets?owner=me" onClick={() => setIsUserMenuOpen(false)} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+                        <Briefcase className="h-4 w-4" />
                         My Listings
-                      </Link>
+                    </a>
                       {/* Tier-Conditional Section */}
                       {effectiveTier === 'FREE' && (
                         <Link
@@ -366,6 +362,16 @@ export default function Layout() {
                         <Calendar className="h-4 w-4 mr-2" />
                         My Bookings
                       </Link>
+                      {(effectiveTier === 'PLUS' || effectiveTier === 'BUSINESS') && (
+                        <Link
+                          to="/plus/bookings"
+                          onClick={() => setIsUserMenuOpen(false)}
+                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                        >
+                          <Calendar className="h-4 w-4 mr-2" />
+                          Incoming Bookings
+                        </Link>
+                      )}
                       <Link
                         to="/settings"
                         onClick={() => setIsUserMenuOpen(false)}
