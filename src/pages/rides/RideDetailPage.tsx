@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../app/store';
-import { fetchRide, fetchSeatAvailability, bookSeat, bulkBookSeats, bookCargo, fetchMyBookings } from '../../features/rides/ridesSlice';
+import { fetchRide, fetchSeatAvailability, bookSeat, bulkBookSeats, bookCargo, fetchMyBookings, clearRideError } from '../../features/rides/ridesSlice';
 import { getMediaUrl } from '../../utils/media';
 import { Price } from '../../context/CurrencyContext';
 import { MapPin, Users, ArrowRight, Clock, Star, Edit, List, ChevronLeft, ChevronRight, Home, Car, User, Calendar, Shield, Package, Phone } from 'lucide-react';
@@ -26,23 +26,32 @@ export default function RideDetailPage() {
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [hasCargoBooking, setHasCargoBooking] = useState(false);
 
+  // Use a ref to track which ride ID we last fetched — prevents StrictMode double-fire
+  const fetchedForId = useRef<string | null>(null);
+
   useEffect(() => {
-    if (id) {
-      dispatch(fetchRide(id));
-      dispatch(fetchSeatAvailability(id));
-      if (isAuthenticated) {
-        dispatch(fetchMyBookings());
-        import('../../services/api').then(({ default: api }) => {
-          api.get(`/rides/cargo-bookings/`, { params: { ride: id!, sender: 'me' } })
-            .then(res => {
-              const bookings = res.data?.results || res.data || [];
-              if (bookings.some((b: any) => b.status === 'CONFIRMED' || b.status === 'PENDING')) {
-                setHasCargoBooking(true);
-              }
-            })
-            .catch(console.error);
-        });
-      }
+    if (!id) return;
+    // If we already initiated a fetch for this exact ride ID, skip
+    if (fetchedForId.current === id) return;
+    fetchedForId.current = id;
+
+    // Reset stale 404 state when navigating to a new ride
+    dispatch(clearRideError());
+
+    dispatch(fetchRide(id));
+    dispatch(fetchSeatAvailability(id));
+    if (isAuthenticated) {
+      dispatch(fetchMyBookings());
+      import('../../services/api').then(({ default: api }) => {
+        api.get(`/rides/cargo-bookings/`, { params: { ride: id, sender: 'me' } })
+          .then(res => {
+            const bookings = res.data?.results || res.data || [];
+            if (bookings.some((b: any) => b.status === 'CONFIRMED' || b.status === 'PENDING')) {
+              setHasCargoBooking(true);
+            }
+          })
+          .catch(console.error);
+      });
     }
   }, [dispatch, id, isAuthenticated]);
 
@@ -146,8 +155,43 @@ export default function RideDetailPage() {
   }
 
   if (error) {
+    const fallbackBooking = myBookings?.find(b => String(b.ride_id || b.ride) === id);
+    if (error.includes('not found') || fallbackBooking) {
+      return (
+        <div className="card p-8 border-none shadow-2xl bg-white text-center max-w-2xl mx-auto mt-12">
+          <Car className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+          <h2 className="text-2xl font-black text-gray-900 mb-2">This ride is no longer available</h2>
+          <p className="text-gray-500 mb-6">The provider may have cancelled or deleted it.</p>
+          
+          {fallbackBooking && (
+            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 text-left mb-6">
+              <h3 className="text-amber-800 font-bold mb-2 flex items-center gap-2">
+                <Shield className="h-5 w-5" /> Booking Protection
+              </h3>
+              <p className="text-amber-700 text-sm mb-4">You have a booking associated with this ride. Our escrow protects your payment.</p>
+              
+              <div className="bg-white rounded-xl p-4 shadow-sm border border-amber-100 flex justify-between items-center">
+                <div>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Booking Status</p>
+                  <p className="font-bold text-gray-900">{fallbackBooking.status || 'Unknown'}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Receipt</p>
+                  <p className="font-black text-primary-600"><Price amount={fallbackBooking.price || fallbackBooking.total_price || 0} /></p>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          <Link to="/rides" className="btn-primary inline-flex">
+            ← Find Other Rides
+          </Link>
+        </div>
+      );
+    }
+
     return (
-      <div className="card p-8 bg-red-50 border-red-100">
+      <div className="card p-8 bg-red-50 border-red-100 max-w-2xl mx-auto mt-12">
         <p className="text-red-600 mb-4 font-bold">{error}</p>
         <Link to="/rides" className="text-primary-600 font-bold hover:text-primary-700 flex items-center gap-2">
           ← Back to Rides
@@ -200,8 +244,9 @@ export default function RideDetailPage() {
               {ride.photos && ride.photos.length > 0 ? (
                 <>
                   <img
-                    src={getMediaUrl(ride.photos[currentImageIndex].url)}
+                    src={getMediaUrl(ride.photos?.[currentImageIndex]?.url)}
                     alt={`${ride.route_name} - ${currentImageIndex + 1}`}
+                    onError={(e) => { (e.target as HTMLImageElement).src = 'https://placehold.co/800x450/e2e8f0/64748b?text=Image+Unavailable'; }}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-black/10 transition-opacity group-hover:bg-transparent" />
@@ -246,7 +291,7 @@ export default function RideDetailPage() {
                     className={`relative w-32 h-20 rounded-xl overflow-hidden flex-shrink-0 transition-all shadow-sm ${currentImageIndex === index ? 'ring-2 ring-primary-500 scale-105 shadow-primary-500/30' : 'opacity-60 hover:opacity-100 hover:scale-105 bg-gray-100'
                       }`}
                   >
-                    <img src={getMediaUrl(photo.url)} alt="" className="w-full h-full object-cover" />
+                    <img src={getMediaUrl(photo?.url)} alt="" onError={(e) => { (e.target as HTMLImageElement).src = 'https://placehold.co/128x80/e2e8f0/64748b?text=NA'; }} className="w-full h-full object-cover" />
                   </button>
                 ))}
               </div>

@@ -38,10 +38,27 @@ export default function NotificationsPage() {
       await dispatch(markAsRead(notification.id));
     }
 
-    // Navigate to the relevant resource
+    // Navigate to the relevant resource with API pre-check for 404s
     const actionUrl = notification.action_url || (notification.data as any)?.action_url;
     if (actionUrl) {
-      navigate(actionUrl);
+      const parts = actionUrl.split('/').filter(Boolean);
+      if (parts.length >= 2) {
+        const entity = parts[0];
+        const id = parts[1];
+        try {
+          const apiModule = await import('../../services/api');
+          await apiModule.default.get(`/${entity}/${id}/`);
+          navigate(actionUrl);
+        } catch (err: any) {
+          if (err.response?.status === 404) {
+            toast.error('Item no longer available');
+          } else {
+            navigate(actionUrl);
+          }
+        }
+      } else {
+        navigate(actionUrl);
+      }
     }
   };
 

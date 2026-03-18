@@ -12,6 +12,8 @@ interface RidesState {
   isLoading: boolean;
   error: string | null;
   count: number;
+  // Track which ride ID resulted in a 404, to avoid blocking other ride fetches
+  notFoundRideId: string | null;
 }
 
 const initialState: RidesState = {
@@ -24,6 +26,7 @@ const initialState: RidesState = {
   isLoading: false,
   error: null,
   count: 0,
+  notFoundRideId: null,
 };
 
 export const fetchRides = createAsyncThunk(
@@ -62,8 +65,20 @@ export const fetchRide = createAsyncThunk(
       const response = await api.get<Ride>(`/rides/trips/${rideId}/`);
       return response.data;
     } catch (error: unknown) {
-      const axiosError = error as { response?: { data?: { message?: string } } };
+      const axiosError = error as { response?: { status?: number, data?: { message?: string } } };
+      if (axiosError.response?.status === 404) {
+        return rejectWithValue('404_NOT_FOUND');
+      }
       return rejectWithValue(axiosError.response?.data?.message || 'Failed to fetch ride');
+    }
+  },
+  {
+    // Only block if this ride ID specifically returned 404 before — not globally
+    condition: (rideId, { getState }) => {
+      const state = getState() as { rides: RidesState };
+      if (state.rides.notFoundRideId === rideId) {
+        return false;
+      }
     }
   }
 );
@@ -77,6 +92,15 @@ export const fetchSeatAvailability = createAsyncThunk(
     } catch (error: unknown) {
       const axiosError = error as { response?: { data?: { message?: string } } };
       return rejectWithValue(axiosError.response?.data?.message || 'Failed to fetch seat availability');
+    }
+  },
+  {
+    // Only block seats_detail if this ride was specifically noted as 404
+    condition: (rideId, { getState }) => {
+      const state = getState() as { rides: RidesState };
+      if (state.rides.notFoundRideId === rideId) {
+        return false;
+      }
     }
   }
 );
@@ -202,9 +226,15 @@ const ridesSlice = createSlice({
     clearCurrentRide: (state) => {
       state.currentRide = null;
       state.seatAvailability = null;
+      state.error = null;
+      state.notFoundRideId = null;
     },
     clearError: (state) => {
       state.error = null;
+    },
+    clearRideError: (state) => {
+      state.error = null;
+      state.notFoundRideId = null;
     },
   },
   extraReducers: (builder) => {
@@ -239,15 +269,28 @@ const ridesSlice = createSlice({
       .addCase(fetchRide.fulfilled, (state, action: PayloadAction<Ride>) => {
         state.isLoading = false;
         state.currentRide = action.payload;
+        state.notFoundRideId = null; // Clear any stale 404 record on success
+        state.error = null;
       })
       .addCase(fetchRide.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
+        if (action.payload === '404_NOT_FOUND') {
+          // Record which ride ID resulted in 404 so only that ride is blocked
+          state.notFoundRideId = action.meta.arg as string;
+        }
         state.currentRide = null;
       })
       // Fetch seat availability
+      .addCase(fetchSeatAvailability.pending, (state) => {
+        // Just track we are fetching, but don't clear anything
+      })
       .addCase(fetchSeatAvailability.fulfilled, (state, action: PayloadAction<SeatAvailability>) => {
         state.seatAvailability = action.payload;
+      })
+      .addCase(fetchSeatAvailability.rejected, (state, action) => {
+        // Don't crash or loop, just accept that seat availability couldn't load (e.g., 404 for missing ride)
+        state.seatAvailability = null;
       })
       // Fetch my bookings
       .addCase(fetchMyBookings.fulfilled, (state, action: PayloadAction<SeatBooking[]>) => {
@@ -272,5 +315,5 @@ const ridesSlice = createSlice({
   },
 });
 
-export const { clearCurrentRide, clearError } = ridesSlice.actions;
+export const { clearCurrentRide, clearError, clearRideError } = ridesSlice.actions;
 export default ridesSlice.reducer;

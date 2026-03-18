@@ -360,18 +360,8 @@ export default function Layout() {
                         className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                       >
                         <Calendar className="h-4 w-4 mr-2" />
-                        My Bookings
+                        Bookings Dashboard
                       </Link>
-                      {(effectiveTier === 'PLUS' || effectiveTier === 'BUSINESS') && (
-                        <Link
-                          to="/bookings?tab=incoming_bookings"
-                          onClick={() => setIsUserMenuOpen(false)}
-                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                        >
-                          <Calendar className="h-4 w-4 mr-2" />
-                          Incoming Bookings
-                        </Link>
-                      )}
                       <Link
                         to="/settings"
                         onClick={() => setIsUserMenuOpen(false)}

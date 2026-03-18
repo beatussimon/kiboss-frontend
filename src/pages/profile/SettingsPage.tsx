@@ -7,15 +7,28 @@ import toast from 'react-hot-toast';
 export default function SettingsPage() {
   const { user } = useSelector((state: RootState) => state.auth);
   const [notifications, setNotifications] = useState({
-    email: true,
-    push: true,
-    sms: false,
-    marketing: false,
+    email: (user as any)?.preferences?.email ?? true,
+    push: (user as any)?.preferences?.push ?? true,
+    sms: (user as any)?.preferences?.sms ?? false,
+    marketing: (user as any)?.preferences?.marketing ?? false,
   });
 
-  const handleToggle = (key: keyof typeof notifications) => {
-    setNotifications(prev => ({ ...prev, [key]: !prev[key] }));
-    toast.success('Preference updated');
+  const handleToggle = async (key: keyof typeof notifications) => {
+    const newValue = !notifications[key];
+    setNotifications(prev => ({ ...prev, [key]: newValue }));
+    try {
+      const apiModule = await import('../../services/api');
+      await apiModule.default.patch('/users/me/', {
+        preferences: {
+          ...(user as any)?.preferences,
+          [key]: newValue
+        }
+      });
+      toast.success('Preference updated');
+    } catch (err) {
+      setNotifications(prev => ({ ...prev, [key]: !newValue }));
+      toast.error('Failed to sync preference with server');
+    }
   };
 
   return (

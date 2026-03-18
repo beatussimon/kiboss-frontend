@@ -57,6 +57,11 @@ export default function NotificationDropdown({ isOpen, onClose }: NotificationDr
           navigate('/bookings');
         }
         break;
+      case 'SEAT_BOOKING':
+      case 'CARGO_BOOKING':
+        // Ride bookings live in the unified bookings dashboard
+        navigate('/bookings');
+        break;
       case 'RIDE':
         if (notification.data?.ride_id || notification.data?.ride) {
           navigate(`/rides/${notification.data.ride_id || notification.data.ride}`);
@@ -66,6 +71,9 @@ export default function NotificationDropdown({ isOpen, onClose }: NotificationDr
         break;
       case 'PAYMENT':
         navigate('/payments');
+        break;
+      case 'SUBSCRIPTION':
+        navigate('/upgrade');
         break;
       default:
         navigate('/notifications');

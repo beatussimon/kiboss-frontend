@@ -5,8 +5,23 @@ import { RootState } from '../../app/store';
 import api from '../../services/api';
 import { getMediaUrl } from '../../utils/media';
 import { Price } from '../../context/CurrencyContext';
-import { Calendar, MapPin, CheckCircle, XCircle, Timer, ShieldAlert, Sparkles, UserCheck, Activity, ArrowRight } from 'lucide-react';
+import { Calendar, MapPin, CheckCircle, XCircle, Timer, ShieldAlert, Sparkles, UserCheck, Activity, ArrowRight, Car, Briefcase, AlertTriangle } from 'lucide-react';
 import toast from 'react-hot-toast';
+
+function isBookingExpired(booking: any): boolean {
+  const now = new Date();
+  const terminalStatuses = ['COMPLETED', 'CANCELLED'];
+  if (terminalStatuses.includes(booking.status)) return false;
+
+  if (booking.booking_type === 'RIDE' || booking.booking_category === 'ride') {
+    if (booking.ride_details?.departure_time) {
+      return new Date(booking.ride_details.departure_time) < now;
+    }
+  } else if (booking.end_time) {
+    return new Date(booking.end_time) < now;
+  }
+  return false;
+}
 
 export default function IncomingBookingsPage() {
     const { user } = useSelector((state: RootState) => state.auth);
@@ -126,46 +141,73 @@ export default function IncomingBookingsPage() {
                     {bookings.map((booking) => {
                         const statusConfig = getStatusConfig(booking.status);
                         const stats = booking.renter_stats;
+                        const expired = isBookingExpired(booking);
 
                         return (
-                            <div key={booking.id} className="card p-0 overflow-hidden shadow-lg border-gray-200/60 hover:shadow-xl transition-all">
+                            <div key={booking.id} className={`card p-0 overflow-hidden shadow-lg border-gray-200/60 transition-all ${expired ? 'opacity-60 grayscale' : 'hover:shadow-xl'}`}>
                                 <div className="flex flex-col md:flex-row">
                                     {/* Left side: Booking Info */}
                                     <div className="p-6 md:w-2/3 border-b md:border-b-0 md:border-r border-gray-100 flex flex-col justify-between">
                                         <div className="flex items-start justify-between mb-4">
                                             <div className="flex items-center gap-4">
                                                 <div className="h-16 w-16 bg-gray-100 rounded-xl overflow-hidden shrink-0">
-                                                    {booking.asset?.photos?.[0] ? (
-                                                        <img src={getMediaUrl(booking.asset?.photos?.[0]?.url)} alt="Asset" className="h-full w-full object-cover" />
+                                                    {booking.booking_type === 'RIDE' ? (
+                                                        booking.ride_details?.photos?.[0] ? (
+                                                            <img src={getMediaUrl(booking.ride_details.photos[0].url)} alt="Ride Details" className="h-full w-full object-cover" />
+                                                        ) : (
+                                                            <div className="h-full w-full flex items-center justify-center bg-indigo-50">
+                                                                <Car className="h-8 w-8 text-indigo-400" />
+                                                            </div>
+                                                        )
+                                                    ) : booking.asset?.photos?.[0] ? (
+                                                        <img src={getMediaUrl(booking.asset.photos[0].url)} alt="Asset" className="h-full w-full object-cover" />
                                                     ) : (
-                                                        <Calendar className="h-8 w-8 text-gray-400 m-auto mt-4" />
+                                                        <div className="h-full w-full flex items-center justify-center bg-blue-50">
+                                                            <Briefcase className="h-8 w-8 text-blue-400" />
+                                                        </div>
                                                     )}
                                                 </div>
                                                 <div>
-                                                    <h3 className="text-lg font-bold text-gray-900">{booking.asset?.name || 'Unknown Asset'}</h3>
-                                                    <p className="text-sm text-gray-500 flex items-center mt-1">
-                                                        <MapPin className="h-3.5 w-3.5 mr-1" />
-                                                        {booking.asset?.city || 'Unknown'}, {booking.asset?.country || 'Unknown'}
-                                                    </p>
+                                                    <h3 className="text-lg font-bold text-gray-900">
+                                                        {booking.booking_type === 'RIDE' 
+                                                            ? (booking.ride_details?.origin ? `${booking.ride_details.origin} to ${booking.ride_details.destination}` : 'Ride Booking') 
+                                                            : (booking.asset?.name || 'Asset Booking')}
+                                                    </h3>
+                                                    {booking.booking_type !== 'RIDE' && booking.asset?.city && (
+                                                        <p className="text-sm text-gray-500 flex items-center mt-1">
+                                                            <MapPin className="h-3.5 w-3.5 mr-1" />
+                                                            {booking.asset.city}, {booking.asset.country}
+                                                        </p>
+                                                    )}
                                                 </div>
                                             </div>
-                                            <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider ${statusConfig.class}`}>
-                                                {statusConfig.icon}
-                                                {statusConfig.label}
-                                            </span>
+                                            {expired ? (
+                                                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider shrink-0 bg-gray-100 text-gray-600 border border-gray-300">
+                                                    <AlertTriangle className="h-3.5 w-3.5" />
+                                                    [ 🕒 Unavailable - Expired ]
+                                                </span>
+                                            ) : (
+                                                <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider shrink-0 ${statusConfig.class}`}>
+                                                    {statusConfig.icon}
+                                                    {statusConfig.label}
+                                                </span>
+                                            )}
                                         </div>
 
                                         <div className="grid grid-cols-2 gap-4 mt-6">
                                             <div className="bg-gray-50 p-4 rounded-xl">
-                                                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Duration</p>
+                                                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Duration / Date</p>
                                                 <p className="text-sm font-semibold text-gray-900 mt-1">
-                                                    {new Date(booking.start_time).toLocaleDateString()} <ArrowRight className="h-3 w-3 inline mx-1 text-gray-400" /> {new Date(booking.end_time).toLocaleDateString()}
+                                                    {booking.start_time ? new Date(booking.start_time).toLocaleDateString() : (
+                                                        booking.ride_details?.departure_time ? new Date(booking.ride_details.departure_time).toLocaleDateString() : 'TBD'
+                                                    )} 
+                                                    {booking.booking_type !== 'RIDE' && booking.end_time && <><ArrowRight className="h-3 w-3 inline mx-1 text-gray-400" /> {new Date(booking.end_time).toLocaleDateString()}</>}
                                                 </p>
                                             </div>
                                             <div className="bg-gray-50 p-4 rounded-xl text-right">
                                                 <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Total Earnings</p>
                                                 <p className="text-lg font-black text-green-600 mt-0.5">
-                                                    <Price amount={booking.total_price} />
+                                                    <Price amount={booking.total_price || booking.price || 0} />
                                                 </p>
                                             </div>
                                         </div>
@@ -230,9 +272,20 @@ export default function IncomingBookingsPage() {
                                                 </div>
                                             )}
 
-                                            <Link to={`/bookings/${booking.id}`} className="block w-full py-2.5 bg-white border-2 border-indigo-100 hover:border-indigo-300 text-indigo-700 font-bold text-sm text-center rounded-xl transition-all shadow-sm">
-                                                Review Details
-                                            </Link>
+                                            {expired ? (
+                                                <button disabled className="block w-full py-2.5 bg-gray-100 border-2 border-gray-200 text-gray-400 font-bold text-sm text-center rounded-xl cursor-not-allowed">
+                                                    Unavailable
+                                                </button>
+                                            ) : (
+                                                <Link 
+                                                    to={booking.booking_type === 'RIDE' 
+                                                        ? `/rides/${booking.ride || booking.ride_details?.id}` 
+                                                        : `/bookings/${booking.id}`} 
+                                                    className="block w-full py-2.5 bg-white border-2 border-indigo-100 hover:border-indigo-300 text-indigo-700 font-bold text-sm text-center rounded-xl transition-all shadow-sm"
+                                                >
+                                                    Review Details
+                                                </Link>
+                                            )}
                                         </div>
                                     </div>
                                 </div>

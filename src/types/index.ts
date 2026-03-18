@@ -403,7 +403,7 @@ export interface ThreadFilters {
 }
 
 // ==================== Notification Types ====================
-export type NotificationCategory = 'BOOKING' | 'RIDE' | 'PAYMENT' | 'CONTRACT' | 'MESSAGE' | 'RATING' | 'SYSTEM';
+export type NotificationCategory = 'BOOKING' | 'RIDE' | 'PAYMENT' | 'CONTRACT' | 'MESSAGE' | 'RATING' | 'SYSTEM' | 'SEAT_BOOKING' | 'CARGO_BOOKING' | 'SUBSCRIPTION';
 export type NotificationStatus = 'PENDING' | 'SENT' | 'READ' | 'FAILED';
 
 export interface Notification {

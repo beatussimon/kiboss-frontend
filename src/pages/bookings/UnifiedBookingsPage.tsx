@@ -9,11 +9,19 @@ import { Price } from '../../context/CurrencyContext';
 import { Calendar, MapPin, Clock, AlertTriangle, CheckCircle, XCircle, Timer, ShieldAlert, Car, Briefcase, Filter } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-function isBookingExpired(booking: { end_time: string; status: string }): boolean {
+function isBookingExpired(booking: any): boolean {
   const now = new Date();
-  const endTime = new Date(booking.end_time);
-  const terminalStatuses = ['COMPLETED', 'CANCELLED', 'EXPIRED'];
-  return endTime < now && !terminalStatuses.includes(booking.status);
+  const terminalStatuses = ['COMPLETED', 'CANCELLED'];
+  if (terminalStatuses.includes(booking.status)) return false;
+
+  if (booking.booking_type === 'RIDE' || booking.booking_category === 'ride') {
+    if (booking.ride_details?.departure_time) {
+      return new Date(booking.ride_details.departure_time) < now;
+    }
+  } else if (booking.end_time) {
+    return new Date(booking.end_time) < now;
+  }
+  return false;
 }
 
 function getDisplayStatus(booking: { end_time: string; status: string }): string {
@@ -152,20 +160,35 @@ export default function UnifiedBookingsPage() {
                 const expired = isBookingExpired(booking);
                 const isRide = booking.booking_type === 'RIDE' || booking.booking_category === 'ride';
 
+                const CardWrapper = expired ? 'div' : Link;
+                // For ride bookings: `booking.ride` is the FK UUID from SeatBookingSerializer
+                // `booking.ride_id` does NOT exist — never fall back to booking.id (seat booking UUID)
+                const rideId = booking.ride || booking.ride_details?.id;
+                const wrapperProps = expired
+                  ? { className: "block bg-white border border-gray-200 rounded-xl p-5 transition-all opacity-60 grayscale cursor-not-allowed" }
+                  : {
+                      to: isRide ? `/rides/${rideId}` : `/bookings/${booking.id}`,
+                      className: "block bg-white border border-gray-200 rounded-xl p-5 hover:border-primary-300 hover:shadow-md transition-all cursor-pointer"
+                    };
+
                 return (
-                  <Link
-                    key={booking.id}
-                    to={isRide ? `/rides/${booking.ride_id || booking.id}` : `/bookings/${booking.id}`}
-                    className={`block bg-white border border-gray-200 rounded-xl p-5 hover:border-primary-300 hover:shadow-md transition-all ${expired ? 'opacity-75' : ''}`}
-                  >
+                  <CardWrapper key={booking.id} {...(wrapperProps as any)}>
                     <div className="flex flex-col md:flex-row gap-5">
                       {/* Image Thumbnail */}
                       <div className="w-full md:w-32 h-32 bg-gray-100 rounded-lg overflow-hidden shrink-0 relative">
-                         {isRide ? (
-                           <div className="h-full w-full flex items-center justify-center bg-indigo-50">
-                             <Car className="h-10 w-10 text-indigo-400" />
-                           </div>
-                         ) : booking.asset?.photos?.[0] ? (
+                        {isRide ? (
+                          booking.ride_details?.photos?.[0] ? (
+                            <img
+                              src={getMediaUrl(booking.ride_details.photos[0].url)}
+                              alt="Ride Vehicle"
+                              className={`w-full h-full object-cover ${expired ? 'grayscale' : ''}`}
+                            />
+                          ) : (
+                            <div className="h-full w-full flex items-center justify-center bg-indigo-50">
+                              <Car className="h-10 w-10 text-indigo-400" />
+                            </div>
+                          )
+                        ) : booking.asset?.photos?.[0] ? (
                           <img
                             src={getMediaUrl(booking.asset.photos[0].url)}
                             alt={booking.asset?.name}
@@ -185,7 +208,7 @@ export default function UnifiedBookingsPage() {
                         <div className="flex justify-between items-start">
                           <div>
                             <h3 className="font-bold text-gray-900 text-lg">
-                              {isRide ? (booking.ride?.origin ? `${booking.ride.origin} to ${booking.ride.destination}` : 'Ride Booking') : (booking.asset?.name || 'Asset Booking')}
+                              {isRide ? (booking.ride_details?.origin ? `${booking.ride_details.origin} to ${booking.ride_details.destination}` : 'Ride Booking') : (booking.asset?.name || 'Asset Booking')}
                             </h3>
                             {!isRide && booking.asset?.city && (
                               <p className="text-sm text-gray-500 flex items-center mt-1">
@@ -194,10 +217,17 @@ export default function UnifiedBookingsPage() {
                               </p>
                             )}
                           </div>
-                          <span className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full ${statusConfig.class}`}>
-                            {statusConfig.icon}
-                            {statusConfig.label}
-                          </span>
+                          {expired ? (
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full bg-gray-100 text-gray-600 border border-gray-300 shrink-0">
+                              <AlertTriangle className="h-3 w-3" />
+                              [ 🕒 Unavailable - Expired ]
+                            </span>
+                          ) : (
+                            <span className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full shrink-0 ${statusConfig.class}`}>
+                              {statusConfig.icon}
+                              {statusConfig.label}
+                            </span>
+                          )}
                         </div>
 
                         <div className="flex justify-between items-end mt-4 pt-4 border-t border-gray-100">
@@ -209,20 +239,22 @@ export default function UnifiedBookingsPage() {
                             )}
                             <div className="flex items-center text-sm text-gray-600 font-medium">
                               <Calendar className="h-4 w-4 mr-1.5 text-gray-400" />
-                              {booking.start_time ? new Date(booking.start_time).toLocaleDateString() : 'TBD'} 
+                              {booking.start_time ? new Date(booking.start_time).toLocaleDateString() : (
+                                booking.ride_details?.departure_time ? new Date(booking.ride_details.departure_time).toLocaleDateString() : 'TBD'
+                              )} 
                               {!isRide && booking.end_time && ` - ${new Date(booking.end_time).toLocaleDateString()}`}
                             </div>
                           </div>
                           <div className="text-right">
                              <p className="text-[10px] font-black uppercase text-gray-400 tracking-widest">{currentTab === 'my_bookings' ? 'Total Cost' : 'Earnings'}</p>
                              <p className="text-lg font-black text-gray-900 leading-none mt-1">
-                               <Price amount={booking.total_price || booking.seat_price || 0} />
+                               <Price amount={booking.total_price || booking.price || 0} />
                              </p>
                           </div>
                         </div>
                       </div>
                     </div>
-                  </Link>
+                  </CardWrapper>
                 );
               })}
             </div>

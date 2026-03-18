@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import { debounce } from 'lodash';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../app/store';
 import { fetchAsset } from '../../features/assets/assetsSlice';
@@ -32,6 +33,10 @@ export default function AssetDetailPage() {
     // Navigate to the thread page instead of showing inline
     navigate(`/messages/${threadId}`);
   };
+
+  const debouncedToggleWishlist = debounce(() => {
+    if (asset) dispatch(toggleWishlist(asset));
+  }, 300);
 
   useEffect(() => {
     if (id) {
@@ -85,7 +90,7 @@ export default function AssetDetailPage() {
           ← Back to Assets
         </Link>
         <button
-          onClick={() => asset && dispatch(toggleWishlist(asset))}
+          onClick={debouncedToggleWishlist}
           className={`flex items-center gap-2 px-6 py-2.5 rounded-full transition-all border font-bold shadow-sm ${isWishlisted ? 'bg-red-50 text-red-600 border-red-100 hover:bg-red-100' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
             }`}
         >
@@ -103,8 +108,9 @@ export default function AssetDetailPage() {
           {asset.photos && asset.photos.length > 0 ? (
             <>
               <img
-                src={getMediaUrl(asset.photos[currentImageIndex].url)}
+                src={getMediaUrl(asset.photos?.[currentImageIndex]?.url)}
                 alt={`${asset.name} - ${currentImageIndex + 1}`}
+                onError={(e) => { (e.target as HTMLImageElement).src = 'https://placehold.co/800x450/e2e8f0/64748b?text=Image+Unavailable'; }}
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
               <div className="absolute inset-0 bg-black/10 transition-opacity group-hover:bg-transparent" />
@@ -149,7 +155,7 @@ export default function AssetDetailPage() {
                 className={`relative w-32 h-20 rounded-xl overflow-hidden flex-shrink-0 transition-all shadow-sm ${currentImageIndex === index ? 'ring-2 ring-primary-500 scale-105 shadow-primary-500/30' : 'opacity-60 hover:opacity-100 hover:scale-105 bg-gray-100'
                   }`}
               >
-                <img src={getMediaUrl(photo.url)} alt="" className="w-full h-full object-cover" />
+                <img src={getMediaUrl(photo?.url)} alt="" onError={(e) => { (e.target as HTMLImageElement).src = 'https://placehold.co/128x80/e2e8f0/64748b?text=NA'; }} className="w-full h-full object-cover" />
               </button>
             ))}
           </div>
@@ -191,7 +197,7 @@ export default function AssetDetailPage() {
           {isAuthenticated && !isOwner && asset.owner?.id && (
             <ContactButton
               targetUserId={asset.owner.id}
-              label="Contact Owner"
+              label="Message Owner"
               threadType="INQUIRY"
               listingId={asset.id}
               subject={`Inquiry about ${asset.name}`}
@@ -203,7 +209,7 @@ export default function AssetDetailPage() {
           {!isAuthenticated && (
             <Link to={`/login?redirect=${encodeURIComponent(window.location.pathname)}`} className="btn-secondary">
               <MessageCircle className="h-4 w-4 mr-2" />
-              Contact Owner
+              Message Owner
             </Link>
           )}
         </div>
