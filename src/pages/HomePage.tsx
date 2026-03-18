@@ -22,6 +22,7 @@ export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('');
 
   const fetched = useRef(false);
+  const [heroImage, setHeroImage] = useState<string | null>(null);
 
   useEffect(() => {
     if (!fetched.current) {
@@ -29,6 +30,12 @@ export default function HomePage() {
       dispatch(fetchRides({}));
       fetched.current = true;
     }
+
+    // Fetch admin-configured hero image
+    fetch('/api/v1/core/settings/')
+      .then(r => r.json())
+      .then(data => { if (data.hero_image) setHeroImage(data.hero_image); })
+      .catch(() => { /* silently fall back to default */ });
   }, [dispatch]);
 
   const handleSearch = (e: React.FormEvent) => {
@@ -44,7 +51,7 @@ export default function HomePage() {
       <section className="relative h-[500px] flex items-center justify-center overflow-hidden -mx-4 sm:-mx-6 lg:-mx-8">
         <div className="absolute inset-0 z-0">
           <img
-            src="https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&q=80&w=2070"
+            src={heroImage || 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&q=80&w=2070'}
             className="w-full h-full object-cover"
             alt="Hero background"
           />

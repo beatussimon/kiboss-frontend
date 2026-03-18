@@ -4,10 +4,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../app/store';
 import { fetchBooking, fetchBookingTimeline, cancelBooking, clearCurrentBooking, clearError } from '../../features/bookings/bookingsSlice';
 import ContactButton from '../../components/messaging/ContactButton';
-import { Calendar, MapPin, Clock, User, Shield, CreditCard, ArrowLeft, MessageCircle, FileText, Star } from 'lucide-react';
+import { Calendar, MapPin, Star, FileText } from 'lucide-react';
 import { getMediaUrl } from '../../utils/media';
 import { createRating } from '../../features/ratings/ratingsSlice';
 import CheckoutPayment from '../../components/checkout/CheckoutPayment';
+import { Price } from '../../context/CurrencyContext';
 import toast from 'react-hot-toast';
 
 export default function BookingDetailPage() {
@@ -16,7 +17,6 @@ export default function BookingDetailPage() {
   const { currentBooking: booking, timeline, isLoading, error } = useSelector((state: RootState) => state.bookings);
   const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
 
-  // Validate booking ID
   if (id === 'new' || !id) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -32,23 +32,18 @@ export default function BookingDetailPage() {
   }
 
   useEffect(() => {
-    // Clear previous error and booking data when ID changes
     dispatch(clearError());
     dispatch(clearCurrentBooking());
-    
     if (id && id !== 'new') {
       dispatch(fetchBooking(id));
       dispatch(fetchBookingTimeline(id));
     }
-    
-    // Cleanup on unmount
     return () => {
       dispatch(clearError());
       dispatch(clearCurrentBooking());
     };
   }, [dispatch, id]);
 
-  // Show error state
   if (error) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -93,7 +88,6 @@ export default function BookingDetailPage() {
     if (!booking) return;
     const rating = prompt('Enter rating (1-5):');
     const comment = prompt('Enter your review:');
-    
     if (rating && comment) {
       try {
         const ratingVal = parseInt(rating);
@@ -101,7 +95,6 @@ export default function BookingDetailPage() {
           toast.error('Invalid rating. Must be 1-5.');
           return;
         }
-        
         await dispatch(createRating({
           booking_id: booking.id,
           category: isOwnerView ? 'OWNER_TO_RENTER' : 'RENTER_TO_OWNER',
@@ -152,11 +145,7 @@ export default function BookingDetailPage() {
             <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
               <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
                 {booking.asset.photos?.[0] ? (
-                  <img
-                    src={getMediaUrl(booking.asset.photos[0].url)}
-                    alt={booking.asset.name}
-                    className="w-full h-full object-cover"
-                  />
+                  <img src={getMediaUrl(booking.asset.photos[0].url)} alt={booking.asset.name} className="w-full h-full object-cover" />
                 ) : (
                   <Calendar className="h-6 w-6 text-gray-400" />
                 )}
@@ -226,25 +215,25 @@ export default function BookingDetailPage() {
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-gray-500">Price per unit</span>
-                <span className="font-medium">${booking.unit_price}</span>
+                <span className="font-medium"><Price amount={booking.unit_price} /></span>
               </div>
               <hr className="border-gray-200" />
               <div className="flex items-center justify-between">
                 <span className="text-gray-500">Subtotal</span>
-                <span className="font-medium">${booking.subtotal}</span>
+                <span className="font-medium"><Price amount={booking.subtotal} /></span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-gray-500">Service fee</span>
-                <span className="font-medium">${booking.service_fee}</span>
+                <span className="font-medium"><Price amount={booking.service_fee} /></span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-gray-500">Taxes</span>
-                <span className="font-medium">${booking.taxes}</span>
+                <span className="font-medium"><Price amount={booking.taxes} /></span>
               </div>
               <hr className="border-gray-200" />
               <div className="flex items-center justify-between text-lg">
                 <span className="font-bold">Total</span>
-                <span className="font-bold text-primary-600">${booking.total_price}</span>
+                <span className="font-bold text-primary-600"><Price amount={booking.total_price} /></span>
               </div>
             </div>
           </div>
@@ -259,10 +248,12 @@ export default function BookingDetailPage() {
                   {booking.payment?.status || 'Pending'}
                 </span>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-gray-500">Method</span>
-                <span className="font-medium">{booking.payment?.card_brand} ****{booking.payment?.card_last_four}</span>
-              </div>
+              {booking.payment?.card_brand && (
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-500">Method</span>
+                  <span className="font-medium">{booking.payment.card_brand} ****{booking.payment.card_last_four}</span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -289,16 +280,17 @@ export default function BookingDetailPage() {
             </div>
           )}
 
-          {/* Actions */}
+          {/* Payment Checkout (Renter, PENDING booking) */}
           {booking.status === 'PENDING' && !isOwnerView && (
-             <div className="mb-6">
-                <CheckoutPayment 
-                  bookingId={booking.id} 
-                  bookingType="ASSET" 
-                  amount={booking.total_price} 
-                  currency={booking.currency || 'TZS'} 
-                />
-             </div>
+            <div className="mb-6">
+              <CheckoutPayment
+                bookingId={booking.id}
+                bookingType="ASSET"
+                amount={booking.total_price}
+                currency={booking.currency || 'TZS'}
+                ownerId={booking.owner?.id}
+              />
+            </div>
           )}
 
           {(booking.status === 'PENDING' || booking.status === 'CONFIRMED') && (
