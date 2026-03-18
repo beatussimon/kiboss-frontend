@@ -579,9 +579,6 @@ export default function CreateRidePage() {
                   >
                     <option value="TZS">TZS (Tanzanian Shilling)</option>
                     <option value="KES">KES (Kenyan Shilling)</option>
-                    <option value="USD">USD (US Dollar)</option>
-                    <option value="EUR">EUR (Euro)</option>
-                    <option value="CNY">CNY (Chinese Yuan)</option>
                   </select>
                 </div>
               </div>

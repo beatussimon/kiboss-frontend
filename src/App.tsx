@@ -17,7 +17,7 @@ import HomePage from './pages/HomePage';
 import AssetsPage from './pages/assets/AssetsPage';
 import AssetDetailPage from './pages/assets/AssetDetailPage';
 import CreateAssetPage from './pages/assets/CreateAssetPage';
-import BookingsPage from './pages/bookings/BookingsPage';
+import UnifiedBookingsPage from './pages/bookings/UnifiedBookingsPage';
 import BookingDetailPage from './pages/bookings/BookingDetailPage';
 import CreateBookingPage from './pages/bookings/CreateBookingPage';
 import ContractDetailPage from './pages/bookings/ContractDetailPage';
@@ -42,8 +42,8 @@ import RideEditPage from './pages/rides/RideEditPage';
 import BusinessDashboard from './pages/business/BusinessDashboard';
 import UpgradePage from './pages/business/UpgradePage';
 import PlusDashboard from './pages/plus/PlusDashboard';
-import IncomingBookingsPage from './pages/plus/IncomingBookingsPage';
 import BusinessRegistrationForm from './pages/business/BusinessRegistrationForm';
+import MyListingsPage from './pages/plus/MyListingsPage';
 
 // Protected Route Component
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -131,7 +131,7 @@ function App() {
         <Route path="/assets" element={<AssetsPage />} />
         <Route path="/assets/:id" element={<AssetDetailPage />} />
         <Route path="/assets/create" element={<CreateAssetPage />} />
-        <Route path="/bookings" element={<BookingsPage />} />
+        <Route path="/bookings" element={<UnifiedBookingsPage />} />
         <Route path="/bookings/new" element={<CreateBookingPage />} />
         <Route path="/bookings/:id" element={<BookingDetailPage />} />
         <Route path="/contracts/:id" element={<ContractDetailPage />} />
@@ -151,13 +151,13 @@ function App() {
         <Route path="/business/register" element={<BusinessRegistrationForm />} />
         <Route path="/upgrade" element={<UpgradePage />} />
         <Route path="/plus" element={<PlusDashboard />} />
-        <Route path="/plus/bookings" element={<IncomingBookingsPage />} />
         <Route path="/staff/tasks" element={<TaskDashboard />} />
         <Route path="/payments" element={<PaymentsPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/users/:userId" element={<PublicProfilePage />} />
         <Route path="/search" element={<SearchPage />} />
         <Route path="/faq" element={<FAQPage />} />
+        <Route path="/my-listings" element={<MyListingsPage />} />
       </Route>
 
       {/* Catch all - redirect to home */}

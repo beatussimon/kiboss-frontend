@@ -123,10 +123,10 @@ export default function BookingsPage() {
               >
                 <div className="flex items-center gap-4">
                   <div className="w-24 h-24 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
-                    {booking.asset.photos?.[0] ? (
+                    {booking.asset?.photos?.[0] ? (
                       <img
                         src={getMediaUrl(booking.asset.photos[0].url)}
-                        alt={booking.asset.name}
+                        alt={booking.asset?.name}
                         className={`w-full h-full object-cover ${expired ? 'grayscale' : ''}`}
                       />
                     ) : (
@@ -136,10 +136,10 @@ export default function BookingsPage() {
                   <div className="flex-1">
                     <div className="flex items-start justify-between">
                       <div>
-                        <h3 className="font-semibold text-gray-900">{booking.asset.name}</h3>
+                        <h3 className="font-semibold text-gray-900">{booking.asset?.name || 'Unknown Asset'}</h3>
                         <p className="text-sm text-gray-500 flex items-center mt-1">
                           <MapPin className="h-3.5 w-3.5 mr-1" />
-                          {booking.asset.city}, {booking.asset.country}
+                          {booking.asset?.city || 'N/A'}, {booking.asset?.country || 'N/A'}
                         </p>
                       </div>
                       <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${statusConfig.class}`}>

@@ -12,12 +12,13 @@ import { Price } from '../../context/CurrencyContext';
 import {
     AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
+import PaymentMethods from './PaymentMethods';
 
 export default function PlusDashboard() {
     const { user } = useSelector((state: RootState) => state.auth);
     const [analytics, setAnalytics] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'MARKETING' | 'AUDIENCE'>('OVERVIEW');
+    const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'MARKETING' | 'AUDIENCE' | 'PAYMENTS'>('OVERVIEW');
     const [discountForm, setDiscountForm] = useState({ percentage: 10, isApplying: false, success: false, error: '' });
 
     const accountTier = user?.account_tier || 'FREE';
@@ -120,6 +121,15 @@ export default function PlusDashboard() {
                 >
                     <Users className="h-4 w-4" />
                     Audience Insights
+                </button>
+                <button
+                    onClick={() => setActiveTab('PAYMENTS')}
+                    className={`flex items-center gap-2 px-6 py-3 font-bold text-sm border-b-2 whitespace-nowrap transition-colors ${
+                        activeTab === 'PAYMENTS' ? 'border-purple-600 text-purple-600' : 'border-transparent text-gray-500 hover:text-gray-900'
+                    }`}
+                >
+                    <Star className="h-4 w-4" />
+                    Payment Settings
                 </button>
             </div>
 
@@ -449,6 +459,11 @@ export default function PlusDashboard() {
                         )}
                     </div>
                 </div>
+            )}
+
+            {/* TAB CONTENT: PAYMENTS */}
+            {activeTab === 'PAYMENTS' && (
+                <PaymentMethods />
             )}
 
             {/* Upgrade to Business CTA */}

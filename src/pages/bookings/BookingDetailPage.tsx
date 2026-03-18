@@ -7,6 +7,7 @@ import ContactButton from '../../components/messaging/ContactButton';
 import { Calendar, MapPin, Clock, User, Shield, CreditCard, ArrowLeft, MessageCircle, FileText, Star } from 'lucide-react';
 import { getMediaUrl } from '../../utils/media';
 import { createRating } from '../../features/ratings/ratingsSlice';
+import CheckoutPayment from '../../components/checkout/CheckoutPayment';
 import toast from 'react-hot-toast';
 
 export default function BookingDetailPage() {
@@ -289,6 +290,17 @@ export default function BookingDetailPage() {
           )}
 
           {/* Actions */}
+          {booking.status === 'PENDING' && !isOwnerView && (
+             <div className="mb-6">
+                <CheckoutPayment 
+                  bookingId={booking.id} 
+                  bookingType="ASSET" 
+                  amount={booking.total_price} 
+                  currency={booking.currency || 'TZS'} 
+                />
+             </div>
+          )}
+
           {(booking.status === 'PENDING' || booking.status === 'CONFIRMED') && (
             <div className="card p-6">
               <button onClick={handleCancel} className="btn-danger w-full">

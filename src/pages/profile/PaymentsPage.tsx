@@ -25,7 +25,7 @@ export default function PaymentsPage() {
     }
   };
 
-  const formatCurrency = (amount: string | number, currency = 'USD') => {
+  const formatCurrency = (amount: string | number, currency = 'TZS') => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(Number(amount));
   };
 

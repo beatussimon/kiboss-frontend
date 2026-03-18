@@ -153,15 +153,15 @@ export default function PublicProfilePage() {
             {/* Instagram-style Stats Row */}
             <div className="flex gap-6 mt-5 pt-4 border-t border-gray-100">
               <div className="text-center">
-                <span className="block text-xl font-black text-gray-900">{user.listings?.length || 0}</span>
+                <span className="block text-xl font-black text-gray-900">{user.total_listings || user.listings?.length || 0}</span>
                 <span className="text-xs text-gray-500 uppercase tracking-wide">Listings</span>
               </div>
               <div className="text-center">
-                <span className="block text-xl font-black text-gray-900">{user.rides?.length || 0}</span>
+                <span className="block text-xl font-black text-gray-900">{user.total_rides || user.rides?.length || 0}</span>
                 <span className="text-xs text-gray-500 uppercase tracking-wide">Rides</span>
               </div>
               <div className="text-center">
-                <span className="block text-xl font-black text-gray-900">{user.review_count || 0}</span>
+                <span className="block text-xl font-black text-gray-900">{user.total_reviews || user.review_count || 0}</span>
                 <span className="text-xs text-gray-500 uppercase tracking-wide">Reviews</span>
               </div>
               <div className="text-center">

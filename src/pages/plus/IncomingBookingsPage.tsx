@@ -31,9 +31,9 @@ export default function IncomingBookingsPage() {
 
         // Only Plus or Business can access this page fully; Free users could technically access it but let's show an upgrade prompt.
         if (hasInsights) {
-           fetchIncoming();
+            fetchIncoming();
         } else {
-           setIsLoading(false);
+            setIsLoading(false);
         }
     }, [hasInsights]);
 
@@ -135,17 +135,17 @@ export default function IncomingBookingsPage() {
                                         <div className="flex items-start justify-between mb-4">
                                             <div className="flex items-center gap-4">
                                                 <div className="h-16 w-16 bg-gray-100 rounded-xl overflow-hidden shrink-0">
-                                                    {booking.asset.photos?.[0] ? (
-                                                        <img src={getMediaUrl(booking.asset.photos[0].url)} alt="Asset" className="h-full w-full object-cover" />
+                                                    {booking.asset?.photos?.[0] ? (
+                                                        <img src={getMediaUrl(booking.asset?.photos?.[0]?.url)} alt="Asset" className="h-full w-full object-cover" />
                                                     ) : (
                                                         <Calendar className="h-8 w-8 text-gray-400 m-auto mt-4" />
                                                     )}
                                                 </div>
                                                 <div>
-                                                    <h3 className="text-lg font-bold text-gray-900">{booking.asset.name}</h3>
+                                                    <h3 className="text-lg font-bold text-gray-900">{booking.asset?.name || 'Unknown Asset'}</h3>
                                                     <p className="text-sm text-gray-500 flex items-center mt-1">
                                                         <MapPin className="h-3.5 w-3.5 mr-1" />
-                                                        {booking.asset.city}, {booking.asset.country}
+                                                        {booking.asset?.city || 'Unknown'}, {booking.asset?.country || 'Unknown'}
                                                     </p>
                                                 </div>
                                             </div>
@@ -177,7 +177,7 @@ export default function IncomingBookingsPage() {
                                             <UserCheck className="h-5 w-5 text-indigo-500" />
                                             <h4 className="font-bold text-gray-900">Renter Profile</h4>
                                         </div>
-                                        
+
                                         <div className="space-y-4">
                                             <div className="flex items-center gap-3">
                                                 <div className="h-10 w-10 bg-indigo-100 text-indigo-700 rounded-full font-bold flex items-center justify-center">
@@ -205,7 +205,7 @@ export default function IncomingBookingsPage() {
                                                             <p className={`font-black ${stats.cancelled_bookings > 0 ? 'text-red-500' : 'text-gray-900'}`}>{stats.cancelled_bookings}</p>
                                                         </div>
                                                     </div>
-                                                    
+
                                                     {/* Risk logic display */}
                                                     {stats.cancelled_bookings > stats.completed_bookings && stats.total_bookings > 2 ? (
                                                         <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-lg flex gap-2 text-xs font-semibold items-start leading-relaxed">

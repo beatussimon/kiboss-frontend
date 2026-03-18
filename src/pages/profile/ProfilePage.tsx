@@ -53,8 +53,8 @@ export default function ProfilePage() {
         city: user.profile?.city || '',
         country: user.profile?.country || 'Tanzania',
       });
-      if (user.profile?.avatar) {
-        setAvatarPreview(getMediaUrl(user.profile.avatar));
+      if (user.avatar_url || user.profile?.avatar) {
+        setAvatarPreview(getMediaUrl(user.avatar_url || user.profile?.avatar));
       }
     }
   }, [user]);
@@ -86,7 +86,7 @@ export default function ProfilePage() {
 
   const handleRemoveAvatar = () => {
     setAvatarFile(null);
-    setAvatarPreview(user?.profile?.avatar || null);
+    setAvatarPreview(user?.avatar_url || user?.profile?.avatar || null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -104,7 +104,7 @@ export default function ProfilePage() {
         });
         const response = await api.patch('/users/me/', formDataObj);
         dispatch(updateUser(response.data));
-        setAvatarPreview(getMediaUrl(response.data?.profile?.avatar));
+        setAvatarPreview(getMediaUrl(response.data?.avatar_url || response.data?.profile?.avatar));
       } else {
         await dispatch(updateProfile(formData)).unwrap();
       }
@@ -132,7 +132,7 @@ export default function ProfilePage() {
         city: user.profile?.city || '',
         country: user.profile?.country || 'Tanzania',
       });
-      setAvatarPreview(user.profile?.avatar || null);
+      setAvatarPreview(user.avatar_url || user.profile?.avatar || null);
     }
     setAvatarFile(null);
     setIsEditing(false);
@@ -225,15 +225,35 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Award className="h-5 w-5 text-primary-600" />
-              <span className="font-medium text-gray-900">Trust Score</span>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div className="p-4 bg-gray-50 rounded-lg flex flex-col justify-center">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Award className="h-5 w-5 text-primary-600" />
+                <span className="font-medium text-gray-900">Trust Score</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-2xl font-bold text-primary-600">{user?.trust_score || '50.00'}</span>
+                <span className="text-sm text-gray-500">({user?.total_reviews || 0} reviews)</span>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-2xl font-bold text-primary-600">{user?.trust_score || '50.00'}</span>
-              <span className="text-sm text-gray-500">({user?.total_ratings_count || 0} ratings)</span>
+          </div>
+          <div className="p-4 bg-gray-50 rounded-lg flex justify-around items-center">
+            <div className="text-center">
+              <span className="block text-xl font-black text-gray-900">{user?.total_listings || 0}</span>
+              <span className="text-xs text-gray-500 uppercase tracking-wide">Assets</span>
+            </div>
+            <div className="text-center">
+              <span className="block text-xl font-black text-gray-900">{user?.total_rides || 0}</span>
+              <span className="text-xs text-gray-500 uppercase tracking-wide">Rides</span>
+            </div>
+            <div className="text-center">
+              <span className="block text-xl font-black text-gray-900">{user?.followers_count || 0}</span>
+              <span className="text-xs text-gray-500 uppercase tracking-wide">Followers</span>
+            </div>
+            <div className="text-center">
+              <span className="block text-xl font-black text-gray-900">{user?.following_count || 0}</span>
+              <span className="text-xs text-gray-500 uppercase tracking-wide">Following</span>
             </div>
           </div>
         </div>

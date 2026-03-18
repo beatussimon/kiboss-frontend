@@ -280,8 +280,6 @@ export default function RideEditPage() {
               >
                 <option value="TZS">TZS</option>
                 <option value="KES">KES</option>
-                <option value="USD">USD</option>
-                <option value="EUR">EUR</option>
               </select>
             </div>
           </div>

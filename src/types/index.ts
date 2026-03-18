@@ -24,6 +24,12 @@ export interface User {
   corporate_profile?: CorporateProfile;
   roles?: UserRole[];
   permissions?: string[];
+  avatar_url?: string;
+  followers_count?: number;
+  following_count?: number;
+  total_listings?: number;
+  total_rides?: number;
+  total_reviews?: number;
 }
 
 export interface UserProfile {
@@ -468,6 +474,9 @@ export interface PublicUser {
   listings: Listing[];
   rides: PublicRide[];
   reviews: Review[];
+  total_listings?: number;
+  total_rides?: number;
+  total_reviews?: number;
 }
 
 export interface Listing {

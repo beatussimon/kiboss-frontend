@@ -417,9 +417,7 @@ export default function CreateAssetPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">Price</label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-bold">
-                      {(formData as any).currency === 'USD' ? '$' :
-                        (formData as any).currency === 'EUR' ? '€' :
-                          (formData as any).currency === 'CNY' ? '¥' : 'TSh'}
+                      {(formData as any).currency === 'KES' ? 'KSh' : 'TSh'}
                     </span>
                     <input
                       type="number"
@@ -447,9 +445,6 @@ export default function CreateAssetPage() {
                   >
                     <option value="TZS">TZS (Tanzanian Shilling)</option>
                     <option value="KES">KES (Kenyan Shilling)</option>
-                    <option value="USD">USD (US Dollar)</option>
-                    <option value="EUR">EUR (Euro)</option>
-                    <option value="CNY">CNY (Chinese Yuan)</option>
                   </select>
                 </div>
                 <div>

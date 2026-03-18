@@ -1,20 +1,17 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
-export type CurrencyCode = 'TZS' | 'USD' | 'EUR' | 'CNY' | 'KES';
+export type CurrencyCode = 'TZS' | 'KES';
 
 interface CurrencyInfo {
   code: CurrencyCode;
   symbol: string;
   name: string;
-  rate: number; // Rate relative to USD (USD is 1.0)
+  rate: number; // Rate relative to TZS (TZS is 1.0)
 }
 
 const currencies: Record<CurrencyCode, CurrencyInfo> = {
-  TZS: { code: 'TZS', symbol: 'TSh', name: 'Tanzanian Shilling', rate: 2500 },
-  USD: { code: 'USD', symbol: '$', name: 'US Dollar', rate: 1 },
-  EUR: { code: 'EUR', symbol: '€', name: 'Euro', rate: 0.92 },
-  CNY: { code: 'CNY', symbol: '¥', name: 'Chinese Yuan', rate: 7.19 },
-  KES: { code: 'KES', symbol: 'KSh', name: 'Kenyan Shilling', rate: 135 },
+  TZS: { code: 'TZS', symbol: 'TSh', name: 'Tanzanian Shilling', rate: 1 },
+  KES: { code: 'KES', symbol: 'KSh', name: 'Kenyan Shilling', rate: 0.054 },
 };
 
 interface CurrencyContextType {
@@ -46,19 +43,12 @@ export const CurrencyProvider: React.FC<{ children: ReactNode }> = ({ children }
 
     // First convert to TZS (base)
     const fromRate = currencies[fromCurrency as CurrencyCode]?.rate || 1;
-    const usdAmount = numAmount / fromRate;
+    const amountInTzs = numAmount / fromRate;
 
     // Then convert to selected currency
     if (selectedCode === fromCurrency) return numAmount;
 
-    // Convert to USD first (as rates are based on USD)
-    const tzsRateToUsd = currencies['TZS'].rate;
-    const amountInUsd = fromCurrency === 'USD' ? numAmount : (
-      fromCurrency === 'TZS' ? numAmount / tzsRateToUsd : (numAmount / fromRate)
-    );
-
-    // Then to selected currency
-    return amountInUsd * currency.rate;
+    return amountInTzs * currency.rate;
   };
 
   // Currencies that don't use decimal fractions (whole-number currencies)
