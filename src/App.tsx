@@ -88,12 +88,9 @@ function App() {
   const dispatch = useDispatch<AppDispatch>();
   const { accessToken, isAuthenticated } = useSelector((state: RootState) => state.auth);
 
-  const authFetched = useRef(false);
-
   useEffect(() => {
-    if ((accessToken || isAuthenticated) && !authFetched.current) {
+    if (accessToken || isAuthenticated) {
       dispatch(fetchCurrentUser());
-      authFetched.current = true;
     }
   }, [dispatch, accessToken, isAuthenticated]);
 

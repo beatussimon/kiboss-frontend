@@ -88,8 +88,15 @@ export default function Layout() {
 
   // Tier-derived helpers
   const accountTier = user?.account_tier || 'FREE';
-  // Effective tier: staff have no tier upgrades, legacy users with corporate_profile are BUSINESS
-  const effectiveTier = isStaff ? 'STAFF' : (user?.corporate_profile ? 'BUSINESS' : accountTier);
+  // Effective tier logic:
+  // 1. Staff always gets STAFF view
+  // 2. Explicit account_tier (PLUS/BUSINESS) takes precedence
+  // 3. Fallback to BUSINESS if they have a corporate_profile (legacy/manual)
+  const effectiveTier = isStaff 
+    ? 'STAFF' 
+    : (accountTier !== 'FREE' 
+        ? accountTier 
+        : (user?.corporate_profile ? 'BUSINESS' : 'FREE'));
 
   // Primary navigation - main features
   const primaryNav = [
