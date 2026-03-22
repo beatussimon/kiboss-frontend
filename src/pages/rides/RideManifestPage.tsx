@@ -2,8 +2,9 @@ import { useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../app/store';
-import { fetchRide, fetchRideManifest } from '../../features/rides/ridesSlice';
+import { fetchRide, fetchRideManifest, confirmSeatBooking, cancelSeatBooking } from '../../features/rides/ridesSlice';
 import { getMediaUrl } from '../../utils/media';
+import toast from 'react-hot-toast';
 import { User, Phone, MessageSquare, ChevronLeft, MapPin, Luggage, Clock, CheckCircle, Users } from 'lucide-react';
 import ContactButton from '../../components/messaging/ContactButton';
 
@@ -19,6 +20,24 @@ export default function RideManifestPage() {
       dispatch(fetchRideManifest(id));
     }
   }, [dispatch, id]);
+
+  const handleApprove = async (seatBookingId: string) => {
+    try {
+      await dispatch(confirmSeatBooking({ seatBookingId })).unwrap();
+      toast.success('Passenger approved');
+    } catch (err) {
+      toast.error(typeof err === 'string' ? err : 'Failed to approve passenger');
+    }
+  };
+
+  const handleReject = async (seatBookingId: string) => {
+    try {
+      await dispatch(cancelSeatBooking({ rideId: id!, seatBookingId, reason: 'Driver rejected' })).unwrap();
+      toast.success('Passenger rejected');
+    } catch (err) {
+      toast.error(typeof err === 'string' ? err : 'Failed to reject passenger');
+    }
+  };
 
   if (isLoading && !ride) {
     return (
@@ -137,6 +156,22 @@ export default function RideManifestPage() {
                 </div>
 
                 <div className="flex flex-row md:flex-col gap-2">
+                  {booking.status === 'RESERVED' && (
+                    <>
+                      <button
+                        onClick={() => handleApprove(booking.id)}
+                        className="flex-1 md:w-32 py-2.5 btn-success rounded-xl text-[10px] font-black uppercase tracking-widest shadow-sm"
+                      >
+                        Approve
+                      </button>
+                      <button
+                        onClick={() => handleReject(booking.id)}
+                        className="flex-1 md:w-32 py-2.5 btn-danger rounded-xl text-[10px] font-black uppercase tracking-widest shadow-sm"
+                      >
+                        Reject
+                      </button>
+                    </>
+                  )}
                   <ContactButton
                     targetUserId={booking.passenger.id}
                     label="Message"
@@ -161,7 +196,7 @@ export default function RideManifestPage() {
                       className="flex-1 md:w-32 py-2.5 bg-gray-50 border border-gray-100 text-gray-300 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 cursor-not-allowed"
                     >
                       <Phone className="h-3 w-3" />
-                      No Number
+                      No Num
                     </button>
                   )}
                 </div>

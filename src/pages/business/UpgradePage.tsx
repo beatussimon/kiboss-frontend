@@ -6,7 +6,7 @@ import { fetchCurrentUser } from '../../features/auth/authSlice';
 import api from '../../services/api';
 import {
     Sparkles, Building2, Crown, Check, ArrowRight, Zap, Shield,
-    UploadCloud, X, Copy, Image as ImageIcon
+    UploadCloud, X, Copy, Image as ImageIcon, Clock
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Price } from '../../context/CurrencyContext';
@@ -29,13 +29,33 @@ export default function UpgradePage() {
     const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
     const [selectedMethod, setSelectedMethod] = useState<OfflineMethod | null>(null);
     
+    // New state for pending payments
+    const [hasPendingSubscription, setHasPendingSubscription] = useState(false);
+    const [isCheckingPending, setIsCheckingPending] = useState(true);
+    
     // Form state
     const [confirmationMessage, setConfirmationMessage] = useState('');
     const [receiptFile, setReceiptFile] = useState<File | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
-        const fetchMethods = async () => {
+        const fetchInitialData = async () => {
+            try {
+                setIsCheckingPending(true);
+                // Check if user has an existing unapproved manual subscription payment
+                const pendingRes = await api.get('/payments/manual-payments/?status=PENDING');
+                const pendingData = pendingRes.data.results || pendingRes.data;
+                // Filter locally just to be safe if backend doesn't filter by type
+                const hasPending = pendingData.some((p: any) => p.booking_type === 'SUBSCRIPTION');
+                if (hasPending) {
+                    setHasPendingSubscription(true);
+                }
+            } catch (error) {
+                console.error('Failed to check pending subscriptions:', error);
+            } finally {
+                setIsCheckingPending(false);
+            }
+
             try {
                 const response = await api.get('/payments/offline-methods/');
                 const data = response.data.results || response.data;
@@ -47,7 +67,7 @@ export default function UpgradePage() {
                 console.error('Failed to fetch payment methods:', error);
             }
         };
-        fetchMethods();
+        fetchInitialData();
     }, []);
 
     const currentTier = user?.account_tier || 'FREE';
@@ -83,6 +103,10 @@ export default function UpgradePage() {
     ];
 
     const handleUpgradeSelect = (planId: string) => {
+        if (hasPendingSubscription) {
+            toast('You already have a pending upgrade request. Please wait for verification.', { icon: '⏳' });
+            return;
+        }
         if (planId === 'BUSINESS') {
             toast('The Business plan is coming soon!', { icon: '🚀' });
             return;
@@ -113,6 +137,7 @@ export default function UpgradePage() {
         setIsSubmitting(true);
         try {
             const formData = new FormData();
+            formData.append('booking_type', 'SUBSCRIPTION');
             formData.append('plan_type', selectedPlan);
             formData.append('payment_method', selectedMethod.id.toString());
             formData.append('amount', selectedPlan === 'PLUS' ? '10000' : '0');
@@ -121,7 +146,7 @@ export default function UpgradePage() {
             if (confirmationMessage) formData.append('confirmation_message', confirmationMessage);
             if (receiptFile) formData.append('receipt_image', receiptFile);
 
-            await api.post('/payments/subscription-payments/', formData, {
+            await api.post('/payments/manual-payments/', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
 
@@ -137,8 +162,23 @@ export default function UpgradePage() {
         }
     };
 
+    if (isCheckingPending) {
+         return <div className="flex items-center justify-center min-h-[60vh]"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>;
+    }
+
     return (
         <div className="max-w-5xl mx-auto py-10">
+            {/* Pending Subscription Banner */}
+            {hasPendingSubscription && (
+                <div className="bg-amber-50 border-2 border-amber-200 rounded-3xl p-6 mb-8 mx-4 flex items-start gap-4 animate-in fade-in duration-500">
+                    <div className="bg-amber-100 p-3 rounded-2xl shrink-0"><Clock className="h-6 w-6 text-amber-600" /></div>
+                    <div>
+                        <h3 className="text-lg font-black text-amber-900 mb-1">Upgrade Pending Verification</h3>
+                        <p className="text-sm font-medium text-amber-700">We have received your payment proof and our team is currently verifying it. Your account tier will be upgraded automatically within a few hours. Thank you for your patience!</p>
+                    </div>
+                </div>
+            )}
+            
             {/* Header */}
             <div className="text-center mb-12">
                 <div className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-100 to-blue-100 px-4 py-1.5 rounded-full mb-4">
@@ -195,14 +235,15 @@ export default function UpgradePage() {
 
                             <button
                                 onClick={() => handleUpgradeSelect(plan.id)}
-                                disabled={isCurrentPlan}
+                                disabled={isCurrentPlan || hasPendingSubscription}
                                 className={`w-full py-4 rounded-xl font-black text-sm uppercase tracking-wider transition-all shadow-md active:scale-95 ${
                                     isCurrentPlan ? 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none border-2 border-gray-200' :
                                     isComingSoon ? 'bg-gray-800 text-white hover:bg-gray-700 hover:shadow-xl' :
+                                    hasPendingSubscription ? 'bg-amber-100 text-amber-500 cursor-not-allowed shadow-none border-2 border-amber-200' :
                                     'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white hover:shadow-xl shadow-blue-500/30'
                                 }`}
                             >
-                                {isCurrentPlan ? 'Active' : isComingSoon ? 'Coming Soon' : 'Upgrade Now'}
+                                {isCurrentPlan ? 'Active' : isComingSoon ? 'Coming Soon' : hasPendingSubscription ? 'Pending Review' : 'Upgrade Now'}
                             </button>
                         </div>
                     );

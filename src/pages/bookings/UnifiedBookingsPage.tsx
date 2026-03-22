@@ -164,10 +164,11 @@ export default function UnifiedBookingsPage() {
                 // For ride bookings: `booking.ride` is the FK UUID from SeatBookingSerializer
                 // `booking.ride_id` does NOT exist — never fall back to booking.id (seat booking UUID)
                 const rideId = booking.ride || booking.ride_details?.id;
+                const bookingTypeParam = booking.weight ? 'cargo' : 'seat'; // weight is present on CargoBooking, or we can use booking_category if it exists
                 const wrapperProps = expired
                   ? { className: "block bg-white border border-gray-200 rounded-xl p-5 transition-all opacity-60 grayscale cursor-not-allowed" }
                   : {
-                      to: isRide ? `/rides/${rideId}` : `/bookings/${booking.id}`,
+                      to: isRide ? `/rides/bookings/${booking.id}?type=${bookingTypeParam}` : `/bookings/${booking.id}`,
                       className: "block bg-white border border-gray-200 rounded-xl p-5 hover:border-primary-300 hover:shadow-md transition-all cursor-pointer"
                     };
 

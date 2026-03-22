@@ -2,14 +2,15 @@ import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../app/store';
-import { fetchBooking, fetchBookingTimeline, cancelBooking, clearCurrentBooking, clearError } from '../../features/bookings/bookingsSlice';
+import { fetchBooking, fetchBookingTimeline, cancelBooking, confirmBooking, clearCurrentBooking, clearError } from '../../features/bookings/bookingsSlice';
 import ContactButton from '../../components/messaging/ContactButton';
-import { Calendar, MapPin, Star, FileText } from 'lucide-react';
+import { Calendar, MapPin, Star, FileText, CheckCircle } from 'lucide-react';
 import { getMediaUrl } from '../../utils/media';
 import { createRating } from '../../features/ratings/ratingsSlice';
 import CheckoutPayment from '../../components/checkout/CheckoutPayment';
 import { Price } from '../../context/CurrencyContext';
 import toast from 'react-hot-toast';
+import { ServiceFeeTrigger } from '../../components/common/ServiceFeeModal';
 
 export default function BookingDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -42,6 +43,22 @@ export default function BookingDetailPage() {
       dispatch(clearError());
       dispatch(clearCurrentBooking());
     };
+  }, [dispatch, id]);
+
+  // Real-time timeline updates via WebSocket notifications
+  useEffect(() => {
+    const handleNotification = (event: any) => {
+      const data = event.detail?.data;
+      if (data && id && id !== 'new') {
+        const actionUrl = String(data.action_url || '');
+        if (actionUrl.includes(id)) {
+          dispatch(fetchBooking(id));
+          dispatch(fetchBookingTimeline(id));
+        }
+      }
+    };
+    window.addEventListener('ws:notification', handleNotification);
+    return () => window.removeEventListener('ws:notification', handleNotification);
   }, [dispatch, id]);
 
   if (error) {
@@ -77,10 +94,20 @@ export default function BookingDetailPage() {
     if (reason) {
       try {
         await dispatch(cancelBooking({ bookingId: id, reason })).unwrap();
-        toast.success('Booking cancelled successfully');
+        toast.success(isOwnerView ? 'Booking rejected successfully' : 'Booking cancelled successfully');
       } catch {
-        toast.error('Failed to cancel booking');
+        toast.error(isOwnerView ? 'Failed to reject booking' : 'Failed to cancel booking');
       }
+    }
+  };
+
+  const handleApprove = async () => {
+    if (!id) return;
+    try {
+      await dispatch(confirmBooking(id)).unwrap();
+      toast.success('Booking approved successfully');
+    } catch {
+      toast.error('Failed to approve booking');
     }
   };
 
@@ -223,7 +250,7 @@ export default function BookingDetailPage() {
                 <span className="font-medium"><Price amount={booking.subtotal} /></span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-gray-500">Service fee</span>
+                <ServiceFeeTrigger />
                 <span className="font-medium"><Price amount={booking.service_fee} /></span>
               </div>
               <div className="flex items-center justify-between">
@@ -244,14 +271,45 @@ export default function BookingDetailPage() {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-gray-500">Status</span>
-                <span className={`badge ${booking.payment?.status === 'ESCROW' ? 'badge-warning' : 'badge-success'}`}>
-                  {booking.payment?.status || 'Pending'}
+                <span className={`badge ${['VERIFIED', 'COMPLETED', 'SUCCESS', 'ESCROW'].includes(booking.payment?.status?.toUpperCase() || '') ? 'badge-success' : 'badge-warning'}`}>
+                  {booking.payment?.status_display || booking.payment?.status || 'Pending'}
                 </span>
               </div>
-              {booking.payment?.card_brand && (
-                <div className="flex items-center justify-between">
+              
+              {booking.payment?.payment_method_display ? (
+                <div className="flex items-center justify-between mt-2">
+                  <span className="text-gray-500">Method</span>
+                  <span className="font-medium text-right max-w-[200px] truncate" title={booking.payment.payment_method_display}>
+                    {booking.payment.payment_method_display}
+                  </span>
+                </div>
+              ) : booking.payment?.card_brand && (
+                <div className="flex items-center justify-between mt-2">
                   <span className="text-gray-500">Method</span>
                   <span className="font-medium">{booking.payment.card_brand} ****{booking.payment.card_last_four}</span>
+                </div>
+              )}
+
+              {isOwnerView && booking.payment?.sender_phone && (
+                <div className="flex items-center justify-between mt-2">
+                  <span className="text-gray-500">Sender Phone</span>
+                  <span className="font-mono bg-gray-100 px-2 py-0.5 rounded text-sm">{booking.payment.sender_phone}</span>
+                </div>
+              )}
+
+              {isOwnerView && booking.payment?.transaction_reference && (
+                <div className="flex items-center justify-between mt-2">
+                  <span className="text-gray-500">Transaction Ref</span>
+                  <span className="font-mono bg-gray-100 px-2 py-0.5 rounded text-sm">{booking.payment.transaction_reference}</span>
+                </div>
+              )}
+
+              {booking.payment?.manual_receipt_url && (
+                <div className="mt-4 pt-4 border-t border-gray-100">
+                  <span className="text-gray-500 block mb-2 text-sm">Receipt / Proof of Payment</span>
+                  <a href={getMediaUrl(booking.payment.manual_receipt_url)} target="_blank" rel="noopener noreferrer" className="block w-full h-32 rounded-lg overflow-hidden border border-gray-200 hover:border-primary-400 hover:shadow-md transition-all">
+                    <img src={getMediaUrl(booking.payment.manual_receipt_url)} alt="Payment Receipt" className="w-full h-full object-cover shadow-sm" />
+                  </a>
                 </div>
               )}
             </div>
@@ -281,7 +339,7 @@ export default function BookingDetailPage() {
           )}
 
           {/* Payment Checkout (Renter, PENDING booking) */}
-          {booking.status === 'PENDING' && !isOwnerView && (
+          {booking.status === 'PENDING' && !isOwnerView && !booking.payment && (
             <div className="mb-6">
               <CheckoutPayment
                 bookingId={booking.id}
@@ -289,13 +347,57 @@ export default function BookingDetailPage() {
                 amount={booking.total_price}
                 currency={booking.currency || 'TZS'}
                 ownerId={booking.owner?.id}
+                onSuccess={() => { if (id) { dispatch(fetchBooking(id)); dispatch(fetchBookingTimeline(id)); } }}
               />
             </div>
           )}
 
-          {(booking.status === 'PENDING' || booking.status === 'CONFIRMED') && (
+          {booking.status === 'PENDING' && !isOwnerView && booking.payment && (
+            <div className="mb-6 card p-6 border-l-4 border-l-green-500 bg-green-50 shadow-sm">
+              <div className="flex items-start gap-4">
+                <div className="bg-green-100 p-2 rounded-full mt-1">
+                  <CheckCircle className="h-6 w-6 text-green-600" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-green-800 text-lg mb-1">Payment Submitted</h3>
+                  <p className="text-sm text-green-700 mb-4">
+                    Your payment receipt has been received and is currently waiting for the owner to verify and approve your booking.
+                  </p>
+                  <div className="flex gap-3">
+                    <Link to="/bookings" className="btn-primary text-sm py-2 px-4 shadow-sm bg-green-600 hover:bg-green-700 border-none">
+                      Back to Dashboard
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {isOwnerView && booking.status === 'PENDING' && counterparty && (
+            <div className="card p-6 space-y-3">
+              <h2 className="text-lg font-semibold mb-2">Actions</h2>
+              <button onClick={handleApprove} className="btn-success w-full font-bold shadow-sm">
+                Approve Request
+              </button>
+              <button onClick={handleCancel} className="btn-danger w-full font-bold shadow-sm">
+                Reject Request
+              </button>
+              <ContactButton
+                targetUserId={counterparty.id}
+                label="Request Modification"
+                threadType="BOOKING"
+                bookingId={booking.id}
+                subject={`Modification Request - Booking #${booking.id}`}
+                variant="outline"
+                className="w-full justify-center !text-gray-700 !bg-gray-50 border-gray-200 hover:!bg-gray-100"
+                initialMessage={`Hello, I'd like to request a modification to your booking request for ${booking.asset.name}.`}
+              />
+            </div>
+          )}
+
+          {!isOwnerView && (booking.status === 'PENDING' || booking.status === 'CONFIRMED') && (
             <div className="card p-6">
-              <button onClick={handleCancel} className="btn-danger w-full">
+              <button onClick={handleCancel} className="btn-danger w-full font-bold">
                 Cancel Booking
               </button>
             </div>

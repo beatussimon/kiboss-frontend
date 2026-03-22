@@ -16,6 +16,8 @@ import NotificationDropdown from '../notifications/NotificationDropdown';
 import { useCurrency, CurrencyCode } from '../../context/CurrencyContext';
 import { useNotificationWebSocket } from '../../features/notifications/useNotificationWebSocket';
 import Footer from './Footer';
+import Breadcrumbs from '../common/Breadcrumbs';
+import SmartBackButton from '../common/SmartBackButton';
 
 export default function Layout() {
   const dispatch = useDispatch();
@@ -557,8 +559,20 @@ export default function Layout() {
         )}
       </header>
 
+      {/* Mobile Sticky Top Bar (Only visible on mobile, under header) */}
+      <div className="md:hidden sticky top-16 z-40 bg-white/90 backdrop-blur-md border-b border-gray-100 px-4 py-2 flex items-center shadow-sm w-full overflow-hidden">
+        <SmartBackButton />
+        <div className="flex-1 min-w-0">
+          <Breadcrumbs />
+        </div>
+      </div>
+
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Desktop Breadcrumbs */}
+        <div className="hidden md:block mb-4">
+          <Breadcrumbs />
+        </div>
         <Outlet />
       </main>
 

@@ -7,6 +7,7 @@ import { fetchAsset } from '../../features/assets/assetsSlice';
 import { getMediaUrl } from '../../utils/media';
 import { Calendar, Clock, AlertCircle, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import api from '../../services/api';
 
 export default function CreateBookingPage() {
   const [searchParams] = useSearchParams();
@@ -23,11 +24,13 @@ export default function CreateBookingPage() {
     end_time: '',
     quantity: 1,
     renter_notes: '',
-    payment_method: 'CREDIT_CARD',
     driver_license_number: '',
     driving_experience_years: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [availabilityError, setAvailabilityError] = useState<string | null>(null);
+  const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
+  const [agreesToTerms, setAgreesToTerms] = useState(false);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -79,10 +82,53 @@ export default function CreateBookingPage() {
     return Object.keys(newErrors).length === 0;
   };
 
+  useEffect(() => {
+    const checkAvailability = async () => {
+      if (!assetId || !formData.start_time || !formData.end_time || formData.quantity < 1) {
+        setAvailabilityError(null);
+        return;
+      }
+
+      const start = new Date(formData.start_time);
+      const end = new Date(formData.end_time);
+      if (end <= start || start < new Date()) {
+        return; 
+      }
+
+      setIsCheckingAvailability(true);
+      setAvailabilityError(null);
+      try {
+        const queryParams = new URLSearchParams({
+          start_time: new Date(formData.start_time).toISOString(),
+          end_time: new Date(formData.end_time).toISOString(),
+          quantity: formData.quantity.toString()
+        });
+        const res = await api.get(`/assets/${assetId}/check_availability/?${queryParams.toString()}`);
+        if (!res.data.is_available) {
+          if (res.data.conflict_info?.error) {
+            setAvailabilityError(res.data.conflict_info.error);
+          } else {
+            setAvailabilityError('Asset is not available for the selected dates and quantity.');
+          }
+        }
+      } catch (err: any) {
+        console.error('Failed to check availability', err);
+      } finally {
+        setIsCheckingAvailability(false);
+      }
+    };
+
+    const timeoutId = setTimeout(checkAvailability, 500);
+    return () => clearTimeout(timeoutId);
+  }, [assetId, formData.start_time, formData.end_time, formData.quantity]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!validateForm() || !assetId) {
+    if (!validateForm() || !assetId || availabilityError || !agreesToTerms) {
+      if (!agreesToTerms) {
+        toast.error('You must agree to the terms to proceed.');
+      }
       return;
     }
 
@@ -92,7 +138,6 @@ export default function CreateBookingPage() {
         start_time: new Date(formData.start_time).toISOString(),
         end_time: new Date(formData.end_time).toISOString(),
         quantity: formData.quantity,
-        payment_method: formData.payment_method,
         renter_notes: formData.renter_notes,
       };
 
@@ -345,63 +390,6 @@ export default function CreateBookingPage() {
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Payment Method
-            </label>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div className="space-y-3">
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Mobile Money (Zenopay)</p>
-                {['MPESA', 'TIGO_PESA', 'AIRTEL_MONEY', 'HALOPESA'].map((method) => (
-                  <label key={method} className={`flex items-center p-3 rounded-xl border-2 cursor-pointer transition-all ${formData.payment_method === method ? 'border-primary-600 bg-primary-50' : 'border-gray-100 hover:border-gray-200'}`}>
-                    <input
-                      type="radio"
-                      name="payment_method"
-                      value={method}
-                      checked={formData.payment_method === method}
-                      onChange={handleInputChange}
-                      className="hidden"
-                    />
-                    <div className="flex-1">
-                      <p className="text-sm font-bold text-gray-900">{method.replace('_', ' ')}</p>
-                      <p className="text-[10px] text-gray-500">Instant via Zenopay</p>
-                    </div>
-                    <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${formData.payment_method === method ? 'border-primary-600 bg-primary-600' : 'border-gray-300'}`}>
-                      {formData.payment_method === method && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
-                    </div>
-                  </label>
-                ))}
-              </div>
-              <div className="space-y-3">
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Cards & Banking</p>
-                {[
-                  { id: 'CREDIT_CARD', label: 'Credit/Debit Card' },
-                  { id: 'CRDB', label: 'CRDB Bank' },
-                  { id: 'NMB', label: 'NMB Bank' },
-                  { id: 'STANBIC', label: 'Stanbic Bank' }
-                ].map((method) => (
-                  <label key={method.id} className={`flex items-center p-3 rounded-xl border-2 cursor-pointer transition-all ${formData.payment_method === method.id ? 'border-primary-600 bg-primary-50' : 'border-gray-100 hover:border-gray-200'}`}>
-                    <input
-                      type="radio"
-                      name="payment_method"
-                      value={method.id}
-                      checked={formData.payment_method === method.id}
-                      onChange={handleInputChange}
-                      className="hidden"
-                    />
-                    <div className="flex-1">
-                      <p className="text-sm font-bold text-gray-900">{method.label}</p>
-                      <p className="text-[10px] text-gray-500">Secure Bank Transfer</p>
-                    </div>
-                    <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${formData.payment_method === method.id ? 'border-primary-600 bg-primary-600' : 'border-gray-300'}`}>
-                      {formData.payment_method === method.id && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
-                    </div>
-                  </label>
-                ))}
-              </div>
-            </div>
-          </div>
-
           {/* Price Estimate */}
           {priceInfo && (
             <div className="bg-gray-50 rounded-lg p-4">
@@ -421,23 +409,51 @@ export default function CreateBookingPage() {
             </div>
           )}
 
-          <button
-            type="submit"
-            disabled={bookingLoading}
-            className="btn-primary w-full flex items-center justify-center gap-2"
-          >
-            {bookingLoading ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Creating Booking...
-              </>
-            ) : (
-              <>
-                <Calendar className="h-4 w-4" />
-                Create Booking
-              </>
+          <div className="pt-4 border-t border-gray-100 mt-6">
+            <div className="mb-6 flex flex-col gap-2">
+              <label className="flex items-start gap-3 p-3 bg-gray-50 border-2 rounded-xl border-gray-100 hover:border-gray-200 cursor-pointer transition-all">
+                <input
+                  type="checkbox"
+                  checked={agreesToTerms}
+                  onChange={(e) => setAgreesToTerms(e.target.checked)}
+                  className="mt-1 w-4 h-4 text-primary-600 rounded focus:ring-primary-500 cursor-pointer border-2 border-gray-300"
+                />
+                <span className="text-sm text-gray-700">
+                  I agree to the <Link to="/terms" target="_blank" className="text-primary-600 font-medium hover:underline">Standard Terms and Conditions</Link>, including the cancellation and late return policies for this asset. A digital contract will be generated upon booking.
+                </span>
+              </label>
+            </div>
+
+            {availabilityError && (
+              <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm flex items-start gap-2 border border-red-100 shadow-sm">
+                <AlertCircle className="h-5 w-5 shrink-0" />
+                <span>{availabilityError}</span>
+              </div>
             )}
-          </button>
+            
+            <button
+              type="submit"
+              disabled={bookingLoading || isCheckingAvailability || !!availabilityError || !agreesToTerms}
+              className="btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              {bookingLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Creating Booking...
+                </>
+              ) : isCheckingAvailability ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Checking Availability...
+                </>
+              ) : (
+                <>
+                  <Calendar className="h-4 w-4" />
+                  Create Booking
+                </>
+              )}
+            </button>
+          </div>
         </form>
       </div>
     </div>

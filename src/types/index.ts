@@ -233,14 +233,19 @@ export interface Payment {
   amount: string;
   currency: string;
   payment_method: string;
+  payment_method_display?: string;
   status: PaymentStatus;
-  card_last_four: string;
-  card_brand: string;
-  escrow_held_at: string;
-  escrow_amount: string;
-  escrow_released_at: string;
-  penalty_amount: string;
-  refunded_amount: string;
+  status_display?: string;
+  card_last_four?: string;
+  card_brand?: string;
+  escrow_held_at?: string;
+  escrow_amount?: string;
+  escrow_released_at?: string;
+  penalty_amount?: string;
+  refunded_amount?: string;
+  manual_receipt_url?: string | null;
+  sender_phone?: string;
+  transaction_reference?: string;
 }
 
 // ==================== Contract Types ====================
@@ -349,13 +354,16 @@ export interface SeatAvailability {
 export interface SeatBooking {
   id: string;
   ride_id: string;
+  ride?: string;
   seat_number: number;
+  price?: string;
+  total_price?: string;
   passenger: User;
   pickup_stop: RideStop;
   dropoff_stop: RideStop;
   passenger_notes: string;
   luggage_count: number;
-  status: 'PENDING' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED';
+  status: 'RESERVED' | 'PENDING' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED';
 }
 
 // ==================== Messaging Types ====================

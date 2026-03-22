@@ -61,6 +61,19 @@ export const createBooking = createAsyncThunk(
   }
 );
 
+export const confirmBooking = createAsyncThunk(
+  'bookings/confirmBooking',
+  async (bookingId: string, { rejectWithValue }) => {
+    try {
+      const response = await api.post<Booking>(`/bookings/${bookingId}/confirm/`);
+      return response.data;
+    } catch (error: unknown) {
+      const axiosError = error as { response?: { data?: { message?: string } } };
+      return rejectWithValue(axiosError.response?.data?.message || 'Failed to confirm booking');
+    }
+  }
+);
+
 export const confirmPayment = createAsyncThunk(
   'bookings/confirmPayment',
   async ({ bookingId, paymentIntentId, paymentMethodId }: { bookingId: string; paymentIntentId: string; paymentMethodId: string }, { rejectWithValue }) => {
@@ -223,6 +236,11 @@ const bookingsSlice = createSlice({
         state.currentBooking = action.payload;
       })
       .addCase(confirmPayment.fulfilled, (state, action) => {
+        const index = state.bookings.findIndex((b) => b.id === action.payload.id);
+        if (index !== -1) state.bookings[index] = action.payload;
+        if (state.currentBooking?.id === action.payload.id) state.currentBooking = action.payload;
+      })
+      .addCase(confirmBooking.fulfilled, (state, action) => {
         const index = state.bookings.findIndex((b) => b.id === action.payload.id);
         if (index !== -1) state.bookings[index] = action.payload;
         if (state.currentBooking?.id === action.payload.id) state.currentBooking = action.payload;

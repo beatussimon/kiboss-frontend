@@ -24,6 +24,7 @@ import ContractDetailPage from './pages/bookings/ContractDetailPage';
 import RidesPage from './pages/rides/RidesPage';
 import RideDetailPage from './pages/rides/RideDetailPage';
 import CreateRidePage from './pages/rides/CreateRidePage';
+import RideBookingDetailPage from './pages/rides/RideBookingDetailPage';
 import MessagesPage from './pages/messages/MessagesPage';
 import ThreadPage from './pages/messages/ThreadPage';
 import NotificationsPage from './pages/notifications/NotificationsPage';
@@ -137,6 +138,7 @@ function App() {
         <Route path="/rides/:id" element={<RideDetailPage />} />
         <Route path="/rides/:id/edit" element={<RideEditPage />} />
         <Route path="/rides/:id/manifest" element={<RideManifestPage />} />
+        <Route path="/rides/bookings/:id" element={<RideBookingDetailPage />} />
         <Route path="/messages" element={<MessagesPage />} />
         <Route path="/messages/:threadId" element={<ThreadPage />} />
         <Route path="/notifications" element={<NotificationsPage />} />

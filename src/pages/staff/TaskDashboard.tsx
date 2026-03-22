@@ -224,6 +224,7 @@ export default function TaskDashboard() {
       case 'CUSTOM_TASK': return <PenTool className="h-6 w-6" />;
       case 'CORPORATE_RIDE_VERIFICATION': case 'CORPORATE_ASSET_VERIFICATION': return <Briefcase className="h-6 w-6" />;
       case 'ASSET_AUDIT': return <Activity className="h-6 w-6" />;
+      case 'SUBSCRIPTION_VERIFICATION': return <CreditCard className="h-6 w-6" />;
       default: return <Shield className="h-6 w-6" />;
     }
   };
@@ -491,6 +492,58 @@ export default function TaskDashboard() {
           </div>
         );
 
+      case 'SUBSCRIPTION_VERIFICATION':
+        return (
+          <div className="card p-6 border-l-4 border-l-emerald-500 bg-emerald-50/10">
+            <h3 className="text-xs font-black text-emerald-600 uppercase tracking-widest mb-4 flex items-center gap-2">
+              <CreditCard className="h-4 w-4" /> Subscription Payment Verification
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div>
+                <p className="text-[10px] font-bold text-gray-500 uppercase">Payment Amount</p>
+                <p className="text-sm font-black text-emerald-600">
+                  <Price amount={Number(detail.amount)} currency={detail.currency || 'TZS'} />
+                </p>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-gray-500 uppercase">Payment Method</p>
+                <p className="text-sm font-black text-gray-900">{detail.payment_method_details?.network_name || 'Manual Transfer'}</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-gray-500 uppercase">User / Account Info</p>
+                <p className="text-sm font-black text-gray-900">{detail.user_payment_method_details?.account_name || 'N/A'}</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-gray-500 uppercase">Plan / Type</p>
+                <span className="bg-emerald-600 text-white text-[10px] font-black px-2 py-0.5 rounded uppercase mt-1 inline-block">{detail.booking_details?.plan_type || 'Upgrade Request'}</span>
+              </div>
+            </div>
+            
+            {(detail.transaction_id || detail.confirmation_message) && (
+              <div className="bg-white p-4 rounded-xl border border-gray-100 flex items-start gap-3 mb-4">
+                <FileText className="h-5 w-5 text-gray-400 mt-0.5" />
+                <div>
+                  <p className="text-[10px] font-bold text-gray-500 uppercase mb-0.5">Confirmation Message / TX ID</p>
+                  <p className="text-xs font-medium text-gray-700">{detail.confirmation_message || detail.transaction_id || 'N/A'}</p>
+                </div>
+              </div>
+            )}
+            
+            {detail.receipt_image && (
+               <div className="mt-2">
+                 <p className="text-[10px] font-bold text-gray-500 uppercase mb-2">Attached Receipt</p>
+                 <a href={detail.receipt_image.includes('http') ? detail.receipt_image : getMediaUrl(detail.receipt_image)} target="_blank" rel="noopener noreferrer" className="inline-block relative rounded-xl overflow-hidden border-2 border-gray-100 hover:border-emerald-300 transition-colors group bg-white p-2">
+                   <img src={detail.receipt_image.includes('http') ? detail.receipt_image : getMediaUrl(detail.receipt_image)} alt="Receipt" className="h-32 object-contain" />
+                   <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity flex-col gap-2">
+                     <ExternalLink className="h-6 w-6 text-white" />
+                     <span className="text-[10px] text-white font-bold uppercase tracking-wider">View Full</span>
+                   </div>
+                 </a>
+               </div>
+            )}
+          </div>
+        );
+
       default:
         return (
           <div className="card p-6 border-l-4 border-l-gray-300 bg-gray-50">
@@ -572,6 +625,7 @@ export default function TaskDashboard() {
   if (isSuperRole || userRoles.includes('VERIFIER') || userRoles.includes('CAR_VERIFIER') || userRoles.includes('OPS')) filterOptions.push({ id: 'VEHICLE_VERIFICATION', label: 'Vehicles' });
   if (isSuperRole || userRoles.includes('VERIFIER') || userRoles.includes('IDENTITY_VERIFIER')) filterOptions.push({ id: 'IDENTITY_VERIFICATION', label: 'Identity' });
   if (isSuperRole || userRoles.includes('RIDE_BUSINESS_VERIFIER') || userRoles.includes('ASSET_BUSINESS_VERIFIER')) filterOptions.push({ id: 'CORPORATE_RIDE_VERIFICATION', label: 'Corporate' });
+  if (isSuperRole) filterOptions.push({ id: 'SUBSCRIPTION_VERIFICATION', label: 'Subscriptions' });
   filterOptions.push({ id: 'CUSTOM_TASK', label: 'Custom' });
 
   const processedTasks = tasks.filter(t => {

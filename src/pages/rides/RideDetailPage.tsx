@@ -10,6 +10,7 @@ import toast from 'react-hot-toast';
 import VerificationBadge from '../../components/ui/VerificationBadge';
 import ContactButton from '../../components/messaging/ContactButton';
 import ImageModal from '../../components/ui/ImageModal';
+import { ServiceFeeTrigger } from '../../components/common/ServiceFeeModal';
 
 export default function RideDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -89,6 +90,14 @@ export default function RideDetailPage() {
     }
 
     setIsBooking(true);
+    
+    // Front-end validation to prevent unnecessary 400 Bad Request network errors
+    if (ride && new Date(ride.departure_time) < new Date()) {
+      toast.error('This ride has already departed and cannot be booked.');
+      setIsBooking(false);
+      return;
+    }
+
     try {
       if (activeTab === 'CARGO') {
         const weight = Number(cargoWeight);
@@ -97,13 +106,12 @@ export default function RideDetailPage() {
           setIsBooking(false);
           return;
         }
-        await dispatch(bookCargo({
+        const bookedCargo = await dispatch(bookCargo({
           ride_id: rideId,
           weight: weight,
         })).unwrap();
-        toast.success(`Cargo space booked successfully!`);
-        setCargoWeight('');
-        setHasCargoBooking(true);
+        toast.success(`Cargo space reserved. Please complete payment.`);
+        navigate(`/rides/bookings/${bookedCargo.id}?type=cargo`);
       } else {
         if (ride?.ride_type === 'BUSINESS') {
           if (businessSeats <= 0) {
@@ -115,8 +123,8 @@ export default function RideDetailPage() {
             rideId: rideId,
             data: { quantity: businessSeats }
           })).unwrap();
-          toast.success(`${businessSeats} seat(s) booked successfully!`);
-          setBusinessSeats(1);
+          toast.success(`${businessSeats} seat(s) reserved. Please complete payment.`);
+          navigate('/bookings?tab=my_bookings');
         } else {
           if (selectedSeats.length === 0) {
             toast.error('Please select at least one seat');
@@ -132,9 +140,14 @@ export default function RideDetailPage() {
               }
             })).unwrap()
           );
-          await Promise.all(bookingPromises);
-          toast.success(`${selectedSeats.length} seat(s) booked successfully!`);
-          setSelectedSeats([]);
+          const results = await Promise.all(bookingPromises);
+          toast.success(`${selectedSeats.length} seat(s) reserved. Please complete payment.`);
+          
+          if (results.length === 1 && results[0]?.id) {
+            navigate(`/rides/bookings/${results[0].id}?type=seat`);
+          } else {
+            navigate('/bookings?tab=my_bookings');
+          }
         }
       }
 
@@ -144,7 +157,27 @@ export default function RideDetailPage() {
         dispatch(fetchSeatAvailability(rideId));
       }
     } catch (err) {
-      toast.error(typeof err === 'string' ? err : 'Failed to process booking. Please try again.');
+      const errorMessage = typeof err === 'string' ? err : 'Failed to process booking. Please try again.';
+      
+      let displayMessage = errorMessage;
+      const prefixesToRemove = ['ride_id:', 'non_field_errors:', 'seat_number:', 'cargo_weight_kg:', 'weight:'];
+      for (const prefix of prefixesToRemove) {
+        if (displayMessage.toLowerCase().startsWith(prefix)) {
+          displayMessage = displayMessage.substring(prefix.length).trim();
+        }
+      }
+      
+      // Capitalize first letter if it got lowercased by the prefix removal
+      if (displayMessage.length > 0) {
+        displayMessage = displayMessage.charAt(0).toUpperCase() + displayMessage.slice(1);
+      }
+      
+      if (displayMessage.toLowerCase().includes('already departed')) {
+        toast.error('This ride has already departed and cannot be booked.');
+        dispatch(fetchRide(rideId));
+      } else {
+        toast.error(displayMessage);
+      }
     } finally {
       setIsBooking(false);
     }
@@ -514,10 +547,18 @@ export default function RideDetailPage() {
                         placeholder="e.g. 2"
                       />
                       {businessSeats > 0 && businessSeats <= ride.available_seats && (
-                        <div className="p-4 bg-primary-600 rounded-2xl text-white shadow-lg shadow-primary-200">
-                          <div className="flex justify-between items-center text-sm font-black">
-                            <span className="uppercase tracking-widest text-[10px]">Total ({businessSeats} Seats)</span>
-                            <span><Price amount={ride.seat_price * businessSeats} /></span>
+                        <div className="p-5 bg-gray-50 rounded-2xl border border-gray-100 space-y-3">
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="text-gray-500">Subtotal ({businessSeats} Seats)</span>
+                            <span className="font-bold"><Price amount={ride.seat_price * businessSeats} /></span>
+                          </div>
+                          <div className="flex justify-between items-center text-sm">
+                            <ServiceFeeTrigger />
+                            <span className="font-bold"><Price amount={0} /></span>
+                          </div>
+                          <div className="pt-3 border-t border-gray-200 flex justify-between items-center text-lg font-black text-gray-900">
+                            <span>Total</span>
+                            <span className="text-primary-600"><Price amount={ride.seat_price * businessSeats} /></span>
                           </div>
                         </div>
                       )}
@@ -596,10 +637,18 @@ export default function RideDetailPage() {
                         </div>
 
                         {selectedSeats.length > 0 && (
-                          <div className="p-4 bg-primary-600 rounded-2xl text-white shadow-lg shadow-primary-200 animate-in zoom-in-95 duration-200">
-                            <div className="flex justify-between items-center text-sm font-black">
-                              <span className="uppercase tracking-widest text-[10px]">Total ({selectedSeats.length} Seats)</span>
-                              <span><Price amount={ride.seat_price * selectedSeats.length} /></span>
+                          <div className="p-5 bg-gray-50 rounded-2xl border border-gray-100 space-y-3 animate-in zoom-in-95 duration-200">
+                            <div className="flex justify-between items-center text-sm">
+                              <span className="text-gray-500">Subtotal ({selectedSeats.length} Seats)</span>
+                              <span className="font-bold"><Price amount={ride.seat_price * selectedSeats.length} /></span>
+                            </div>
+                            <div className="flex justify-between items-center text-sm">
+                              <ServiceFeeTrigger />
+                              <span className="font-bold"><Price amount={0} /></span>
+                            </div>
+                            <div className="pt-3 border-t border-gray-200 flex justify-between items-center text-lg font-black text-gray-900">
+                              <span>Total</span>
+                              <span className="text-primary-600"><Price amount={ride.seat_price * selectedSeats.length} /></span>
                             </div>
                           </div>
                         )}
@@ -619,10 +668,18 @@ export default function RideDetailPage() {
                       placeholder="e.g. 5"
                     />
                     {Number(cargoWeight) > 0 && Number(cargoWeight) <= (ride.available_cargo || 0) && (
-                      <div className="p-4 bg-primary-600 rounded-2xl text-white shadow-lg shadow-primary-200">
-                        <div className="flex justify-between items-center text-sm font-black">
-                          <span className="uppercase tracking-widest text-[10px]">Total Cost</span>
-                          <span><Price amount={(ride.cargo_price || 0) * Number(cargoWeight)} /></span>
+                      <div className="p-5 bg-gray-50 rounded-2xl border border-gray-100 space-y-3">
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="text-gray-500">Subtotal ({cargoWeight} kg)</span>
+                          <span className="font-bold"><Price amount={(ride.cargo_price || 0) * Number(cargoWeight)} /></span>
+                        </div>
+                        <div className="flex justify-between items-center text-sm">
+                          <ServiceFeeTrigger />
+                          <span className="font-bold"><Price amount={0} /></span>
+                        </div>
+                        <div className="pt-3 border-t border-gray-200 flex justify-between items-center text-lg font-black text-gray-900">
+                          <span>Total</span>
+                          <span className="text-primary-600"><Price amount={(ride.cargo_price || 0) * Number(cargoWeight)} /></span>
                         </div>
                       </div>
                     )}
@@ -632,10 +689,10 @@ export default function RideDetailPage() {
                 <div className="space-y-3 pt-4 border-t border-gray-50">
                   <button
                     onClick={handleBookNow}
-                    disabled={isBooking || (activeTab === 'SEATS' ? ride.available_seats === 0 : ride.available_cargo === 0)}
+                    disabled={isBooking || ride.status === 'DEPARTED' || ride.status === 'CANCELLED' || ride.status === 'COMPLETED' || (activeTab === 'SEATS' ? ride.available_seats === 0 : ride.available_cargo === 0)}
                     className="btn-primary w-full py-4 text-sm font-black uppercase tracking-widest shadow-xl shadow-primary-500/20 disabled:opacity-50"
                   >
-                    {isBooking ? 'Processing...' : `Complete Booking`}
+                    {isBooking ? 'Processing...' : ['DEPARTED', 'CANCELLED', 'COMPLETED'].includes(ride.status) ? `Ride ${ride.status}` : `Complete Booking`}
                   </button>
 
                   {hasConfirmedBooking && ride.driver.profile?.phone && (
