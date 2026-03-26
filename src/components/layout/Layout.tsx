@@ -36,6 +36,32 @@ export default function Layout() {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isCreateMenuOpen, setIsCreateMenuOpen] = useState(false);
 
+  // Scroll direction tracking for breadcrumbs
+  const [showBreadcrumbs, setShowBreadcrumbs] = useState(true);
+  const lastScrollY = useRef(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+
+      // Always show at top of page
+      if (currentScrollY === 0) {
+        setShowBreadcrumbs(true);
+      } else if (currentScrollY > lastScrollY.current) {
+        // Scrolling down - hide
+        setShowBreadcrumbs(false);
+      } else {
+        // Scrolling up - show
+        setShowBreadcrumbs(true);
+      }
+
+      lastScrollY.current = currentScrollY;
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   // Refs for click-outside detection
   const userMenuRef = useRef<HTMLDivElement>(null);
   const notificationRef = useRef<HTMLDivElement>(null);
@@ -94,11 +120,11 @@ export default function Layout() {
   // 1. Staff always gets STAFF view
   // 2. Explicit account_tier (PLUS/BUSINESS) takes precedence
   // 3. Fallback to BUSINESS if they have a corporate_profile (legacy/manual)
-  const effectiveTier = isStaff 
-    ? 'STAFF' 
-    : (accountTier !== 'FREE' 
-        ? accountTier 
-        : (user?.corporate_profile ? 'BUSINESS' : 'FREE'));
+  const effectiveTier = isStaff
+    ? 'STAFF'
+    : (accountTier !== 'FREE'
+      ? accountTier
+      : (user?.corporate_profile ? 'BUSINESS' : 'FREE'));
 
   // Primary navigation - main features
   const primaryNav = [
@@ -559,7 +585,7 @@ export default function Layout() {
       </header>
 
       {/* Mobile Sticky Top Bar (Only visible on mobile, under header) */}
-      <div className="md:hidden sticky top-16 z-40 bg-white/90 backdrop-blur-md border-b border-gray-100 px-4 py-2 flex items-center shadow-sm w-full overflow-hidden">
+      <div className={`md:hidden sticky top-16 z-40 bg-white/90 backdrop-blur-md border-b border-gray-100 px-4 py-2 flex items-center shadow-sm w-full overflow-hidden transition-transform duration-300 ${showBreadcrumbs ? 'translate-y-0' : '-translate-y-full'}`}>
         <SmartBackButton />
         <div className="flex-1 min-w-0">
           <Breadcrumbs />
@@ -569,7 +595,7 @@ export default function Layout() {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Desktop Breadcrumbs */}
-        <div className="hidden md:block mb-4">
+        <div className={`hidden md:block mb-4 transition-transform duration-300 ${showBreadcrumbs ? 'translate-y-0' : '-translate-y-full'}`}>
           <Breadcrumbs />
         </div>
         <Outlet />
