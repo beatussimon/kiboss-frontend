@@ -271,8 +271,6 @@ export default function Layout() {
                         {isStaff && (
                           <span className="bg-primary-600 text-white text-[8px] font-black px-1 rounded-sm  tracking-tighter">Staff</span>
                         )}
-                      </div>
-                      <div className="flex items-center gap-1">
                         <VerificationBadge
                           tier={user.verification_badge?.tier}
                           color={user.verification_badge?.color}

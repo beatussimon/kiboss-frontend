@@ -276,14 +276,6 @@ export default function AssetDetailPage() {
               </span>
             )}
           </div>
-          <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-0.5 shadow-sm">
-            <VerificationBadge
-              tier={asset.owner.verification_badge?.tier}
-              color={asset.owner.verification_badge?.color}
-              size="xs"
-              checkmarkData={(asset.owner as any).checkmark_data}
-            />
-          </div>
         </div>
         <div className="flex-1">
           <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Hosted By</p>
@@ -291,6 +283,12 @@ export default function AssetDetailPage() {
             <p className="font-bold text-lg text-gray-900 group-hover:text-primary-600 transition-colors leading-tight">
               {asset.owner.first_name || 'Kiboss User'} {asset.owner.last_name || ''}
             </p>
+            <VerificationBadge
+              tier={asset.owner.verification_badge?.tier}
+              color={asset.owner.verification_badge?.color}
+              size="xs"
+              checkmarkData={(asset.owner as any).checkmark_data}
+            />
           </div>
           <div className="flex items-center gap-3 mt-1.5">
             <p className="text-xs font-bold text-gray-500 flex items-center gap-1 bg-gray-50 px-2 py-0.5 rounded-md border border-gray-100/50">

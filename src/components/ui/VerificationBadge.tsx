@@ -21,10 +21,10 @@ export default function VerificationBadge({
   }
 
   const sizeClasses = {
-    xs: 'h-7 w-7',
-    sm: 'h-8 w-8',
-    md: 'h-12 w-12',
-    lg: 'h-16 w-16',
+    xs: 'h-8 w-8',
+    sm: 'h-10 w-10',
+    md: 'h-16 w-16',
+    lg: 'h-24 w-24',
   };
 
   const labelSizeClasses = {
@@ -41,7 +41,7 @@ export default function VerificationBadge({
         <div className="relative inline-flex items-center gap-2" title={tier === 'business' ? 'Verified Business' : 'Verified'}>
           <img 
             src={checkmarkData} 
-            className={`${sizeClasses[size]} object-contain`} 
+            className={`${sizeClasses[size]} ${tier === 'business' ? 'scale-125 mx-1' : ''} object-contain transition-transform`} 
             alt="Verified Badge" 
           />
           {showLabel && (

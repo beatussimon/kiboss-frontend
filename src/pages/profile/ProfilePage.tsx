@@ -211,15 +211,17 @@ export function ProfilePage() {
             <input ref={fileInputRef} type="file" accept="image/*" onChange={handleAvatarChange} className="hidden" />
           </div>
           <div>
-            <h2 className="text-xl font-semibold text-gray-900">{user?.first_name} {user?.last_name}</h2>
-            <p className="text-gray-500">@{user?.email?.split('@')[0]}</p>
-            <div className="flex items-center gap-2 mt-2">
+            <div className="flex items-center gap-2 mb-1">
+              <h2 className="text-xl font-semibold text-gray-900">{user?.first_name} {user?.last_name}</h2>
               <VerificationBadge 
                 tier={user?.verification_badge?.tier} 
                 color={user?.verification_badge?.color} 
                 size="md" 
                 checkmarkData={user?.checkmark_data}
               />
+            </div>
+            <p className="text-gray-500">@{user?.email?.split('@')[0]}</p>
+            <div className="flex items-center gap-2 mt-2">
               <span className={`badge ${user?.is_email_verified ? 'badge-success' : 'badge-warning'}`}>
                 {user?.is_email_verified ? 'Email Verified' : 'Email Unverified'}
               </span>

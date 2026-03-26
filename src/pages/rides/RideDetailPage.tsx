@@ -433,23 +433,6 @@ export default function RideDetailPage() {
                     </span>
                   )}
                 </div>
-                <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-0.5 shadow-sm">
-                  {ride.driver.corporate_profile?.verification_status === 'VERIFIED' ? (
-                    <VerificationBadge
-                      tier="business"
-                      color="indigo"
-                      size="xs"
-                      checkmarkData={(ride.driver as any).checkmark_data}
-                    />
-                  ) : (
-                    <VerificationBadge
-                      tier={ride.driver.verification_badge?.tier}
-                      color={ride.driver.verification_badge?.color}
-                      size="xs"
-                      checkmarkData={(ride.driver as any).checkmark_data}
-                    />
-                  )}
-                </div>
               </div>
               <div className="flex-1">
                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-0.5">
@@ -461,6 +444,12 @@ export default function RideDetailPage() {
                       ? ride.driver.corporate_profile.company_name
                       : `${ride.driver.first_name} ${ride.driver.last_name}`}
                   </p>
+                  <VerificationBadge
+                    tier={ride.driver.corporate_profile?.verification_status === 'VERIFIED' ? 'business' : ride.driver.verification_badge?.tier}
+                    color={ride.driver.corporate_profile?.verification_status === 'VERIFIED' ? 'indigo' : ride.driver.verification_badge?.color}
+                    size="xs"
+                    checkmarkData={(ride.driver as any).checkmark_data}
+                  />
                 </div>
                 <div className="flex items-center gap-3 mt-1.5">
                   <p className="text-xs font-bold text-gray-500 flex items-center gap-1 bg-gray-50 px-2 py-0.5 rounded-md border border-gray-100/50">

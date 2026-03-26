@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Users, Navigation, Clock, Eye } from 'lucide-react';
 import { Price } from '../../context/CurrencyContext';
 import { getMediaUrl } from '../../utils/media';
+import VerificationBadge from '../ui/VerificationBadge';
 
 interface RideCardProps {
     ride: any;
@@ -104,10 +105,16 @@ export default function RideCard({ ride, distance = null, lastRideElementRef }: 
                             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">
                                 {(ride as any).driver?.corporate_profile?.verification_status === 'VERIFIED' ? 'Transport Provider' : 'Driver'}
                             </p>
-                            <span className="text-sm font-bold text-gray-900 group-hover/driver:text-primary-600 transition-colors leading-none truncate max-w-[150px]">
+                            <span className="text-sm font-bold text-gray-900 group-hover/driver:text-primary-600 transition-colors leading-none truncate max-w-[150px] flex items-center gap-1">
                                 {(ride as any).driver?.corporate_profile?.verification_status === 'VERIFIED'
                                     ? (ride as any).driver?.corporate_profile?.company_name
                                     : `${(ride as any).driver?.first_name} ${(ride as any).driver?.last_name}`}
+                                <VerificationBadge 
+                                    tier={(ride as any).driver?.verification_badge?.tier}
+                                    color={(ride as any).driver?.verification_badge?.color}
+                                    size="xs"
+                                    checkmarkData={(ride as any).driver?.checkmark_data}
+                                />
                             </span>
                         </div>
                     </div>
