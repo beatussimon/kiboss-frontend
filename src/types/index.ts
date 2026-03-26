@@ -485,6 +485,7 @@ export interface PublicUser {
   total_listings?: number;
   total_rides?: number;
   total_reviews?: number;
+  trust_badges?: string[];
 }
 
 export interface Listing {
@@ -492,6 +493,7 @@ export interface Listing {
   title: string;
   type: string;
   price: number;
+  photo_url?: string | null;
 }
 
 export interface PublicRide {

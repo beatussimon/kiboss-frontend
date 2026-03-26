@@ -110,11 +110,15 @@ export default function CreateRidePage() {
       setSelectedVehicleId(value);
       const vehicle = verifiedVehicles.find(v => v.id === value);
       if (vehicle) {
+        // Auto-derive seats from vehicle capacity (minus 1 for driver)
+        const capacity = parseInt(vehicle.properties?.seating_capacity as string) || 4;
+        const passengerSeats = Math.max(1, capacity - 1);
         setFormData(prev => ({
           ...prev,
           vehicle_description: `${vehicle.properties?.year || ''} ${vehicle.properties?.make || ''} ${vehicle.properties?.model || ''}`.trim() || vehicle.name,
           vehicle_color: (vehicle.properties?.color as string) || '',
           vehicle_license_plate: (vehicle.properties?.license_plate as string) || '',
+          total_seats: passengerSeats,
         }));
       }
     }
@@ -170,20 +174,31 @@ export default function CreateRidePage() {
       return;
     }
 
+    if (!selectedVehicleId) {
+      toast.error('Please select a verified vehicle');
+      return;
+    }
+
     // Validate required fields
     if (!formData.origin || !formData.destination || !formData.departure_time) {
       toast.error('Please fill in all required fields');
       return;
     }
 
-    if (formData.total_seats < 1) {
-      toast.error('At least one seat is required');
-      return;
-    }
-
     setIsLoading(true);
     try {
-      const rideData: Partial<Ride> & { assigned_driver?: string } = {
+      // Capture creation location via Geolocation API
+      let creation_location_lat: number | undefined;
+      let creation_location_lng: number | undefined;
+      try {
+        const pos = await new Promise<GeolocationPosition>((resolve, reject) =>
+          navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 })
+        );
+        creation_location_lat = pos.coords.latitude;
+        creation_location_lng = pos.coords.longitude;
+      } catch { /* location optional */ }
+
+      const rideData: Partial<Ride> & { assigned_driver?: string; creation_location_lat?: number; creation_location_lng?: number } = {
         route_name: formData.route_name || `${formData.origin} → ${formData.destination}`,
         origin: formData.origin,
         destination: formData.destination,
@@ -202,12 +217,14 @@ export default function CreateRidePage() {
         vehicle_license_plate: formData.vehicle_license_plate || undefined,
         driver_notes: formData.driver_notes || undefined,
         assigned_driver: formData.assigned_driver || undefined,
+        creation_location_lat,
+        creation_location_lng,
         stops_data: stops.map((stop, index) => ({
           stop_type: stop.stop_type,
           name: stop.name,
           address: stop.address,
           stop_order: index + 1,
-          latitude: 0, // Will be geocoded on backend
+          latitude: 0,
           longitude: 0,
           estimated_arrival: stop.estimated_arrival || undefined,
           departure_time: stop.departure_time || undefined,
@@ -314,6 +331,7 @@ export default function CreateRidePage() {
           </h2>
           <p className="text-sm text-gray-500 mb-4">
             Add photos of your vehicle to help passengers identify it.
+            <span className="block text-xs text-primary-600 font-semibold mt-1">If no photos are uploaded, your vehicle's photos will be used automatically.</span>
           </p>
           <ImageUpload
             images={images}
@@ -534,18 +552,17 @@ export default function CreateRidePage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Total Seats <span className="text-red-500">*</span>
+                    Total Seats <span className="text-xs text-gray-400 font-normal">(auto from vehicle)</span>
                   </label>
                   <input
                     type="number"
                     name="total_seats"
                     value={formData.total_seats}
-                    onChange={handleInputChange}
-                    className="input"
-                    min="0"
-                    max="100"
-                    required
+                    className="input bg-gray-100 cursor-not-allowed"
+                    disabled
+                    title="Seats are automatically derived from your vehicle's capacity minus 1 (driver seat)"
                   />
+                  <p className="text-[10px] text-gray-400 mt-1 font-medium">Vehicle capacity − 1 (driver)</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">

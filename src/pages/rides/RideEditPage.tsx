@@ -160,6 +160,12 @@ export default function RideEditPage() {
                 <option value="COMPLETED">Completed</option>
                 <option value="CANCELLED">Cancelled</option>
               </select>
+              {formData.status === 'COMPLETED' && (
+                <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-2">
+                  <AlertCircle className="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                  <p className="text-xs text-amber-800 font-medium">A ride can only be marked as COMPLETED if it has at least 1 confirmed passenger. Empty rides cannot be completed.</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -247,16 +253,16 @@ export default function RideEditPage() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
-              <label className="text-[10px] font-black text-gray-400  tracking-widest mb-2 block">Total Seats</label>
+              <label className="text-[10px] font-black text-gray-400  tracking-widest mb-2 block">Total Seats <span className="text-[9px] font-medium text-gray-300">(from vehicle)</span></label>
               <input
                 type="number"
                 name="total_seats"
                 value={formData.total_seats}
-                onChange={handleInputChange}
-                className="w-full bg-gray-50 border-2 border-gray-100 rounded-2xl p-4 text-sm font-bold focus:ring-2 focus:ring-primary-500 focus:outline-none transition-all"
-                min="1"
-                required
+                className="w-full bg-gray-100 border-2 border-gray-100 rounded-2xl p-4 text-sm font-bold cursor-not-allowed"
+                disabled
+                title="Seats are derived from vehicle capacity and cannot be changed"
               />
+              <p className="text-[9px] text-gray-400 mt-1">Locked to vehicle capacity − 1 (driver)</p>
             </div>
             <div>
               <label className="text-[10px] font-black text-gray-400  tracking-widest mb-2 block">Price per Seat</label>

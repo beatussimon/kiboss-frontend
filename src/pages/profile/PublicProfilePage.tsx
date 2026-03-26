@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../app/store';
 import { fetchPublicProfile, followUser, unfollowUser } from '../../features/social/socialSlice';
 import { getMediaUrl } from '../../utils/media';
-import { User, MapPin, Calendar, Star, MessageCircle, Edit } from 'lucide-react';
+import { User, MapPin, Calendar, Star, MessageCircle, Edit, Shield } from 'lucide-react';
 import { Price } from '../../context/CurrencyContext';
 import { useState } from 'react';
 import { PublicUser } from '../../types';
@@ -41,7 +41,7 @@ export default function PublicProfilePage() {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="card p-8 mb-6">
+      <div className="card p-4 md:p-8 mb-6 overflow-hidden">
         <div className="flex flex-col md:flex-row gap-6">
           <div className="w-32 h-32 bg-gray-200 rounded-full overflow-hidden flex-shrink-0">
             {user.avatar ? (
@@ -150,27 +150,55 @@ export default function PublicProfilePage() {
               <p className="mt-4 text-gray-700">{user.bio}</p>
             )}
 
+            {/* Trust Badges */}
+            {user.trust_badges && user.trust_badges.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-4">
+                {user.trust_badges.map((badge) => {
+                  const badgeConfig: Record<string, { label: string; color: string }> = {
+                    FIRST_RIDE: { label: '🚗 First Ride', color: 'bg-blue-50 text-blue-700 border-blue-200' },
+                    REGULAR: { label: '⭐ Regular', color: 'bg-indigo-50 text-indigo-700 border-indigo-200' },
+                    VETERAN: { label: '🏅 Veteran', color: 'bg-purple-50 text-purple-700 border-purple-200' },
+                    ELITE: { label: '💎 Elite', color: 'bg-amber-50 text-amber-700 border-amber-200' },
+                    TRUSTED: { label: '✅ Trusted', color: 'bg-green-50 text-green-700 border-green-200' },
+                    TOP_RATED: { label: '🏆 Top Rated', color: 'bg-yellow-50 text-yellow-700 border-yellow-200' },
+                    ZERO_CANCELLATIONS: { label: '🎯 Zero Cancellations', color: 'bg-teal-50 text-teal-700 border-teal-200' },
+                    ALWAYS_SHOWS_UP: { label: '📍 Always Shows Up', color: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+                  };
+                  const config = badgeConfig[badge] || { label: badge, color: 'bg-gray-50 text-gray-700 border-gray-200' };
+                  return (
+                    <span
+                      key={badge}
+                      className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold border ${config.color}`}
+                    >
+                      <Shield className="h-3 w-3" />
+                      {config.label}
+                    </span>
+                  );
+                })}
+              </div>
+            )}
+
             {/* Instagram-style Stats Row */}
-            <div className="flex gap-6 mt-5 pt-4 border-t border-gray-100">
-              <div className="text-center">
-                <span className="block text-xl font-black text-gray-900">{user.total_listings || user.listings?.length || 0}</span>
-                <span className="text-xs text-gray-500 uppercase tracking-wide">Listings</span>
+            <div className="flex flex-wrap justify-between md:justify-start gap-4 md:gap-8 mt-5 pt-4 border-t border-gray-100 w-full">
+              <div className="text-center min-w-[60px]">
+                <span className="block text-xl md:text-2xl font-black text-gray-900">{user.total_listings || user.listings?.length || 0}</span>
+                <span className="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide">Listings</span>
               </div>
-              <div className="text-center">
-                <span className="block text-xl font-black text-gray-900">{user.total_rides || user.rides?.length || 0}</span>
-                <span className="text-xs text-gray-500 uppercase tracking-wide">Rides</span>
+              <div className="text-center min-w-[60px]">
+                <span className="block text-xl md:text-2xl font-black text-gray-900">{user.total_rides || user.rides?.length || 0}</span>
+                <span className="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide">Rides</span>
               </div>
-              <div className="text-center">
-                <span className="block text-xl font-black text-gray-900">{user.total_reviews || user.review_count || 0}</span>
-                <span className="text-xs text-gray-500 uppercase tracking-wide">Reviews</span>
+              <div className="text-center min-w-[60px]">
+                <span className="block text-xl md:text-2xl font-black text-gray-900">{user.total_reviews || user.review_count || 0}</span>
+                <span className="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide">Reviews</span>
               </div>
-              <div className="text-center">
-                <span className="block text-xl font-black text-gray-900">{user.follower_count || 0}</span>
-                <span className="text-xs text-gray-500 uppercase tracking-wide">Followers</span>
+              <div className="text-center min-w-[60px]">
+                <span className="block text-xl md:text-2xl font-black text-gray-900">{user.follower_count || 0}</span>
+                <span className="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide">Followers</span>
               </div>
-              <div className="text-center">
-                <span className="block text-xl font-black text-gray-900">{user.following_count || 0}</span>
-                <span className="text-xs text-gray-500 uppercase tracking-wide">Following</span>
+              <div className="text-center min-w-[60px]">
+                <span className="block text-xl md:text-2xl font-black text-gray-900">{user.following_count || 0}</span>
+                <span className="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide">Following</span>
               </div>
             </div>
           </div>
@@ -214,7 +242,19 @@ export default function PublicProfilePage() {
                     to={`/assets/${listing.id}`}
                     className="card overflow-hidden hover:shadow-md transition-shadow"
                   >
-                    <div className="h-40 bg-gray-200" />
+                    <div className="h-40 bg-gray-200 overflow-hidden">
+                      {listing.photo_url ? (
+                        <img 
+                          src={getMediaUrl(listing.photo_url)} 
+                          alt={listing.title} 
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-gray-400">
+                          No Image
+                        </div>
+                      )}
+                    </div>
                     <div className="p-4">
                       <h3 className="font-semibold">{listing.title}</h3>
                       <p className="text-sm text-gray-500">{listing.type}</p>

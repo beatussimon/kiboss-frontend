@@ -49,8 +49,11 @@ export default function RegisterVehiclePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (documents.length === 0) {
-      toast.error('Please upload at least one verification document');
+    const requiredDocTypes = ['REGISTRATION', 'INSURANCE', 'OWNERSHIP'];
+    const uploadedTypes = documents.map(d => d.type);
+    const missingDocs = requiredDocTypes.filter(t => !uploadedTypes.includes(t));
+    if (missingDocs.length > 0) {
+      toast.error(`Missing required documents: ${missingDocs.join(', ')}. All three are mandatory for vehicle approval.`);
       return;
     }
 
@@ -249,11 +252,11 @@ export default function RegisterVehiclePage() {
             <h2 className="text-xl font-bold text-gray-900">Verification Documents</h2>
           </div>
           
-          <div className="bg-orange-50 p-4 rounded-xl border border-orange-100 mb-6 flex gap-3">
-            <AlertCircle className="h-5 w-5 text-orange-600 flex-shrink-0" />
-            <p className="text-sm text-orange-800">
-              Please upload clear copies of your <strong>Vehicle Registration</strong>, <strong>Insurance Certificate</strong>, and <strong>Owner Identity</strong>. 
-              Our team will manually verify these documents.
+          <div className="bg-red-50 p-4 rounded-xl border border-red-200 mb-6 flex gap-3">
+            <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0" />
+            <p className="text-sm text-red-800">
+              <strong>All 3 documents are mandatory</strong> for vehicle approval: <strong>Registration</strong>, <strong>Insurance</strong>, and <strong>Ownership Proof</strong>. 
+              Your vehicle will NOT be verified without all three.
             </p>
           </div>
 
@@ -261,7 +264,7 @@ export default function RegisterVehiclePage() {
             {[
               { id: 'REGISTRATION', label: 'Registration' },
               { id: 'INSURANCE', label: 'Insurance' },
-              { id: 'INSPECTION', label: 'Inspection' }
+              { id: 'OWNERSHIP', label: 'Ownership Proof' }
             ].map(docType => (
               <div key={docType.id} className="relative">
                 <input 

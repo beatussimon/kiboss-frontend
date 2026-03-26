@@ -133,6 +133,10 @@ export default function UpgradePage() {
             toast.error("Please provide a confirmation message or upload a receipt screenshot.");
             return;
         }
+        if (!receiptFile) {
+            toast.error("Receipt screenshot is required for payment verification.");
+            return;
+        }
 
         setIsSubmitting(true);
         try {
@@ -326,7 +330,7 @@ export default function UpgradePage() {
                                             </div>
 
                                             <div>
-                                                <label className="block text-sm font-bold text-gray-700 mb-2">Screenshot (Optional)</label>
+                                                <label className="block text-sm font-bold text-gray-700 mb-2">Receipt Screenshot <span className="text-red-500">*</span></label>
                                                 <label className={`w-full flex-col flex items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer transition-all ${receiptFile ? 'border-green-400 bg-green-50' : 'border-gray-300 hover:border-blue-400 hover:bg-blue-50/50'}`}>
                                                     <input type="file" className="hidden" accept="image/*" onChange={handleFileChange} />
                                                     {receiptFile ? (
@@ -372,6 +376,39 @@ export default function UpgradePage() {
                                 )}
                             </button>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Cancel Subscription Section */}
+            {currentTier !== 'FREE' && (
+                <div className="mt-16 px-4">
+                    <div className="card p-8 border-2 border-gray-200 rounded-3xl">
+                        <h3 className="text-lg font-black text-gray-900 mb-2">Cancel Subscription</h3>
+                        <p className="text-sm text-gray-500 mb-4">
+                            Cancellation requests are reviewed by our team to ensure all obligations are settled.
+                            Your subscription remains active until the review is complete.
+                        </p>
+                        <button
+                            onClick={async () => {
+                                if (!confirm(
+                                    'Are you sure you want to request cancellation?\n\n' +
+                                    'Your request will be submitted for admin review. ' +
+                                    'Your subscription stays active until an admin processes your request. ' +
+                                    'You will be notified once the review is complete.'
+                                )) return;
+                                try {
+                                    await api.delete('/users/corporate/register/');
+                                    toast.success('Cancellation request submitted for admin review.');
+                                    dispatch(fetchCurrentUser());
+                                } catch (err: any) {
+                                    toast.error(err.response?.data?.error || 'Failed to submit cancellation request.');
+                                }
+                            }}
+                            className="px-6 py-3 rounded-xl font-bold border-2 border-red-200 text-red-600 hover:bg-red-50 transition-all"
+                        >
+                            Request Cancellation
+                        </button>
                     </div>
                 </div>
             )}

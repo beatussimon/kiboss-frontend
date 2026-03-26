@@ -163,10 +163,10 @@ export default function AssetDetailPage() {
       </div>
 
       {/* Title Section */}
-      <div className="flex items-start justify-between mb-6">
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <h1 className="text-3xl font-bold text-gray-900">{asset.name}</h1>
+      <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6 w-full">
+        <div className="flex-1 min-w-0">
+          <div className="flex flex-wrap items-center gap-2 mb-2">
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 break-words">{asset.name}</h1>
             {asset.is_verified && (
               <span className="badge-success">
                 <Shield className="h-3 w-3 mr-1" />
@@ -179,7 +179,7 @@ export default function AssetDetailPage() {
             {asset.address}, {asset.city}, {asset.country}
           </div>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-2 md:gap-4 flex-shrink-0">
           {/* Owner Actions */}
           {isOwner && (
             <>

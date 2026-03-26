@@ -165,7 +165,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-2xl mx-auto w-full px-4 md:px-0">
       <div className="card p-8">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-gray-900">Profile</h1>
@@ -238,22 +238,22 @@ export default function ProfilePage() {
               </div>
             </div>
           </div>
-          <div className="p-4 bg-gray-50 rounded-lg flex justify-around items-center">
-            <div className="text-center">
-              <span className="block text-xl font-black text-gray-900">{user?.total_listings || 0}</span>
-              <span className="text-xs text-gray-500 uppercase tracking-wide">Assets</span>
+          <div className="p-4 bg-gray-50 rounded-lg flex flex-wrap justify-between md:justify-around items-center gap-4 w-full">
+            <div className="text-center min-w-[60px]">
+              <span className="block text-xl md:text-2xl font-black text-gray-900">{user?.total_listings || 0}</span>
+              <span className="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide">Assets</span>
             </div>
-            <div className="text-center">
-              <span className="block text-xl font-black text-gray-900">{user?.total_rides || 0}</span>
-              <span className="text-xs text-gray-500 uppercase tracking-wide">Rides</span>
+            <div className="text-center min-w-[60px]">
+              <span className="block text-xl md:text-2xl font-black text-gray-900">{user?.total_rides || 0}</span>
+              <span className="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide">Rides</span>
             </div>
-            <div className="text-center">
-              <span className="block text-xl font-black text-gray-900">{user?.followers_count || 0}</span>
-              <span className="text-xs text-gray-500 uppercase tracking-wide">Followers</span>
+            <div className="text-center min-w-[60px]">
+              <span className="block text-xl md:text-2xl font-black text-gray-900">{user?.followers_count || 0}</span>
+              <span className="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide">Followers</span>
             </div>
-            <div className="text-center">
-              <span className="block text-xl font-black text-gray-900">{user?.following_count || 0}</span>
-              <span className="text-xs text-gray-500 uppercase tracking-wide">Following</span>
+            <div className="text-center min-w-[60px]">
+              <span className="block text-xl md:text-2xl font-black text-gray-900">{user?.following_count || 0}</span>
+              <span className="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide">Following</span>
             </div>
           </div>
         </div>
