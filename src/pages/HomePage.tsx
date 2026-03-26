@@ -12,6 +12,7 @@ import {
 import { getMediaUrl } from '../utils/media';
 import { Price } from '../context/CurrencyContext';
 import RideCard from '../components/rides/RideCard';
+import VerificationBadge from '../components/ui/VerificationBadge';
 
 export default function HomePage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -152,20 +153,20 @@ export default function HomePage() {
                     </div>
                   )}
                 </div>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="font-bold text-gray-900 leading-tight group-hover:text-primary-600 transition-colors">
+                <div className="flex justify-between items-start gap-2 mb-1">
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-bold text-gray-900 leading-tight group-hover:text-primary-600 transition-colors truncate text-sm md:text-base">
                       {asset.name}
                     </h3>
-                    <p className="text-sm text-gray-500">{asset.city}, {asset.country}</p>
+                    <p className="text-xs text-gray-500 truncate">{asset.city}, {asset.country}</p>
                   </div>
-                  <div className="flex items-center gap-1 text-sm font-bold">
+                  <div className="flex items-center gap-1 text-sm font-bold shrink-0">
                     <Star className="h-3.5 w-3.5 text-yellow-400 fill-yellow-400" />
                     <span>{asset.average_rating || '5.0'}</span>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4 mt-2 text-[10px] font-bold text-gray-400  tracking-widest">
+                <div className="flex items-center gap-4 mt-2 text-[10px] font-bold text-gray-400 tracking-widest">
                   <span className="flex items-center gap-1">
                     <Eye className="h-3 w-3" /> {(asset as any).views_count || Math.floor(Math.random() * 500) + 50}
                   </span>
@@ -177,10 +178,27 @@ export default function HomePage() {
                   </span>
                 </div>
 
-                <p className="mt-2 text-sm">
-                  <span className="font-bold"><Price amount={asset.pricing_rules?.[0]?.price || '0'} /></span>
-                  <span className="text-gray-500"> / {asset.pricing_rules?.[0]?.unit_type?.toLowerCase() || 'day'}</span>
-                </p>
+                <div className="flex items-center justify-between mt-2 gap-2">
+                  {/* Left: Price */}
+                  <div className="flex items-center gap-1 min-w-0">
+                    <span className="text-sm font-bold text-gray-900 truncate">
+                      <Price amount={asset.pricing_rules?.[0]?.price || '0'} />
+                    </span>
+                    <span className="text-xs text-gray-500 shrink-0">/{asset.pricing_rules?.[0]?.unit_type?.toLowerCase() || 'day'}</span>
+                  </div>
+                  {/* Right: Host Name + Badge */}
+                  <div className="flex items-center gap-1 shrink-0">
+                    <span className="text-xs text-gray-600 truncate max-w-[80px] md:max-w-[120px]">
+                      {asset.owner?.first_name} {asset.owner?.last_name}
+                    </span>
+                    <VerificationBadge
+                      tier={(asset as any).owner?.verification_badge?.tier}
+                      color={(asset as any).owner?.verification_badge?.color}
+                      size="xs"
+                      checkmarkData={(asset as any).owner?.checkmark_data}
+                    />
+                  </div>
+                </div>
               </Link>
             ))}
           </div>

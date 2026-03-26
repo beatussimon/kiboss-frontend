@@ -6,7 +6,7 @@ import { fetchAssets } from '../../features/assets/assetsSlice';
 import { toggleWishlist } from '../../features/wishlist/wishlistSlice';
 import { getMediaUrl } from '../../utils/media';
 import { AssetType } from '../../types';
-import { Home, Star, Grid, List, Loader2, Users, Heart, Shield, BadgeCheck, Search } from 'lucide-react';
+import { Home, Star, Grid, List, Loader2, Users, Heart, Shield, Search } from 'lucide-react';
 import { Price } from '../../context/CurrencyContext';
 import VerificationBadge from '../../components/ui/VerificationBadge';
 
@@ -144,11 +144,12 @@ export default function AssetsPage() {
           ))}
         </div>
       ) : assets && assets.length > 0 ? (
-        <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6' : 'space-y-4'}>
+        <div className={viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6' : 'space-y-4'}>
           {assets.map((asset) => {
             const isWishlisted = wishlistItems?.some((item: any) => item.id === asset.id);
             return (
-              <Link key={asset.id} to={`/assets/${asset.id}`} className="group cursor-pointer">
+              <Link key={asset.id} to={`/assets/${asset.id}`} className="group cursor-pointer flex flex-col">
+                {/* Image */}
                 <div className="aspect-[4/3] relative rounded-2xl overflow-hidden mb-3">
                   <img
                     src={asset.photos?.[0] ? getMediaUrl(asset.photos[0].url) : 'https://images.unsplash.com/photo-1460317442991-0ec209397118?auto=format&fit=crop&q=80&w=1000'}
@@ -167,34 +168,46 @@ export default function AssetsPage() {
                     </div>
                   )}
                 </div>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="font-bold text-gray-900 leading-tight group-hover:text-primary-600 transition-colors flex items-center gap-1">
+
+                {/* Title & Rating Row */}
+                <div className="flex justify-between items-start gap-2 mb-1">
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-bold text-gray-900 leading-tight group-hover:text-primary-600 transition-colors truncate text-sm md:text-base">
                       {asset.name}
-                      <VerificationBadge
-                        tier={(asset as any).owner_verification_badge?.tier}
-                        color={(asset as any).owner_verification_badge?.color}
-                        size="xs"
-                        checkmarkData={(asset as any).owner_checkmark_data}
-                      />
                     </h3>
-                    <p className="text-sm text-gray-500">{asset.city}, {asset.country}</p>
                   </div>
-                  <div className="flex items-center gap-1 text-sm font-bold">
+                  <div className="flex items-center gap-1 text-sm font-bold shrink-0">
                     <Star className="h-3.5 w-3.5 text-yellow-400 fill-yellow-400" />
                     <span>{asset.average_rating || '5.0'}</span>
-                    <span className="text-xs text-gray-500 pl-1">({asset.total_reviews || 0})</span>
+                    <span className="text-xs text-gray-500 pl-0.5">({asset.total_reviews || 0})</span>
                   </div>
                 </div>
-                <div className="flex items-center gap-4 mt-2 text-[10px] font-bold text-gray-400 tracking-widest">
-                  <span className="flex items-center gap-1">
-                    <Users className="h-3 w-3" /> {asset.total_bookings || 0} bookings
-                  </span>
+
+                {/* Location - justified */}
+                <p className="text-xs text-gray-500 truncate mb-2">{asset.city}, {asset.country}</p>
+
+                {/* Price & Host Row */}
+                <div className="flex items-center justify-between mt-auto pt-2 border-t border-gray-100 gap-2">
+                  {/* Left: Price */}
+                  <div className="flex items-center gap-1 min-w-0">
+                    <span className="text-sm font-bold text-gray-900 truncate">
+                      <Price amount={asset.pricing_rules?.[0]?.price || '0'} />
+                    </span>
+                    <span className="text-xs text-gray-500 shrink-0">/{asset.pricing_rules?.[0]?.unit_type?.toLowerCase() || 'hr'}</span>
+                  </div>
+                  {/* Right: Host Name + Badge */}
+                  <div className="flex items-center gap-1 shrink-0">
+                    <span className="text-xs text-gray-600 truncate max-w-[80px] md:max-w-[120px]">
+                      {asset.owner?.first_name} {asset.owner?.last_name}
+                    </span>
+                    <VerificationBadge
+                      tier={(asset as any).owner?.verification_badge?.tier}
+                      color={(asset as any).owner?.verification_badge?.color}
+                      size="xs"
+                      checkmarkData={(asset as any).owner?.checkmark_data}
+                    />
+                  </div>
                 </div>
-                <p className="mt-2 text-sm">
-                  <span className="font-bold"><Price amount={asset.pricing_rules?.[0]?.price || '0'} /></span>
-                  <span className="text-gray-500"> / {asset.pricing_rules?.[0]?.unit_type?.toLowerCase() || 'hr'}</span>
-                </p>
               </Link>
             );
           })}

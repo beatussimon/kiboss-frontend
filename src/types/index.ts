@@ -31,6 +31,7 @@ export interface User {
   total_rides?: number;
   total_reviews?: number;
   checkmark_data?: string | null;
+  avatar?: string;
 }
 
 export interface UserProfile {
