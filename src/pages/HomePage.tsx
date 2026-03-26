@@ -135,9 +135,9 @@ export default function HomePage() {
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 p-4 md:p-6 bg-gray-100 -mx-4 md:-mx-6">
             {assets.slice(0, 8).map((asset) => (
-              <Link key={asset.id} to={`/assets/${asset.id}`} className="group cursor-pointer">
+              <Link key={asset.id} to={`/assets/${asset.id}`} className="group cursor-pointer flex flex-col bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 p-3">
                 <div className="aspect-[4/3] relative rounded-2xl overflow-hidden mb-3">
                   <img
                     src={asset.photos?.[0] ? getMediaUrl(asset.photos[0].url) : "https://images.unsplash.com/photo-1460317442991-0ec209397118?auto=format&fit=crop&q=80&w=1000"}

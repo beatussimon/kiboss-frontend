@@ -144,11 +144,11 @@ export default function AssetsPage() {
           ))}
         </div>
       ) : assets && assets.length > 0 ? (
-        <div className={viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6' : 'space-y-4'}>
+        <div className={viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 p-4 md:p-6 bg-gray-100 -mx-4 md:-mx-6' : 'space-y-4'}>
           {assets.map((asset) => {
             const isWishlisted = wishlistItems?.some((item: any) => item.id === asset.id);
             return (
-              <Link key={asset.id} to={`/assets/${asset.id}`} className="group cursor-pointer flex flex-col">
+              <Link key={asset.id} to={`/assets/${asset.id}`} className="group cursor-pointer flex flex-col bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 p-3">
                 {/* Image */}
                 <div className="aspect-[4/3] relative rounded-2xl overflow-hidden mb-3">
                   <img
