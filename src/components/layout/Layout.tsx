@@ -277,6 +277,7 @@ export default function Layout() {
                           tier={user.verification_badge?.tier}
                           color={user.verification_badge?.color}
                           size="xs"
+                          checkmarkData={user.checkmark_data}
                         />
                       </div>
                     </div>

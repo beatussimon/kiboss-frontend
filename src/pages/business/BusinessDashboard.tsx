@@ -455,7 +455,12 @@ export default function BusinessDashboard() {
                 <h1 className="text-4xl md:text-5xl font-black text-gray-900 tracking-tighter drop-shadow-sm">
                   {user?.corporate_profile?.company_name || 'Business Partner'}
                 </h1>
-                <VerificationBadge tier="business" color="indigo" size="md" />
+                <VerificationBadge 
+                  tier="business" 
+                  color="indigo" 
+                  size="md" 
+                  checkmarkData={user?.checkmark_data}
+                />
               </div>
               <div className="flex items-center gap-4 text-sm font-black uppercase tracking-widest text-gray-500">
                 <span className="flex items-center gap-1.5"><Briefcase className="h-4 w-4" /> {isRide ? 'Fleet operations' : 'Asset Management'}</span>

@@ -28,7 +28,7 @@ import RideBookingDetailPage from './pages/rides/RideBookingDetailPage';
 import MessagesPage from './pages/messages/MessagesPage';
 import ThreadPage from './pages/messages/ThreadPage';
 import NotificationsPage from './pages/notifications/NotificationsPage';
-import ProfilePage from './pages/profile/ProfilePage';
+import { ProfilePage } from './pages/profile/ProfilePage';
 import PaymentsPage from './pages/profile/PaymentsPage';
 import SettingsPage from './pages/profile/SettingsPage';
 import PublicProfilePage from './pages/profile/PublicProfilePage';

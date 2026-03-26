@@ -30,6 +30,7 @@ export interface User {
   total_listings?: number;
   total_rides?: number;
   total_reviews?: number;
+  checkmark_data?: string | null;
 }
 
 export interface UserProfile {
@@ -486,6 +487,7 @@ export interface PublicUser {
   total_rides?: number;
   total_reviews?: number;
   trust_badges?: string[];
+  checkmark_data?: string | null;
 }
 
 export interface Listing {

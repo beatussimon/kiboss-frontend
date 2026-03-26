@@ -65,6 +65,7 @@ export default function PublicProfilePage() {
                         tier="business"
                         color="indigo"
                         showLabel={true}
+                        checkmarkData={user.checkmark_data}
                       />
                     </h1>
                     <p className="text-indigo-700 font-medium mt-1">
@@ -107,6 +108,7 @@ export default function PublicProfilePage() {
                     <VerificationBadge
                       tier={user.verification_badge?.tier}
                       color={user.verification_badge?.color}
+                      checkmarkData={user.checkmark_data}
                     />
                   </h1>
                   <p className="text-gray-500">@{user.username || user.email?.split('@')[0]}</p>

@@ -11,7 +11,7 @@ import VerificationBadge from '../../components/ui/VerificationBadge';
 import { Price } from '../../context/CurrencyContext';
 import { CountrySelect } from '../../components/common/CountrySelect';
 
-export default function ProfilePage() {
+export function ProfilePage() {
   const dispatch = useDispatch<AppDispatch>();
   const { user, isLoading } = useSelector((state: RootState) => state.auth);
   const [fetchError, setFetchError] = useState<string | null>(null);
@@ -214,7 +214,12 @@ export default function ProfilePage() {
             <h2 className="text-xl font-semibold text-gray-900">{user?.first_name} {user?.last_name}</h2>
             <p className="text-gray-500">@{user?.email?.split('@')[0]}</p>
             <div className="flex items-center gap-2 mt-2">
-              <VerificationBadge tier={user?.verification_badge?.tier} color={user?.verification_badge?.color} size="md" />
+              <VerificationBadge 
+                tier={user?.verification_badge?.tier} 
+                color={user?.verification_badge?.color} 
+                size="md" 
+                checkmarkData={user?.checkmark_data}
+              />
               <span className={`badge ${user?.is_email_verified ? 'badge-success' : 'badge-warning'}`}>
                 {user?.is_email_verified ? 'Email Verified' : 'Email Unverified'}
               </span>

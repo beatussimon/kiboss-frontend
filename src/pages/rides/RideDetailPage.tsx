@@ -439,12 +439,14 @@ export default function RideDetailPage() {
                       tier="business"
                       color="indigo"
                       size="xs"
+                      checkmarkData={(ride.driver as any).checkmark_data}
                     />
                   ) : (
                     <VerificationBadge
                       tier={ride.driver.verification_badge?.tier}
                       color={ride.driver.verification_badge?.color}
                       size="xs"
+                      checkmarkData={(ride.driver as any).checkmark_data}
                     />
                   )}
                 </div>

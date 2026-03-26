@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
+// @ts-ignore
 import { debounce } from 'lodash';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../app/store';
@@ -280,6 +281,7 @@ export default function AssetDetailPage() {
               tier={asset.owner.verification_badge?.tier}
               color={asset.owner.verification_badge?.color}
               size="xs"
+              checkmarkData={(asset.owner as any).checkmark_data}
             />
           </div>
         </div>
