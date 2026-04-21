@@ -28,7 +28,7 @@ export default function CreateAssetPage() {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    asset_type: (mode === 'business' ? 'HOTEL' : parentId ? 'HOTEL_ROOM' : 'ROOM') as AssetType,
+    asset_type: (isBusinessTier && mode === 'business' ? 'HOTEL' : isBusinessTier && parentId ? 'HOTEL_ROOM' : 'ROOM') as AssetType,
     address: '',
     city: '',
     country: 'Tanzania',
@@ -48,14 +48,19 @@ export default function CreateAssetPage() {
   });
 
   useEffect(() => {
-    if (mode === 'business') {
+    if (isBusinessTier && mode === 'business') {
       setFormData(prev => ({ ...prev, asset_type: typeParam === 'VEHICLE' ? 'VEHICLE' : 'HOTEL' }));
-    } else if (parentId) {
+    } else if (isBusinessTier && parentId) {
       setFormData(prev => ({ ...prev, asset_type: 'HOTEL_ROOM' }));
     } else if (typeParam) {
-      setFormData(prev => ({ ...prev, asset_type: typeParam as AssetType }));
+      const corporateTypes = ['HOTEL', 'RESTAURANT', 'HOTEL_ROOM', 'CONFERENCE_HALL', 'DINING_TABLE'];
+      if (!isBusinessTier && corporateTypes.includes(typeParam)) {
+        setFormData(prev => ({ ...prev, asset_type: 'ROOM' }));
+      } else {
+        setFormData(prev => ({ ...prev, asset_type: typeParam as AssetType }));
+      }
     }
-  }, [mode, parentId, typeParam]);
+  }, [mode, parentId, typeParam, isBusinessTier]);
 
   const uploadImages = async (assetId: string, files: File[]) => {
     if (files.length === 0) return;
@@ -218,15 +223,19 @@ export default function CreateAssetPage() {
                     <option value="SEAT_SERVICE">Seat Service</option>
                     <option value="TIME_SERVICE">Time Service</option>
                   </optgroup>
-                  <optgroup label="Corporate Properties">
-                    <option value="HOTEL">Hotel Property</option>
-                    <option value="RESTAURANT">Restaurant Property</option>
-                  </optgroup>
-                  <optgroup label="Corporate Services">
-                    <option value="HOTEL_ROOM" disabled={!formData.parent}>Hotel Room</option>
-                    <option value="CONFERENCE_HALL" disabled={!formData.parent}>Conference Hall</option>
-                    <option value="DINING_TABLE" disabled={!formData.parent}>Dining Table</option>
-                  </optgroup>
+                  {isBusinessTier && (
+                    <>
+                      <optgroup label="Corporate Properties">
+                        <option value="HOTEL">Hotel Property</option>
+                        <option value="RESTAURANT">Restaurant Property</option>
+                      </optgroup>
+                      <optgroup label="Corporate Services">
+                        <option value="HOTEL_ROOM" disabled={!formData.parent}>Hotel Room</option>
+                        <option value="CONFERENCE_HALL" disabled={!formData.parent}>Conference Hall</option>
+                        <option value="DINING_TABLE" disabled={!formData.parent}>Dining Table</option>
+                      </optgroup>
+                    </>
+                  )}
                 </select>
               </div>
 

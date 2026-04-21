@@ -189,22 +189,24 @@ export default function UpgradePage() {
                     <Crown className="h-4 w-4 text-purple-600" />
                     <span className="text-sm font-bold text-purple-700">Premium Plans</span>
                 </div>
-                <h1 className="text-3xl md:text-5xl font-black text-gray-900 mb-4 tracking-tight">
+                <h1 className="text-2xl md:text-4xl font-black text-gray-900 mb-4 tracking-tight">
                     Upgrade Your Experience
                 </h1>
-                <p className="text-gray-500 max-w-xl mx-auto text-lg">
+                <p className="text-gray-500 max-w-xl mx-auto text-base">
                     Unlock powerful features to grow your business, increase visibility, and get priority support.
                 </p>
             </div>
 
             {/* Plans List */}
             <div className="grid md:grid-cols-3 gap-8 px-4">
-                {plans.map((plan) => {
+                {plans.map((plan, index) => {
+                    const currentPlanIndex = plans.findIndex(p => p.id === currentTier);
+                    const isDowngrade = index < currentPlanIndex;
                     const isCurrentPlan = currentTier === plan.id;
                     const isComingSoon = plan.id === 'BUSINESS';
 
                     return (
-                        <div key={plan.id} className={`relative rounded-3xl border-2 p-8 transition-all duration-300 ${isCurrentPlan ? `bg-gradient-to-b ${plan.bg} ring-4 ring-primary-500/20 scale-105 shadow-xl` : `bg-white hover:border-${plan.accent.split('-')[1]}-300 hover:shadow-2xl`}`}> 
+                        <div key={plan.id} className={`relative flex flex-col rounded-3xl border-2 p-8 transition-all duration-300 ${isCurrentPlan ? `bg-gradient-to-b ${plan.bg} ring-4 ring-primary-500/20 scale-105 shadow-xl` : `bg-white hover:border-${plan.accent.split('-')[1]}-300 hover:shadow-2xl`}`}> 
                             {isCurrentPlan && (
                                 <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs font-black uppercase tracking-widest px-4 py-1.5 rounded-full shadow-lg">
                                     Current Plan
@@ -215,13 +217,13 @@ export default function UpgradePage() {
                                 <div className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gray-50 shadow-inner mb-4 ${plan.accent}`}>
                                     {plan.icon}
                                 </div>
-                                <h3 className="text-2xl font-black text-gray-900">{plan.name}</h3>
+                                <h3 className="text-xl font-black text-gray-900">{plan.name}</h3>
                                 <div className="mt-4">
                                     {plan.price === 0 ? (
-                                        <span className="text-4xl font-black text-gray-900">Free</span>
+                                        <span className="text-3xl font-black text-gray-900">Free</span>
                                     ) : (
                                         <div className="flex flex-col items-center">
-                                            <span className="text-4xl font-black text-gray-900"><Price amount={plan.price} /></span>
+                                            <span className="text-3xl font-black text-gray-900"><Price amount={plan.price} /></span>
                                             <span className="text-gray-500 font-medium">/month</span>
                                         </div>
                                     )}
@@ -239,15 +241,16 @@ export default function UpgradePage() {
 
                             <button
                                 onClick={() => handleUpgradeSelect(plan.id)}
-                                disabled={isCurrentPlan || hasPendingSubscription}
-                                className={`w-full py-4 rounded-xl font-black text-sm uppercase tracking-wider transition-all shadow-md active:scale-95 ${
+                                disabled={isCurrentPlan || hasPendingSubscription || isDowngrade}
+                                className={`w-full py-4 rounded-xl font-black text-sm uppercase tracking-wider transition-all shadow-md active:scale-95 mt-auto ${
                                     isCurrentPlan ? 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none border-2 border-gray-200' :
+                                    isDowngrade ? 'bg-gray-50 text-gray-400 cursor-not-allowed shadow-none border-2 border-gray-200' :
                                     isComingSoon ? 'bg-gray-800 text-white hover:bg-gray-700 hover:shadow-xl' :
                                     hasPendingSubscription ? 'bg-amber-100 text-amber-500 cursor-not-allowed shadow-none border-2 border-amber-200' :
                                     'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white hover:shadow-xl shadow-blue-500/30'
                                 }`}
                             >
-                                {isCurrentPlan ? 'Active' : isComingSoon ? 'Coming Soon' : hasPendingSubscription ? 'Pending Review' : 'Upgrade Now'}
+                                {isCurrentPlan ? 'Active' : isDowngrade ? 'Included' : isComingSoon ? 'Coming Soon' : hasPendingSubscription ? 'Pending Review' : 'Upgrade Now'}
                             </button>
                         </div>
                     );

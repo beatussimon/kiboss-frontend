@@ -135,7 +135,7 @@ export default function Layout() {
     ...(effectiveTier === 'PLUS'
       ? [{ name: 'Plus', href: '/plus', icon: Sparkles }]
       : effectiveTier === 'BUSINESS'
-        ? [{ name: businessCategory === 'RIDE' ? 'Ride Business' : 'Asset Business', href: '/business', icon: Building2 }]
+      ? [{ name: 'Business', href: '/business', icon: Building2 }]
         : []),
     ...(isStaff ? [{ name: 'Staff', href: '/staff/tasks', icon: Shield }] : []),
   ];
@@ -351,7 +351,7 @@ export default function Layout() {
                         >
                           <Building2 className="h-4 w-4 mr-2 text-primary-600" />
                           {isCorporateVerified
-                            ? (businessCategory === 'RIDE' ? 'Ride Business' : 'Asset Business')
+                            ? 'Business'
                             : 'Verification Pending'}
                         </Link>
                       )}
@@ -555,7 +555,7 @@ export default function Layout() {
                   >
                     <Building2 className="h-5 w-5 mr-3" />
                     {isCorporateVerified
-                      ? (businessCategory === 'RIDE' ? 'Ride Business' : 'Asset Business')
+                      ? 'Business'
                       : 'Verification Pending'}
                   </Link>
                 )}
