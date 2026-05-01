@@ -8,7 +8,7 @@ import {
   MessageSquare, ExternalLink, ThumbsUp, ThumbsDown, RotateCcw,
   UserPlus, Trash2, Tag, Flag, BarChart3, PieChart, Activity, TrendingUp,
   DollarSign, Briefcase, Calendar, Layers, Save, ArrowLeft, CreditCard,
-  Plus, X, PenTool
+  Plus, X, PenTool, CheckSquare, Download
 } from 'lucide-react';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -18,6 +18,7 @@ import toast from 'react-hot-toast';
 import api from '../../services/api';
 import { getMediaUrl } from '../../utils/media';
 import { Price } from '../../context/CurrencyContext';
+import AnalyticsPanel from '../../features/staff/AnalyticsPanel';
 
 export default function TaskDashboard() {
   const navigate = useNavigate();
@@ -59,6 +60,43 @@ export default function TaskDashboard() {
   const [newTask, setNewTask] = useState({ title: '', description: '', priority: 'MEDIUM', assigned_to: '', assigned_role: '', attachments: '', assignType: 'person' });
   const [activeFilter, setActiveFilter] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTasks, setSelectedTasks] = useState<string[]>([]);
+
+  const handleExportCSV = () => {
+    const csvContent = [
+      ['ID', 'Type', 'Title', 'Status', 'Priority', 'Assigned To', 'Created At'],
+      ...tasks.map(t => [
+        t.id, t.task_type, `"${t.title.replace(/"/g, '""')}"`, t.status, t.priority, t.assigned_to_email || 'Unassigned', new Date(t.created_at).toLocaleString()
+      ])
+    ].map(e => e.join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.setAttribute('download', `tasks_export_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleBatchApprove = async () => {
+    if (selectedTasks.length === 0) return;
+    if (!window.confirm(`Are you sure you want to approve ${selectedTasks.length} tasks simultaneously?`)) return;
+    
+    setIsProcessing(true);
+    let successCount = 0;
+    for (const taskId of selectedTasks) {
+      try {
+        await api.post(`/tasks/${taskId}/process/`, { action: 'APPROVE', notes: 'Batch Approved' });
+        successCount++;
+      } catch (e) {
+        console.error(`Failed to approve ${taskId}`, e);
+      }
+    }
+    toast.success(`Successfully approved ${successCount}/${selectedTasks.length} tasks`);
+    setSelectedTasks([]);
+    fetchData();
+    setIsProcessing(false);
+  };
 
   // Dynamic Tabs based on roles/permissions
   const getTabs = () => {
@@ -502,7 +540,7 @@ export default function TaskDashboard() {
               <div>
                 <p className="text-[10px] font-bold text-gray-500 uppercase">Payment Amount</p>
                 <p className="text-sm font-black text-emerald-600">
-                  <Price amount={Number(detail.amount)} currency={detail.currency || 'TZS'} />
+                  <Price amount={Number(detail.amount)} from={detail.currency || 'TZS'} />
                 </p>
               </div>
               <div>
@@ -552,64 +590,6 @@ export default function TaskDashboard() {
           </div>
         );
     }
-  };
-
-  // ═══════════════════════════════════════════════════════════
-  // ANALYTICS — recharts
-  // ═══════════════════════════════════════════════════════════
-  const renderAnalytics = () => {
-    if (!analytics) return null;
-    const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
-    const assetPieData = Object.entries(analytics.assets.by_type).map(([name, value]) => ({ name, value }));
-
-    return (
-      <div className="space-y-8 animate-in fade-in duration-500">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="card p-6 bg-gradient-to-br from-blue-600 to-blue-700 text-white border-none shadow-blue-200/50">
-            <div className="flex justify-between items-start mb-4"><div className="p-2 bg-white/20 rounded-lg"><DollarSign className="h-6 w-6" /></div><TrendingUp className="h-4 w-4 text-blue-200" /></div>
-            <p className="text-blue-100 text-xs font-black uppercase tracking-widest mb-1">Total Volume</p>
-            <h3 className="text-3xl font-black tracking-tighter"><Price amount={analytics.financials.total_volume} /></h3>
-          </div>
-          <div className="card p-6 bg-gradient-to-br from-emerald-600 to-emerald-700 text-white border-none shadow-emerald-200/50">
-            <div className="flex justify-between items-start mb-4"><div className="p-2 bg-white/20 rounded-lg"><User className="h-6 w-6" /></div><Activity className="h-4 w-4 text-emerald-200" /></div>
-            <p className="text-emerald-100 text-xs font-black uppercase tracking-widest mb-1">Total Users</p>
-            <h3 className="text-3xl font-black tracking-tighter">{analytics.users.total.toLocaleString()}</h3>
-          </div>
-          <div className="card p-6 bg-gradient-to-br from-orange-600 to-orange-700 text-white border-none shadow-orange-200/50">
-            <div className="flex justify-between items-start mb-4"><div className="p-2 bg-white/20 rounded-lg"><Calendar className="h-6 w-6" /></div><TrendingUp className="h-4 w-4 text-orange-200" /></div>
-            <p className="text-orange-100 text-xs font-black uppercase tracking-widest mb-1">Bookings</p>
-            <h3 className="text-3xl font-black tracking-tighter">{analytics.performance.total_bookings.toLocaleString()}</h3>
-          </div>
-          <div className="card p-6 bg-gradient-to-br from-slate-800 to-slate-900 text-white border-none shadow-slate-200/50">
-            <div className="flex justify-between items-start mb-4"><div className="p-2 bg-white/20 rounded-lg"><Briefcase className="h-6 w-6" /></div><Layers className="h-4 w-4 text-slate-400" /></div>
-            <p className="text-slate-400 text-xs font-black uppercase tracking-widest mb-1">Total Assets</p>
-            <h3 className="text-3xl font-black tracking-tighter">{analytics.assets.total.toLocaleString()}</h3>
-          </div>
-        </div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 card p-8">
-            <h3 className="text-lg font-black text-gray-900 tracking-tight flex items-center gap-2 mb-8"><TrendingUp className="h-5 w-5 text-primary-600" /> Growth Trajectory</h3>
-            <div className="h-[300px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={analytics.growth}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" /><XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 600 }} dy={10} /><YAxis hide /><Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} />
-                  <Line type="monotone" dataKey="revenue" stroke="#3b82f6" strokeWidth={4} dot={{ r: 6, fill: '#3b82f6', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 8 }} />
-                  <Line type="monotone" dataKey="users" stroke="#10b981" strokeWidth={4} dot={{ r: 6, fill: '#10b981', strokeWidth: 2, stroke: '#fff' }} />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-          <div className="card p-8">
-            <h3 className="text-lg font-black text-gray-900 tracking-tight mb-8 flex items-center gap-2"><PieChart className="h-5 w-5 text-primary-600" /> Inventory Mix</h3>
-            <div className="h-[250px] w-full relative">
-              <ResponsiveContainer width="100%" height="100%">
-                <RePieChart><Pie data={assetPieData} cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">{assetPieData.map((entry, index) => (<Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />))}</Pie><Tooltip /></RePieChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
   };
 
   // ═══════════════════════════════════════════════════════════
@@ -696,20 +676,20 @@ export default function TaskDashboard() {
       </div>
 
       {/* TAB BAR */}
-      <div className="flex items-center justify-between border-b border-gray-200">
-        <div className="flex">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-gray-200 gap-2 sm:gap-0 pb-2 sm:pb-0">
+        <div className="flex overflow-x-auto w-full no-scrollbar">
           {dashboardTabs.map(tab => (
-            <button key={tab.id} onClick={() => handleTabChange(tab.id)} className={`flex items-center gap-2 px-5 py-3.5 text-sm font-bold transition-all relative ${activeTab === tab.id ? 'text-primary-600' : 'text-gray-400 hover:text-gray-600'}`}>
+            <button key={tab.id} onClick={() => handleTabChange(tab.id)} className={`whitespace-nowrap flex-shrink-0 flex items-center gap-2 px-5 py-3.5 text-sm font-bold transition-all relative ${activeTab === tab.id ? 'text-primary-600' : 'text-gray-400 hover:text-gray-600'}`}>
               {tab.icon} {tab.label}
               {activeTab === tab.id && <div className="absolute bottom-0 inset-x-2 h-0.5 bg-primary-600 rounded-full" />}
             </button>
           ))}
         </div>
-        {isSuperRole && <button onClick={() => setIsCreateModalOpen(true)} className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-xl transition-colors border border-primary-100"><Plus className="h-4 w-4" /> New Task</button>}
+        {isSuperRole && <div className="px-2 sm:px-0 pb-2 sm:pb-0"><button onClick={() => setIsCreateModalOpen(true)} className="flex-shrink-0 flex items-center gap-2 px-4 py-2 text-sm font-bold text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-xl transition-colors border border-primary-100"><Plus className="h-4 w-4" /> New Task</button></div>}
       </div>
 
       {/* CONTENT */}
-      {activeTab === 'analytics' ? renderAnalytics() : isReviewMode && selectedTask ? (
+      {activeTab === 'analytics' ? <AnalyticsPanel analytics={analytics} /> : isReviewMode && selectedTask ? (
         /* REVIEW MODE — full width */
         <div className="animate-in slide-in-from-bottom-4 duration-500">
           <button onClick={() => setIsReviewMode(false)} className="flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-primary-600 transition-colors mb-6"><ArrowLeft className="h-4 w-4" /> Back to Queue</button>
@@ -804,24 +784,36 @@ export default function TaskDashboard() {
                       const done = ['COMPLETED', 'REJECTED'].includes(task.status);
                       const isUrgentUnread = task.priority === 'URGENT' && task.status === 'PENDING';
                       return (
-                        <button key={task.id} onClick={() => selectTask(task)} className={`text-left card p-5 transition-all group hover:shadow-lg hover:-translate-y-0.5 ${selectedTask?.id === task.id ? 'ring-2 ring-primary-500 border-primary-200' : ''} ${isUrgentUnread ? 'border-2 border-red-500' : ''} ${done ? 'opacity-60' : ''}`}>
-                          <div className="flex items-start justify-between mb-3">
-                            <div className="flex items-center gap-3">
-                              <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${done ? 'bg-gray-100 text-gray-400' : 'bg-primary-50 text-primary-600'}`}>{getTaskIcon(task.task_type)}</div>
-                              <span className={`inline-flex items-center gap-1 text-[10px] font-black uppercase px-2 py-0.5 rounded-full border ${sc.bg} ${sc.color}`}>{sc.icon} {task.status === 'CHANGES_REQUESTED' ? 'CHANGES' : task.status}</span>
+                        <div key={task.id} className={`relative text-left card p-5 transition-all group hover:shadow-lg hover:-translate-y-0.5 ${selectedTask?.id === task.id ? 'ring-2 ring-primary-500 border-primary-200' : ''} ${isUrgentUnread ? 'border-2 border-red-500' : ''} ${done ? 'opacity-60' : ''}`}>
+                          {!done && (
+                            <button onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedTasks(prev => prev.includes(task.id) ? prev.filter(id => id !== task.id) : [...prev, task.id]);
+                            }} className="absolute top-4 right-4 z-10 p-1">
+                              <div className={`h-5 w-5 rounded flex items-center justify-center transition-colors ${selectedTasks.includes(task.id) ? 'bg-primary-600 border border-primary-600' : 'bg-white border border-gray-300 group-hover:border-primary-400'}`}>
+                                 {selectedTasks.includes(task.id) && <CheckSquare className="h-4 w-4 text-white" />}
+                              </div>
+                            </button>
+                          )}
+                          <div onClick={() => selectTask(task)} className="cursor-pointer h-full flex flex-col">
+                            <div className="flex items-start justify-between mb-3 pr-8">
+                              <div className="flex items-center gap-3">
+                                <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${done ? 'bg-gray-100 text-gray-400' : 'bg-primary-50 text-primary-600'}`}>{getTaskIcon(task.task_type)}</div>
+                                <span className={`inline-flex items-center gap-1 text-[10px] font-black uppercase px-2 py-0.5 rounded-full border ${sc.bg} ${sc.color}`}>{sc.icon} {task.status === 'CHANGES_REQUESTED' ? 'CHANGES' : task.status}</span>
+                              </div>
+                              {task.priority === 'URGENT' && <span className="text-[10px] font-black text-red-600 bg-red-50 px-2 py-0.5 rounded-full border border-red-200 animate-pulse">URGENT</span>}
+                              {task.priority === 'HIGH' && <span className="text-[10px] font-black text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full border border-orange-200">HIGH</span>}
                             </div>
-                            {task.priority === 'URGENT' && <span className="text-[10px] font-black text-red-600 bg-red-50 px-2 py-0.5 rounded-full border border-red-200 animate-pulse">URGENT</span>}
-                            {task.priority === 'HIGH' && <span className="text-[10px] font-black text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full border border-orange-200">HIGH</span>}
-                          </div>
-                          <h3 className={`text-sm font-bold leading-snug mb-2 group-hover:text-primary-600 transition-colors ${done ? 'text-gray-400 line-through' : 'text-gray-900'}`}>{task.title}</h3>
-                          <div className="flex items-center justify-between mt-auto pt-2 border-t border-gray-100">
-                            <span className="text-[10px] font-bold text-gray-400 uppercase">{task.task_type.replace(/_/g, ' ')}</span>
-                            <div className="flex items-center gap-2">
-                              {task.assigned_to_email && <span className="text-[10px] font-bold text-primary-600 bg-primary-50 px-2 py-0.5 rounded-full">{task.assigned_to_email.split('@')[0]}</span>}
-                              <span className="text-[10px] text-gray-400">{timeAgo(task.created_at)}</span>
+                            <h3 className={`text-sm font-bold leading-snug mb-2 group-hover:text-primary-600 transition-colors ${done ? 'text-gray-400 line-through' : 'text-gray-900'}`}>{task.title}</h3>
+                            <div className="flex items-center justify-between mt-auto pt-2 border-t border-gray-100">
+                              <span className="text-[10px] font-bold text-gray-400 uppercase">{task.task_type.replace(/_/g, ' ')}</span>
+                              <div className="flex items-center gap-2">
+                                {task.assigned_to_email && <span className="text-[10px] font-bold text-primary-600 bg-primary-50 px-2 py-0.5 rounded-full">{task.assigned_to_email.split('@')[0]}</span>}
+                                <span className="text-[10px] text-gray-400">{timeAgo(task.created_at)}</span>
+                              </div>
                             </div>
                           </div>
-                        </button>
+                        </div>
                       );
                     })}
                   </div>

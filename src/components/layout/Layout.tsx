@@ -7,7 +7,7 @@ import { fetchNotifications } from '../../features/notifications/notificationsSl
 import {
   MessageCircle, Bell, User, LogOut, Menu, X,
   Home, Car, Briefcase, Plus, Search, Settings,
-  Calendar, Shield, CreditCard, Globe, Facebook, Twitter, Instagram, Linkedin, CheckCircle, Heart, Building2, ChevronRight, Sparkles, Crown
+  Calendar, Shield, CreditCard, Globe, Facebook, Twitter, Instagram, Linkedin, CheckCircle, Heart, Building2, ChevronRight, Sparkles, Crown, MoreHorizontal
 } from 'lucide-react';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import VerificationBadge from '../ui/VerificationBadge';
@@ -31,13 +31,14 @@ export default function Layout() {
   const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
   const { unreadCount: messageUnreadCount } = useSelector((state: RootState) => state.messaging);
   const { unreadCount: notificationUnreadCount } = useSelector((state: RootState) => state.notifications);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isCreateMenuOpen, setIsCreateMenuOpen] = useState(false);
+  const [isMobileMoreDrawerOpen, setIsMobileMoreDrawerOpen] = useState(false);
 
-  // Scroll direction tracking for breadcrumbs
-  const [showBreadcrumbs, setShowBreadcrumbs] = useState(true);
+  // Scroll direction tracking for breadcrumbs and bottom navbar
+  const [showNavBars, setShowNavBars] = useState(true);
   const lastScrollY = useRef(0);
 
   useEffect(() => {
@@ -45,14 +46,14 @@ export default function Layout() {
       const currentScrollY = window.scrollY;
 
       // Always show at top of page
-      if (currentScrollY === 0) {
-        setShowBreadcrumbs(true);
+      if (currentScrollY <= 10) {
+        setShowNavBars(true);
       } else if (currentScrollY > lastScrollY.current) {
         // Scrolling down - hide
-        setShowBreadcrumbs(false);
+        setShowNavBars(false);
       } else {
         // Scrolling up - show
-        setShowBreadcrumbs(true);
+        setShowNavBars(true);
       }
 
       lastScrollY.current = currentScrollY;
@@ -94,6 +95,7 @@ export default function Layout() {
       dispatch(updateUser({ ...user, is_staff: isStaff }));
     }
   }, [user, isStaff, dispatch]);
+  
   useEffect(() => {
     if (isAuthenticated) {
       // Initial fetch to get counts
@@ -103,7 +105,7 @@ export default function Layout() {
     }
   }, [dispatch, isAuthenticated]);
 
-  const isMessagingPage = location.pathname.startsWith('/messages/');
+  const isMessagingPage = location.pathname.startsWith('/messages');
 
   const handleLogout = () => {
     dispatch(logout());
@@ -116,22 +118,17 @@ export default function Layout() {
 
   // Tier-derived helpers
   const accountTier = user?.account_tier || 'FREE';
-  // Effective tier logic:
-  // 1. Staff always gets STAFF view
-  // 2. Explicit account_tier (PLUS/BUSINESS) takes precedence
-  // 3. Fallback to BUSINESS if they have a corporate_profile (legacy/manual)
   const effectiveTier = isStaff
     ? 'STAFF'
     : (accountTier !== 'FREE'
       ? accountTier
       : (user?.corporate_profile ? 'BUSINESS' : 'FREE'));
 
-  // Primary navigation - main features
+  // Primary navigation - main features (Desktop)
   const primaryNav = [
     { name: 'Home', href: '/', icon: Home },
     { name: 'Assets', href: '/assets', icon: Briefcase },
     { name: 'Rides', href: '/rides', icon: Car },
-    // Tier-conditional business link
     ...(effectiveTier === 'PLUS'
       ? [{ name: 'Plus', href: '/plus', icon: Sparkles }]
       : effectiveTier === 'BUSINESS'
@@ -147,7 +144,7 @@ export default function Layout() {
     { name: 'Notifications', href: '/notifications', icon: Bell, badge: notificationUnreadCount },
   ] : [];
 
-  // Create actions (only when authenticated and user is allowed)
+  // Create actions
   const createActions = (isAuthenticated && (!isStaff || user?.is_superuser)) ? [
     { name: 'List Asset', href: '/assets/create', icon: Plus },
     { name: 'Offer Ride', href: '/rides/create', icon: Car },
@@ -159,7 +156,7 @@ export default function Layout() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
       {/* Header */}
       <header className="bg-white shadow-sm sticky top-0 z-50">
         <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -369,7 +366,6 @@ export default function Layout() {
                         to="/profile"
                         onClick={() => {
                           setIsUserMenuOpen(false);
-                          // Scroll to wishlist section if already on profile
                           setTimeout(() => {
                             const wishlist = document.getElementById('wishlist-section');
                             wishlist?.scrollIntoView({ behavior: 'smooth' });
@@ -420,7 +416,7 @@ export default function Layout() {
                   )}
                 </div>
               ) : (
-                <div className="flex items-center space-x-2">
+                <div className="hidden md:flex items-center space-x-2">
                   <Link
                     to="/login"
                     className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900"
@@ -435,174 +431,154 @@ export default function Layout() {
                   </Link>
                 </div>
               )}
-
-              {/* Mobile menu button */}
-              <button
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="md:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100"
-              >
-                {isMobileMenuOpen ? (
-                  <X className="h-6 w-6" />
-                ) : (
-                  <Menu className="h-6 w-6" />
-                )}
-              </button>
             </div>
           </div>
         </nav>
-
-        {/* Mobile Navigation */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden border-t border-gray-200 bg-white">
-            <div className="px-4 py-3 space-y-1">
-              {/* Primary Nav */}
-              {primaryNav.map((item) => (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className={`flex items-center px-3 py-2 rounded-lg text-base font-medium ${isActive(item.href)
-                    ? 'bg-primary-50 text-primary-700'
-                    : 'text-gray-600 hover:bg-gray-50'
-                    }`}
-                >
-                  <item.icon className="h-5 w-5 mr-3" />
-                  {item.name}
-                </Link>
-              ))}
-
-              {/* Create Actions */}
-              {createActions.length > 0 && (
-                <>
-                  <div className="pt-2 pb-1">
-                    <p className="px-3 text-xs font-semibold text-gray-400  tracking-wider">Create</p>
-                  </div>
-                  {createActions.map((action) => (
-                    <Link
-                      key={action.name}
-                      to={action.href}
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className="flex items-center px-3 py-2 rounded-lg text-base font-medium text-primary-600 hover:bg-primary-50"
-                    >
-                      <action.icon className="h-5 w-5 mr-3" />
-                      {action.name}
-                    </Link>
-                  ))}
-                </>
-              )}
-
-              {/* Secondary Nav */}
-              <div className="pt-2 pb-1">
-                <p className="px-3 text-xs font-semibold text-gray-400  tracking-wider">Account</p>
-              </div>
-              {secondaryNav.map((item) => (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className={`flex items-center justify-between px-3 py-2 rounded-lg text-base font-medium ${isActive(item.href)
-                    ? 'bg-primary-50 text-primary-700'
-                    : 'text-gray-600 hover:bg-gray-50'
-                    }`}
-                >
-                  <div className="flex items-center">
-                    <item.icon className="h-5 w-5 mr-3" />
-                    {item.name}
-                  </div>
-                  {item.badge && item.badge > 0 && (
-                    <span className="px-2 py-0.5 text-xs font-medium bg-red-500 text-white rounded-full">
-                      {item.badge}
-                    </span>
-                  )}
-                </Link>
-              ))}
-
-              {/* User Actions */}
-              <div className="border-t border-gray-200 pt-3 mt-3">
-                <Link
-                  to="/profile"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center px-3 py-2 rounded-lg text-base font-medium text-gray-600 hover:bg-gray-50"
-                >
-                  <User className="h-5 w-5 mr-3" />
-                  Profile
-                </Link>
-                {effectiveTier === 'FREE' && (
-                  <Link
-                    to="/upgrade"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="flex items-center px-3 py-2 rounded-lg text-base font-bold text-white bg-gradient-to-r from-blue-600 to-purple-600 mx-1 my-1"
-                  >
-                    <Sparkles className="h-5 w-5 mr-3" />
-                    Upgrade Plan
-                  </Link>
-                )}
-                {effectiveTier === 'PLUS' && (
-                  <Link
-                    to="/plus"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="flex items-center px-3 py-2 rounded-lg text-base font-bold text-purple-700 bg-purple-50 hover:bg-purple-100"
-                  >
-                    <Crown className="h-5 w-5 mr-3" />
-                    Plus Dashboard
-                  </Link>
-                )}
-                {effectiveTier === 'BUSINESS' && (
-                  <Link
-                    to="/business"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="flex items-center px-3 py-2 rounded-lg text-base font-medium text-primary-600 font-bold hover:bg-gray-50"
-                  >
-                    <Building2 className="h-5 w-5 mr-3" />
-                    {isCorporateVerified
-                      ? 'Business'
-                      : 'Verification Pending'}
-                  </Link>
-                )}
-                <Link
-                  to="/payments"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center px-3 py-2 rounded-lg text-base font-medium text-gray-600 hover:bg-gray-50"
-                >
-                  <CreditCard className="h-5 w-5 mr-3" />
-                  Payments
-                </Link>
-                <button
-                  onClick={() => {
-                    setIsMobileMenuOpen(false);
-                    handleLogout();
-                  }}
-                  title="Logout"
-                  className="w-full flex items-center px-3 py-2 rounded-lg text-base font-medium text-red-600 hover:bg-red-50"
-                >
-                  <LogOut className="h-5 w-5 mr-3" />
-                  Logout
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </header>
-
-      {/* Mobile Sticky Top Bar (Only visible on mobile, under header) */}
-      <div className={`md:hidden sticky top-16 z-40 bg-white/90 backdrop-blur-md border-b border-gray-100 px-4 py-2 flex items-center shadow-sm w-full overflow-hidden transition-transform duration-300 ${showBreadcrumbs ? 'translate-y-0' : '-translate-y-full'}`}>
-        <SmartBackButton />
-        <div className="flex-1 min-w-0">
-          <Breadcrumbs />
-        </div>
-      </div>
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Desktop Breadcrumbs */}
-        <div className={`hidden md:block mb-4 transition-transform duration-300 ${showBreadcrumbs ? 'translate-y-0' : '-translate-y-full'}`}>
-          <Breadcrumbs />
+        {/* Breadcrumbs */}
+        <div className="mb-4 flex items-center">
+          <div className="md:hidden mr-2">
+            <SmartBackButton />
+          </div>
+          <div className="flex-1 min-w-0">
+            <Breadcrumbs />
+          </div>
         </div>
         <Outlet />
       </main>
 
       {/* Footer */}
       {!isMessagingPage && <Footer />}
+
+      {/* Mobile Bottom Navbar */}
+      <nav className={`md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 transition-transform duration-300 ${showNavBars ? 'translate-y-0' : 'translate-y-full pb-safe'}`}>
+        <div className="flex justify-around items-center h-16 px-2 pb-safe">
+          <Link to="/" className={`flex flex-col items-center justify-center w-full h-full ${isActive('/') ? 'text-primary-600' : 'text-gray-500'}`}>
+            <Home className="h-5 w-5 mb-1" />
+            <span className="text-[10px] font-medium">Home</span>
+          </Link>
+          <Link to="/assets" className={`flex flex-col items-center justify-center w-full h-full ${isActive('/assets') ? 'text-primary-600' : 'text-gray-500'}`}>
+            <Search className="h-5 w-5 mb-1" />
+            <span className="text-[10px] font-medium">Explore</span>
+          </Link>
+          <Link to="/bookings" className={`flex flex-col items-center justify-center w-full h-full ${isActive('/bookings') ? 'text-primary-600' : 'text-gray-500'}`}>
+            <Calendar className="h-5 w-5 mb-1" />
+            <span className="text-[10px] font-medium">Bookings</span>
+          </Link>
+          <Link to="/messages" className={`relative flex flex-col items-center justify-center w-full h-full ${isActive('/messages') ? 'text-primary-600' : 'text-gray-500'}`}>
+            <MessageCircle className="h-5 w-5 mb-1" />
+            <span className="text-[10px] font-medium">Inbox</span>
+            {messageUnreadCount > 0 && (
+               <span className="absolute top-1 right-3 px-1 py-0.5 text-[8px] font-bold bg-red-500 text-white rounded-full min-w-[14px] text-center">
+                 {messageUnreadCount > 99 ? '99+' : messageUnreadCount}
+               </span>
+            )}
+          </Link>
+          <button 
+            onClick={() => setIsMobileMoreDrawerOpen(true)}
+            className="flex flex-col items-center justify-center w-full h-full text-gray-500"
+          >
+            <MoreHorizontal className="h-5 w-5 mb-1" />
+            <span className="text-[10px] font-medium">More</span>
+          </button>
+        </div>
+      </nav>
+
+      {/* Mobile More Drawer */}
+      {isMobileMoreDrawerOpen && (
+        <div className="md:hidden fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm transition-opacity" onClick={() => setIsMobileMoreDrawerOpen(false)}>
+          <div 
+            className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl p-6 shadow-2xl animate-in slide-in-from-bottom duration-300 pb-safe"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6" />
+            
+            {isAuthenticated ? (
+              <>
+                <div className="flex items-center gap-3 mb-6 pb-6 border-b border-gray-100">
+                   {user?.profile?.avatar ? (
+                      <img src={getMediaUrl(user.profile.avatar)} alt={user.first_name} className="h-12 w-12 rounded-full object-cover" />
+                    ) : (
+                      <div className="h-12 w-12 rounded-full bg-gray-100 flex items-center justify-center">
+                        <User className="h-6 w-6 text-gray-500" />
+                      </div>
+                    )}
+                    <div>
+                       <p className="font-bold text-gray-900 text-lg">{user?.first_name} {user?.last_name}</p>
+                       <Link to="/profile" onClick={() => setIsMobileMoreDrawerOpen(false)} className="text-sm text-primary-600 font-medium">View Profile</Link>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 mb-6">
+                  {createActions.map(action => (
+                    <Link key={action.name} to={action.href} onClick={() => setIsMobileMoreDrawerOpen(false)} className="flex flex-col items-center p-4 bg-gray-50 rounded-2xl hover:bg-primary-50 hover:text-primary-600 transition-colors">
+                       <action.icon className="h-6 w-6 mb-2 text-gray-700" />
+                       <span className="text-sm font-medium">{action.name}</span>
+                    </Link>
+                  ))}
+                </div>
+
+                <div className="space-y-1 mb-6">
+                   <Link to="/my-listings" onClick={() => setIsMobileMoreDrawerOpen(false)} className="flex items-center px-4 py-3 text-gray-700 font-medium hover:bg-gray-50 rounded-xl">
+                      <Briefcase className="h-5 w-5 mr-3 text-gray-400" /> My Listings
+                   </Link>
+                   {effectiveTier === 'FREE' && (
+                     <Link to="/upgrade" onClick={() => setIsMobileMoreDrawerOpen(false)} className="flex items-center px-4 py-3 font-bold text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl">
+                        <Sparkles className="h-5 w-5 mr-3" /> Upgrade Plan
+                     </Link>
+                   )}
+                   {effectiveTier === 'PLUS' && (
+                     <Link to="/plus" onClick={() => setIsMobileMoreDrawerOpen(false)} className="flex items-center px-4 py-3 font-bold text-purple-700 bg-purple-50 rounded-xl">
+                        <Crown className="h-5 w-5 mr-3" /> Plus Dashboard
+                     </Link>
+                   )}
+                   {effectiveTier === 'BUSINESS' && (
+                     <Link to="/business" onClick={() => setIsMobileMoreDrawerOpen(false)} className="flex items-center px-4 py-3 font-bold text-primary-700 bg-primary-50 rounded-xl">
+                        <Building2 className="h-5 w-5 mr-3" /> Business Dashboard
+                     </Link>
+                   )}
+                   {isStaff && (
+                     <Link to="/staff/tasks" onClick={() => setIsMobileMoreDrawerOpen(false)} className="flex items-center px-4 py-3 font-bold text-red-700 bg-red-50 rounded-xl">
+                        <Shield className="h-5 w-5 mr-3" /> Staff Dashboard
+                     </Link>
+                   )}
+                   <Link to="/payments" onClick={() => setIsMobileMoreDrawerOpen(false)} className="flex items-center px-4 py-3 text-gray-700 font-medium hover:bg-gray-50 rounded-xl">
+                      <CreditCard className="h-5 w-5 mr-3 text-gray-400" /> Payments & Wallet
+                   </Link>
+                   <Link to="/settings" onClick={() => setIsMobileMoreDrawerOpen(false)} className="flex items-center px-4 py-3 text-gray-700 font-medium hover:bg-gray-50 rounded-xl">
+                      <Settings className="h-5 w-5 mr-3 text-gray-400" /> Settings
+                   </Link>
+                </div>
+                
+                <button onClick={() => { setIsMobileMoreDrawerOpen(false); handleLogout(); }} className="w-full flex items-center justify-center px-4 py-4 text-red-600 font-bold bg-red-50 rounded-xl">
+                   <LogOut className="h-5 w-5 mr-2" /> Logout
+                </button>
+              </>
+            ) : (
+              <div className="space-y-4">
+                 <h3 className="text-xl font-bold text-gray-900 text-center mb-6">Join Kiboss Today</h3>
+                 <Link to="/login" onClick={() => setIsMobileMoreDrawerOpen(false)} className="block w-full py-4 text-center text-primary-600 font-bold bg-primary-50 rounded-xl">Log In</Link>
+                 <Link to="/register" onClick={() => setIsMobileMoreDrawerOpen(false)} className="block w-full py-4 text-center text-white font-bold bg-primary-600 rounded-xl">Sign Up</Link>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+;
+}
+
+                 <Link to="/register" onClick={() => setIsMobileMoreDrawerOpen(false)} className="block w-full py-4 text-center text-white font-bold bg-primary-600 rounded-xl">Sign Up</Link>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
