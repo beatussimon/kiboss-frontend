@@ -570,15 +570,3 @@ export default function Layout() {
     </div>
   );
 }
-;
-}
-
-                 <Link to="/register" onClick={() => setIsMobileMoreDrawerOpen(false)} className="block w-full py-4 text-center text-white font-bold bg-primary-600 rounded-xl">Sign Up</Link>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
