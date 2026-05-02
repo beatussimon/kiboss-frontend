@@ -99,16 +99,18 @@ export default function BusinessDashboard() {
     try {
       setIsLoading(true);
       const category = user?.corporate_profile?.business_category || 'ASSET';
-      const assetTypes = category === 'RIDE' ? 'VEHICLE' : 'HOTEL,RESTAURANT';
+      
+      const params: any = {
+        owner: 'me',
+        is_active: 'any',
+        context: 'corporate'
+      };
+      
+      if (category === 'RIDE') {
+        params.asset_type = 'VEHICLE';
+      }
 
-      const res = await api.get('/assets/', {
-        params: {
-          owner: 'me',
-          asset_type: assetTypes,
-          is_active: 'any',
-          context: 'corporate'
-        }
-      });
+      const res = await api.get('/assets/', { params });
       const data = res.data.results || res.data;
       setProperties(data);
     } catch (error) {

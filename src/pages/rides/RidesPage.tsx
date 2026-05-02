@@ -32,7 +32,7 @@ export default function RidesPage() {
       if (entries[0].isIntersecting && hasMore) {
         setPage(prevPage => prevPage + 1);
       }
-    }, { rootMargin: '200px' });
+    }, { rootMargin: '50px' });
     if (node) observer.current.observe(node);
   }, [isLoading, hasMore]);
 

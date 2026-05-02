@@ -123,7 +123,8 @@ const assetsSlice = createSlice({
         if (page === 1) {
           state.assets = data.results || [];
         } else {
-          state.assets = [...state.assets, ...(data.results || [])];
+          const existingIds = new Set(state.assets.map(a => a.id));
+          state.assets = [...state.assets, ...(data.results || []).filter(a => !existingIds.has(a.id))];
         }
         state.count = data.count || 0;
         state.next = data.next || null;

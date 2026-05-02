@@ -108,7 +108,7 @@ export default function UpgradePage() {
             return;
         }
         if (planId === 'BUSINESS') {
-            toast('The Business plan is coming soon!', { icon: '🚀' });
+            navigate('/business/register?plan=BUSINESS');
             return;
         }
         setSelectedPlan(planId);

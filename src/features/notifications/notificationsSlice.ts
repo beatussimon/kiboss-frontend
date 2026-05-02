@@ -7,6 +7,8 @@ interface NotificationsState {
   unreadCount: number;
   preferences: NotificationPreferences | null;
   isLoading: boolean;
+  isWsConnected: boolean;
+  isWsReconnecting: boolean;
   error: string | null;
 }
 
@@ -15,6 +17,8 @@ const initialState: NotificationsState = {
   unreadCount: 0,
   preferences: null,
   isLoading: false,
+  isWsConnected: false,
+  isWsReconnecting: false,
   error: null,
 };
 
@@ -103,6 +107,10 @@ const notificationsSlice = createSlice({
     },
     clearError: (state) => {
       state.error = null;
+    },
+    setWsStatus: (state, action: { payload: { isConnected: boolean; isReconnecting: boolean } }) => {
+      state.isWsConnected = action.payload.isConnected;
+      state.isWsReconnecting = action.payload.isReconnecting;
     },
   },
   extraReducers: (builder) => {

@@ -1,3 +1,4 @@
+import { PayloadAction } from "@reduxjs/toolkit";
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { Thread, Message, ThreadFilters, PaginatedResponse } from '../../types';
 import api from '../../services/api';
@@ -12,6 +13,8 @@ interface MessagingState {
   error: string | null;
   typingStatus: Record<string, Record<string, boolean>>; // threadId -> { userId: isTyping }
   processedMessageIds: string[]; // Keep track of last ~100 processed message IDs for global deduplication
+  isWsConnected: boolean;
+  isWsReconnecting: boolean;
   pagination: {
     page: number;
     pageSize: number;
@@ -30,6 +33,8 @@ const initialState: MessagingState = {
   error: null,
   typingStatus: {},
   processedMessageIds: [],
+  isWsConnected: false,
+  isWsReconnecting: false,
   pagination: {
     page: 1,
     pageSize: 20,
@@ -400,6 +405,10 @@ const messagingSlice = createSlice({
         });
       }
     },
+    setWsStatus: (state, action: PayloadAction<{ isConnected: boolean; isReconnecting: boolean }>) => {
+      state.isWsConnected = action.payload.isConnected;
+      state.isWsReconnecting = action.payload.isReconnecting;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -611,5 +620,14 @@ const messagingSlice = createSlice({
   },
 });
 
-export const { clearCurrentThread, clearError, addMessage, appendMessages, setTyping, markMessagesRead, addOptimisticMessage } = messagingSlice.actions;
+export const { 
+  clearCurrentThread, 
+  clearError, 
+  addMessage, 
+  appendMessages, 
+  setTyping, 
+  markMessagesRead, 
+  addOptimisticMessage,
+  setWsStatus
+} = messagingSlice.actions;
 export default messagingSlice.reducer;
