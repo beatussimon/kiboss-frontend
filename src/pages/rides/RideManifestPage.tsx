@@ -66,12 +66,12 @@ export default function RideManifestPage() {
           <h1 className="text-3xl font-black text-gray-900 tracking-tighter">Passenger Manifest</h1>
           <p className="text-gray-500 font-medium">Trip: {ride.origin} → {ride.destination}</p>
         </div>
-        <div className="flex gap-2 p-1 bg-gray-100 rounded-2xl">
-           <div className="px-4 py-2 bg-white rounded-xl shadow-sm border border-gray-200/50">
+        <div className="flex gap-2 p-1 bg-gray-100 dark:bg-gray-800 rounded-2xl">
+           <div className="px-4 py-2 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200/50">
              <p className="text-[10px] font-black text-gray-400 tracking-widest">Booked</p>
              <p className="text-xl font-black text-primary-600">{bookings.length} / {ride.total_seats}</p>
            </div>
-           <div className="px-4 py-2 bg-white rounded-xl shadow-sm border border-gray-200/50">
+           <div className="px-4 py-2 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200/50">
              <p className="text-[10px] font-black text-gray-400 tracking-widest">Remaining</p>
              <p className="text-xl font-black text-orange-600">{ride.total_seats - bookings.length}</p>
            </div>
@@ -79,11 +79,11 @@ export default function RideManifestPage() {
       </div>
 
       {bookings.length === 0 ? (
-        <div className="card p-12 text-center bg-gray-50 border-dashed border-2">
-          <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
+        <div className="card p-12 text-center bg-gray-50 dark:bg-gray-900 border-dashed border-2">
+          <div className="w-20 h-20 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
             <Users className="h-10 w-10 text-gray-200" />
           </div>
-          <h2 className="text-xl font-black text-gray-900 mb-1 tracking-tight">No passengers yet</h2>
+          <h2 className="text-xl font-black text-gray-900 dark:text-white mb-1 tracking-tight">No passengers yet</h2>
           <p className="text-gray-400 text-sm font-medium">Your trip is currently empty. We'll notify you when someone books a seat.</p>
         </div>
       ) : (
@@ -105,7 +105,7 @@ export default function RideManifestPage() {
                   </div>
                   <div>
                     <div className="flex items-center gap-2 mb-1">
-                      <h3 className="text-lg font-black text-gray-900">{booking.passenger.first_name} {booking.passenger.last_name}</h3>
+                      <h3 className="text-lg font-black text-gray-900 dark:text-white">{booking.passenger.first_name} {booking.passenger.last_name}</h3>
                       <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-full ${
                         booking.status === 'CONFIRMED' ? 'bg-emerald-100 text-emerald-600' : 'bg-orange-100 text-orange-600'
                       }`}>
@@ -184,7 +184,7 @@ export default function RideManifestPage() {
                   {booking.passenger.profile?.phone ? (
                     <a 
                       href={`tel:${booking.passenger.profile.phone}`}
-                      className="flex-1 md:w-32 py-2.5 bg-white border-2 border-gray-100 text-gray-900 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-gray-50 transition-all flex items-center justify-center gap-2"
+                      className="flex-1 md:w-32 py-2.5 bg-white dark:bg-gray-800 border-2 border-gray-100 text-gray-900 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-gray-50 transition-all flex items-center justify-center gap-2"
                     >
                       <Phone className="h-3 w-3 text-primary-600" />
                       Call
@@ -193,7 +193,7 @@ export default function RideManifestPage() {
                     <button 
                       disabled
                       title="No phone number provided"
-                      className="flex-1 md:w-32 py-2.5 bg-gray-50 border border-gray-100 text-gray-300 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 cursor-not-allowed"
+                      className="flex-1 md:w-32 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-100 text-gray-300 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 cursor-not-allowed"
                     >
                       <Phone className="h-3 w-3" />
                       No Num

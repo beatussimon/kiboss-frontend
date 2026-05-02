@@ -134,7 +134,7 @@ export default function ThreadPage() {
     return (
       <div className="flex flex-col h-full items-center justify-center space-y-4">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-        <p className="text-gray-500">Loading conversation...</p>
+        <p className="text-gray-500 dark:text-gray-400">Loading conversation...</p>
       </div>
     );
   }
@@ -143,10 +143,10 @@ export default function ThreadPage() {
     return (
       <div className="max-w-2xl mx-auto mt-8 card p-8 text-center">
         <div className="bg-red-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-          <ShieldAlert className="h-8 w-8 text-red-600" />
+          <ShieldAlert className="h-8 w-8 text-red-600 dark:text-red-400" />
         </div>
-        <h2 className="text-xl font-bold text-gray-900 mb-2">Conversation unavailable</h2>
-        <p className="text-gray-500 mb-6">{error || 'This conversation does not exist or you no longer have access.'}</p>
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Conversation unavailable</h2>
+        <p className="text-gray-500 dark:text-gray-400 mb-6">{error || 'This conversation does not exist or you no longer have access.'}</p>
         <Link to="/messages" className="btn-primary inline-flex items-center">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Messages
@@ -156,12 +156,12 @@ export default function ThreadPage() {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-120px)] bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div className="flex flex-col h-[calc(100vh-120px)] bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gray-50">
+      <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gray-50 dark:bg-gray-900">
         <div className="flex items-center space-x-4">
-          <Link to="/messages" className="p-2 hover:bg-gray-200 rounded-full transition-colors md:hidden">
-            <ArrowLeft className="h-5 w-5 text-gray-500" />
+          <Link to="/messages" className="p-2 hover:bg-gray-200 dark:bg-gray-700 rounded-full transition-colors md:hidden">
+            <ArrowLeft className="h-5 w-5 text-gray-500 dark:text-gray-400" />
           </Link>
           <div className="flex items-center">
             <Link to={otherUser ? `/users/${otherUser.id}` : '#'} className="flex items-center hover:opacity-80 transition-opacity">
@@ -173,21 +173,21 @@ export default function ThreadPage() {
                 )}
               </div>
               <div className="ml-3">
-                <h1 className="text-sm font-bold text-gray-900 leading-tight hover:text-primary-600 transition-colors">
+                <h1 className="text-sm font-bold text-gray-900 dark:text-white leading-tight hover:text-primary-600 transition-colors">
                   {otherUser ? `${otherUser.first_name} ${otherUser.last_name}` : 'Unknown User'}
                 </h1>
                 <div className="flex items-center">
                   <span className={`h-2 w-2 rounded-full mr-2 ${thread.status === 'OPEN' ? 'bg-green-500' : 'bg-gray-400'}`}></span>
                   <span className="text-xs text-gray-500 capitalize">{thread.thread_type.toLowerCase()}</span>
                   {thread.subject && <span className="text-xs text-gray-400 mx-1">•</span>}
-                  {thread.subject && <span className="text-xs text-gray-500 truncate max-w-[150px]">{thread.subject}</span>}
+                  {thread.subject && <span className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-[150px]">{thread.subject}</span>}
                 </div>
               </div>
             </Link>
           </div>
         </div>
         <div className="flex items-center space-x-2">
-          <button className="p-2 hover:bg-gray-200 rounded-full transition-colors text-gray-500">
+          <button className="p-2 hover:bg-gray-200 dark:bg-gray-700 rounded-full transition-colors text-gray-500 dark:text-gray-400">
             <MoreVertical className="h-5 w-5" />
           </button>
         </div>
@@ -199,7 +199,7 @@ export default function ThreadPage() {
           <div className="flex justify-center">
             <button
               onClick={handleLoadMore}
-              className="px-4 py-1 text-xs font-medium text-primary-600 bg-white border border-gray-200 rounded-full hover:bg-gray-50 transition-colors shadow-sm"
+              className="px-4 py-1 text-xs font-medium text-primary-600 bg-white dark:bg-gray-800 border border-gray-200 rounded-full hover:bg-gray-50 transition-colors shadow-sm"
               disabled={isLoadingMessages}
             >
               {isLoadingMessages ? 'Loading...' : 'Load older messages'}
@@ -209,10 +209,10 @@ export default function ThreadPage() {
 
         {messages.length === 0 && !isLoading && !isLoadingMessages && (
           <div className="flex flex-col items-center justify-center h-full text-center space-y-3 opacity-60">
-            <div className="bg-white p-4 rounded-full shadow-sm">
+            <div className="bg-white dark:bg-gray-800 p-4 rounded-full shadow-sm">
               <Send className="h-8 w-8 text-primary-200" />
             </div>
-            <p className="text-gray-500 text-sm">No messages yet. Say hi!</p>
+            <p className="text-gray-500 dark:text-gray-400 text-sm">No messages yet. Say hi!</p>
           </div>
         )}
 
@@ -287,7 +287,7 @@ export default function ThreadPage() {
         })}
         {isOtherTyping && (
           <div className="flex justify-start">
-            <div className="bg-white border border-gray-100 px-4 py-2 rounded-2xl rounded-tl-none shadow-sm flex items-center space-x-1">
+            <div className="bg-white dark:bg-gray-800 border border-gray-100 px-4 py-2 rounded-2xl rounded-tl-none shadow-sm flex items-center space-x-1">
               <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
               <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
               <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
@@ -298,7 +298,7 @@ export default function ThreadPage() {
       </div>
 
       {/* Input Area */}
-      <div className="p-4 bg-white border-t border-gray-200">
+      <div className="p-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
         {attachment && (
           <div className="mb-3 p-2 bg-primary-50 rounded-lg flex items-center justify-between border border-primary-100">
             <div className="flex items-center space-x-2">
@@ -313,7 +313,7 @@ export default function ThreadPage() {
 
         <div className="flex items-center space-x-2">
           <div className="flex space-x-1">
-            <label className="p-2 hover:bg-gray-100 rounded-full cursor-pointer transition-colors text-gray-500">
+            <label className="p-2 hover:bg-gray-100 dark:bg-gray-800 rounded-full cursor-pointer transition-colors text-gray-500 dark:text-gray-400">
               <Paperclip className="h-5 w-5" />
               <input
                 type="file"
@@ -321,7 +321,7 @@ export default function ThreadPage() {
                 onChange={(e) => e.target.files && setAttachment(e.target.files[0])}
               />
             </label>
-            <label className="p-2 hover:bg-gray-100 rounded-full cursor-pointer transition-colors text-gray-500">
+            <label className="p-2 hover:bg-gray-100 dark:bg-gray-800 rounded-full cursor-pointer transition-colors text-gray-500 dark:text-gray-400">
               <Image className="h-5 w-5" />
               <input
                 type="file"
@@ -349,7 +349,7 @@ export default function ThreadPage() {
             disabled={(!message.trim() && !attachment) || thread?.status === 'LOCKED'}
             className={`p-2.5 rounded-full shadow-sm transition-all ${(!message.trim() && !attachment) || thread?.status === 'LOCKED'
               ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-              : 'bg-primary-600 text-white hover:bg-primary-700 hover:shadow-md'
+              : 'bg-primary-600 text-white hover:bg-primary-700 hover:shadow-lg'
               }`}
           >
             <Send className="h-5 w-5" />

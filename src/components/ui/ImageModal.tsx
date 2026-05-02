@@ -58,16 +58,16 @@ export default function ImageModal({
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-xl"
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-gray-950"
                 >
                     {/* Header Controls */}
                     <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center z-50 bg-gradient-to-b from-black/80 to-transparent">
-                        <div className="text-white font-medium bg-black/50 px-4 py-1.5 rounded-full text-sm backdrop-blur-md border border-white/10">
+                        <div className="text-white font-medium bg-gray-900 px-4 py-1.5 rounded-full text-sm border border-gray-800">
                             {currentIndex + 1} / {images.length}
                         </div>
                         <button
                             onClick={onClose}
-                            className="p-2 text-white/70 hover:text-white bg-black/50 hover:bg-black/80 rounded-full transition-all backdrop-blur-md border border-white/10"
+                            className="p-2 text-white/70 hover:text-white bg-gray-900 hover:bg-black rounded-full transition-all border border-gray-800 shadow-xl"
                             aria-label="Close"
                         >
                             <X className="w-6 h-6" />
@@ -79,7 +79,7 @@ export default function ImageModal({
                         {images.length > 1 && (
                             <button
                                 onClick={(e) => { e.stopPropagation(); handlePrev(); }}
-                                className="absolute left-4 sm:left-8 z-50 p-3 sm:p-4 text-white/70 hover:text-white bg-black/50 hover:bg-black/80 rounded-full transition-all backdrop-blur-md border border-white/10 hover:scale-110 active:scale-95"
+                                className="absolute left-4 sm:left-8 z-50 p-3 sm:p-4 text-white/70 hover:text-white bg-gray-900 hover:bg-black rounded-full transition-all border border-gray-800 hover:scale-110 active:scale-95 shadow-xl"
                                 aria-label="Previous image"
                             >
                                 <ChevronLeft className="w-6 h-6 sm:w-8 sm:h-8" />
@@ -105,7 +105,7 @@ export default function ImageModal({
                         {images.length > 1 && (
                             <button
                                 onClick={(e) => { e.stopPropagation(); handleNext(); }}
-                                className="absolute right-4 sm:right-8 z-50 p-3 sm:p-4 text-white/70 hover:text-white bg-black/50 hover:bg-black/80 rounded-full transition-all backdrop-blur-md border border-white/10 hover:scale-110 active:scale-95"
+                                className="absolute right-4 sm:right-8 z-50 p-3 sm:p-4 text-white/70 hover:text-white bg-gray-900 hover:bg-black rounded-full transition-all border border-gray-800 hover:scale-110 active:scale-95 shadow-xl"
                                 aria-label="Next image"
                             >
                                 <ChevronRight className="w-6 h-6 sm:w-8 sm:h-8" />
@@ -116,7 +116,7 @@ export default function ImageModal({
                     {/* Thumbnails (Optional) */}
                     {images.length > 1 && (
                         <div className="absolute bottom-6 left-0 right-0 flex justify-center px-4 overflow-hidden z-20">
-                            <div className="flex gap-2 p-2 bg-black/50 backdrop-blur-md rounded-2xl border border-white/10 max-w-full overflow-x-auto no-scrollbar">
+                            <div className="flex gap-2 p-2 bg-gray-900 rounded-2xl border border-gray-800 max-w-full overflow-x-auto no-scrollbar shadow-2xl">
                                 {images.map((img, i) => (
                                     <button
                                         key={img.id}

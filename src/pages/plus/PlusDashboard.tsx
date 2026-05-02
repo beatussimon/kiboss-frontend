@@ -41,13 +41,13 @@ export default function PlusDashboard() {
                 <div className="h-20 w-20 bg-purple-100 text-purple-600 rounded-3xl flex items-center justify-center mx-auto">
                     <Sparkles className="h-10 w-10" />
                 </div>
-                <h1 className="text-3xl font-black text-gray-900">Plus Plan Required</h1>
+                <h1 className="text-3xl font-black text-gray-900 dark:text-white">Plus Plan Required</h1>
                 <p className="text-gray-500 max-w-md mx-auto">
                     Upgrade to the Plus plan to access analytics, boosts, and priority support.
                 </p>
                 <Link
                     to="/upgrade"
-                    className="inline-flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold rounded-xl shadow-lg hover:from-blue-700 hover:to-purple-700 transition-all"
+                    className="inline-flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-primary-600 to-purple-600 text-white font-bold rounded-xl shadow-lg hover:from-primary-700 hover:to-purple-700 transition-all"
                 >
                     <Sparkles className="h-5 w-5" />
                     Upgrade Now
@@ -76,7 +76,7 @@ export default function PlusDashboard() {
     return (
         <div className="max-w-6xl mx-auto space-y-8 pb-20">
             {/* Header */}
-            <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 p-8 md:p-12 text-white shadow-2xl">
+            <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-purple-600 via-indigo-600 to-primary-600 p-8 md:p-12 text-white shadow-2xl">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32" />
                 <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full -ml-24 -mb-24" />
                 <div className="relative">
@@ -159,7 +159,7 @@ export default function PlusDashboard() {
                     </div>
                 </div>
                 <div className="card p-5 flex items-center gap-4 hover:shadow-xl transition-shadow border-none shadow-lg ring-1 ring-gray-200/50">
-                    <div className="h-12 w-12 bg-gradient-to-br from-blue-50 to-blue-100 text-blue-600 rounded-2xl flex items-center justify-center shrink-0">
+                    <div className="h-12 w-12 bg-gradient-to-br from-primary-50 to-primary-100 text-primary-600 rounded-2xl flex items-center justify-center shrink-0">
                         <CheckCircle className="h-6 w-6" />
                     </div>
                     <div>
@@ -194,7 +194,7 @@ export default function PlusDashboard() {
                     <div className="card p-6 border-none shadow-lg lg:col-span-2">
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="text-xl font-black text-gray-900 tracking-tight flex items-center gap-2">
-                                <Activity className="h-5 w-5 text-blue-500" />
+                                <Activity className="h-5 w-5 text-primary-500" />
                                 Revenue Overview (6 Months)
                             </h2>
                             <span className="text-xs font-bold text-gray-500 bg-gray-100 px-3 py-1 rounded-full">Completed Bookings</span>
@@ -234,7 +234,7 @@ export default function PlusDashboard() {
                             <Star className="absolute -right-4 -top-4 h-24 w-24 text-indigo-100 opacity-50" />
                             <h3 className="text-sm font-black text-gray-500 tracking-widest uppercase mb-1">Host Rating</h3>
                             <div className="flex items-baseline gap-2">
-                                <span className="text-4xl font-black text-gray-900">{analytics.advanced_analytics.overall_rating}</span>
+                                <span className="text-4xl font-black text-gray-900 dark:text-white">{analytics.advanced_analytics.overall_rating}</span>
                                 <span className="text-sm text-gray-500 font-bold">/ 5.0</span>
                             </div>
                             <div className="flex gap-1 mt-3">
@@ -248,9 +248,9 @@ export default function PlusDashboard() {
                             <AlertTriangle className="absolute -right-4 -top-4 h-24 w-24 text-red-100 opacity-50" />
                             <h3 className="text-sm font-black text-gray-500 tracking-widest uppercase mb-1">Cancellation Rate</h3>
                             <div className="flex items-baseline gap-2">
-                                <span className="text-4xl font-black text-gray-900">{analytics.advanced_analytics.cancellation_rate}%</span>
+                                <span className="text-4xl font-black text-gray-900 dark:text-white">{analytics.advanced_analytics.cancellation_rate}%</span>
                             </div>
-                            <p className="text-xs font-bold text-gray-500 mt-2">
+                            <p className="text-xs font-bold text-gray-500 dark:text-gray-400 mt-2">
                                 {analytics.advanced_analytics.cancellation_rate > 10 ? 'High capacity loss' : 'Healthy engagement'}
                             </p>
                         </div>
@@ -261,7 +261,7 @@ export default function PlusDashboard() {
             {/* Top Listings Table */}
             {analytics?.advanced_analytics?.top_listings?.length > 0 && (
                 <div className="card border-none shadow-lg overflow-hidden">
-                    <div className="p-6 border-b border-gray-100">
+                    <div className="p-6 border-b border-gray-100 dark:border-gray-800">
                         <h2 className="text-xl font-black text-gray-900 tracking-tight flex items-center gap-2">
                             <Trophy className="h-5 w-5 text-yellow-500" />
                             Top Performing Listings
@@ -281,16 +281,16 @@ export default function PlusDashboard() {
                                     <tr key={listing.id} className="hover:bg-gray-50/50 transition-colors">
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
-                                                <div className="h-8 w-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-black text-xs">
+                                                <div className="h-8 w-8 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center font-black text-xs">
                                                     #{index + 1}
                                                 </div>
-                                                <span className="font-bold text-gray-900">{listing.name}</span>
+                                                <span className="font-bold text-gray-900 dark:text-white">{listing.name}</span>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 text-right font-medium text-gray-600">
+                                        <td className="px-6 py-4 text-right font-medium text-gray-600 dark:text-gray-300">
                                             {listing.bookings}
                                         </td>
-                                        <td className="px-6 py-4 text-right font-black text-green-600">
+                                        <td className="px-6 py-4 text-right font-black text-green-600 dark:text-green-400">
                                             <Price amount={listing.earnings} />
                                         </td>
                                     </tr>
@@ -342,14 +342,14 @@ export default function PlusDashboard() {
                                     <Percent className="h-6 w-6 text-indigo-500" />
                                     Global Discount Campaign
                                 </h2>
-                                <p className="text-gray-500 mt-1 max-w-xl text-sm">
+                                <p className="text-gray-500 dark:text-gray-400 mt-1 max-w-xl text-sm">
                                     Run a flash sale by quickly applying a single percentage discount across all your active listings at once. This permanently updates current pricing rules.
                                 </p>
                             </div>
                         </div>
 
-                        <form onSubmit={handleApplyDiscount} className="max-w-md bg-white p-6 rounded-2xl shadow-sm border border-indigo-100">
-                            <label className="block text-sm font-bold text-gray-700 mb-2">
+                        <form onSubmit={handleApplyDiscount} className="max-w-md bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-indigo-100">
+                            <label className="block text-sm font-bold text-gray-700 dark:text-gray-200 mb-2">
                                 Discount Percentage
                             </label>
                             <div className="flex gap-4">
@@ -363,7 +363,7 @@ export default function PlusDashboard() {
                                         max="99"
                                         value={discountForm.percentage}
                                         onChange={e => setDiscountForm(p => ({ ...p, percentage: parseInt(e.target.value) || 0 }))}
-                                        className="block w-full pl-10 pr-4 py-3 bg-gray-50 border-transparent rounded-xl focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-colors font-bold text-gray-900"
+                                        className="block w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-900 border-transparent rounded-xl focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-colors font-bold text-gray-900 dark:text-white"
                                     />
                                 </div>
                                 <button
@@ -395,7 +395,7 @@ export default function PlusDashboard() {
                                     <UploadCloud className="h-5 w-5 text-purple-500" />
                                     Listing Boosting
                                 </h2>
-                                <p className="text-sm text-gray-500 mt-1">
+                                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                                     Your Plus plan gives you an automatic 1.5x visibility multiplier. You can optionally boost specific listings further (coming soon).
                                 </p>
                             </div>
@@ -410,18 +410,18 @@ export default function PlusDashboard() {
             {/* TAB CONTENT: AUDIENCE */}
             {activeTab === 'AUDIENCE' && (
                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                    <div className="card p-12 border-none shadow-lg bg-gradient-to-br from-blue-50 to-white relative overflow-hidden">
-                        <Users className="absolute -right-4 -top-4 h-32 w-32 text-blue-100 opacity-50" />
+                    <div className="card p-12 border-none shadow-lg bg-gradient-to-br from-primary-50 to-white relative overflow-hidden">
+                        <Users className="absolute -right-4 -top-4 h-32 w-32 text-primary-100 opacity-50" />
                         <h2 className="text-2xl font-black text-gray-900 tracking-tight mb-6 relative z-10">Audience Insights</h2>
                         
                         {analytics?.advanced_analytics?.audience_insights ? (
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
                                 <div>
                                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Unique Customers</p>
-                                    <p className="text-4xl font-black text-blue-600">
+                                    <p className="text-4xl font-black text-primary-600 dark:text-primary-400">
                                         {analytics.advanced_analytics.audience_insights.unique_customers}
                                     </p>
-                                    <p className="text-xs text-gray-500 mt-2 font-medium">Individuals who have booked your assets</p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 font-medium">Individuals who have booked your assets</p>
                                 </div>
                                 
                                 <div>
@@ -429,7 +429,7 @@ export default function PlusDashboard() {
                                     <p className="text-4xl font-black text-emerald-600">
                                         {analytics.advanced_analytics.audience_insights.repeat_customer_rate}%
                                     </p>
-                                    <p className="text-xs text-gray-500 mt-2 font-medium">Customers with more than one booking</p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 font-medium">Customers with more than one booking</p>
                                 </div>
 
                                 <div>
@@ -438,7 +438,7 @@ export default function PlusDashboard() {
                                         {analytics.advanced_analytics.audience_insights.top_locations.map((loc: any, idx: number) => (
                                             <li key={idx} className="flex justify-between items-center text-sm font-bold text-gray-700 bg-white/60 px-3 py-2 rounded-lg">
                                                 <span>{loc.city}</span>
-                                                <span className="text-gray-500">{loc.count} bookings</span>
+                                                <span className="text-gray-500 dark:text-gray-400">{loc.count} bookings</span>
                                             </li>
                                         ))}
                                         {analytics.advanced_analytics.audience_insights.top_locations.length === 0 && (
@@ -449,7 +449,7 @@ export default function PlusDashboard() {
                             </div>
                         ) : (
                             <div className="text-center flex flex-col items-center justify-center">
-                                <div className="h-20 w-20 bg-blue-100/50 text-blue-500 rounded-full flex items-center justify-center mb-4">
+                                <div className="h-20 w-20 bg-primary-100/50 text-primary-500 rounded-full flex items-center justify-center mb-4">
                                     <Users className="h-10 w-10" />
                                 </div>
                                 <p className="text-gray-500 max-w-md mt-2">

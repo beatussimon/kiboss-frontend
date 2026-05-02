@@ -14,27 +14,72 @@ describe('KIBOSS E2E Integration Tests', () => {
   const API_BASE_URL = 'http://localhost:8000/api/v1';
   const FRONTEND_URL = 'http://localhost:5173';
   let authToken: string = '';
+  let uniqueEmail: string = '';
 
   beforeEach(() => {
     // Set location modal as dismissed to prevent it from covering elements
     window.localStorage.setItem('locationModalDismissed', 'true');
 
-    // Get auth token for authenticated requests
+    uniqueEmail = `e2e_int_${Date.now()}@example.com`;
+
+    // Register unique user
     cy.request({
       method: 'POST',
-      url: `${API_BASE_URL}/users/token/`,
+      url: `${API_BASE_URL}/users/register/`,
       body: {
-        email: 'testuser@example.com',
+        email: uniqueEmail,
         password: 'testpass123',
+        password_confirm: 'testpass123',
+        first_name: 'Int',
+        last_name: 'User',
       },
       failOnStatusCode: false,
-    }).then((response) => {
-      if (response.status === 200 && response.body.access) {
-        authToken = response.body.access;
-        // Set token in localStorage for frontend
-        window.localStorage.setItem('accessToken', authToken);
-        window.localStorage.setItem('refreshToken', response.body.refresh || '');
-      }
+    }).then(() => {
+      // Elevate user to superuser and BUSINESS tier to bypass limits
+      cy.exec(`cd /home/bea/kiboss/backend && ./kibossvenv/bin/python -c "import os; import django; os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'kiboss.settings'); django.setup(); from django.contrib.auth import get_user_model; User=get_user_model(); User.objects.filter(email='${uniqueEmail}').update(is_superuser=True, account_tier='BUSINESS')"`);
+
+      // Get auth token for authenticated requests
+      cy.request({
+        method: 'POST',
+        url: `${API_BASE_URL}/users/token/`,
+        body: {
+          email: uniqueEmail,
+          password: 'testpass123',
+        },
+        failOnStatusCode: false,
+      }).then((response) => {
+        if (response.status === 200 && response.body.access) {
+          authToken = response.body.access;
+          // Set token in localStorage for frontend
+          window.localStorage.setItem('accessToken', authToken);
+          window.localStorage.setItem('refreshToken', response.body.refresh || '');
+          
+          // Create a verified vehicle so the user can create rides
+          cy.request({
+            method: 'POST',
+            url: `${API_BASE_URL}/assets/`,
+            body: {
+              name: `E2E Vehicle ${Date.now()}`,
+              asset_type: 'VEHICLE',
+              city: 'Test City',
+              country: 'US',
+              verification_status: 'VERIFIED',
+              is_active: true,
+            },
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${authToken}`,
+            },
+            failOnStatusCode: false,
+          }).then((res) => {
+            if (res.status === 201) {
+              const assetId = res.body.id;
+              // Force verify the vehicle in the backend database since POST defaults to PENDING
+              cy.exec(`cd /home/bea/kiboss/backend && ./kibossvenv/bin/python -c "import os; import django; os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'kiboss.settings'); django.setup(); from kiboss.apps.assets.models import Asset; Asset.objects.filter(id='${assetId}').update(verification_status='VERIFIED')"`);
+            }
+          });
+        }
+      });
     });
 
     // Verify backend is running - FAIL if not
@@ -119,7 +164,7 @@ describe('KIBOSS E2E Integration Tests', () => {
 
       cy.request({
         method: 'POST',
-        url: `${API_BASE_URL}/rides/`,
+        url: `${API_BASE_URL}/rides/trips/`,
         body: testRide,
         headers: {
           'Content-Type': 'application/json',
@@ -131,7 +176,7 @@ describe('KIBOSS E2E Integration Tests', () => {
         
         // Step 2: Verify ride exists in database
         cy.request({
-          url: `${API_BASE_URL}/rides/${rideId}/`,
+          url: `${API_BASE_URL}/rides/trips/${rideId}/`,
           headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
         }).should((getResponse) => {
           expect(getResponse.status).to.eq(200);
@@ -210,7 +255,7 @@ describe('KIBOSS E2E Integration Tests', () => {
       // Step 1: Create ride via API
       cy.request({
         method: 'POST',
-        url: `${API_BASE_URL}/rides/`,
+        url: `${API_BASE_URL}/rides/trips/`,
         body: testRide,
         headers: {
           'Content-Type': 'application/json',
@@ -259,7 +304,7 @@ describe('KIBOSS E2E Integration Tests', () => {
     it('should show correct empty state when no rides exist', () => {
       // Check if there are any rides first
       cy.request({
-        url: `${API_BASE_URL}/rides/`,
+        url: `${API_BASE_URL}/rides/trips/`,
         headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
       }).then((response) => {
         if (response.body.count === 0) {
@@ -338,7 +383,7 @@ describe('KIBOSS E2E Integration Tests', () => {
       // Create ride
       cy.request({
         method: 'POST',
-        url: `${API_BASE_URL}/rides/`,
+        url: `${API_BASE_URL}/rides/trips/`,
         body: testRide,
         headers: {
           'Content-Type': 'application/json',
@@ -349,7 +394,7 @@ describe('KIBOSS E2E Integration Tests', () => {
 
         // Verify API returns the data
         cy.request({
-          url: `${API_BASE_URL}/rides/`,
+          url: `${API_BASE_URL}/rides/trips/`,
           headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
         }).should((listResponse) => {
           expect(listResponse.status).to.eq(200);

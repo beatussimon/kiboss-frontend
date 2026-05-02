@@ -140,7 +140,7 @@ export default function RegisterVehiclePage() {
             <div className="p-2 bg-primary-100 rounded-lg">
               <Car className="h-6 w-6 text-primary-600" />
             </div>
-            <h2 className="text-xl font-bold text-gray-900">Vehicle Details</h2>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Vehicle Details</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -249,7 +249,7 @@ export default function RegisterVehiclePage() {
             <div className="p-2 bg-orange-100 rounded-lg">
               <FileText className="h-6 w-6 text-orange-600" />
             </div>
-            <h2 className="text-xl font-bold text-gray-900">Verification Documents</h2>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Verification Documents</h2>
           </div>
           
           <div className="bg-red-50 p-4 rounded-xl border border-red-200 mb-6 flex gap-3">
@@ -290,11 +290,11 @@ export default function RegisterVehiclePage() {
             <div className="space-y-3">
               <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Uploaded Documents</p>
               {documents.map((doc, idx) => (
-                <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900 rounded-xl">
                   <div className="flex items-center gap-3">
                     <FileText className="h-4 w-4 text-gray-400" />
                     <div>
-                      <p className="text-sm font-bold text-gray-900">{doc.file.name}</p>
+                      <p className="text-sm font-bold text-gray-900 dark:text-white">{doc.file.name}</p>
                       <p className="text-[10px] font-bold text-primary-600 uppercase">{doc.type}</p>
                     </div>
                   </div>
@@ -311,9 +311,9 @@ export default function RegisterVehiclePage() {
         <div className="card p-8">
           <div className="flex items-center gap-3 mb-6">
             <div className="p-2 bg-green-100 rounded-lg">
-              <Upload className="h-6 w-6 text-green-600" />
+              <Upload className="h-6 w-6 text-green-600 dark:text-green-400" />
             </div>
-            <h2 className="text-xl font-bold text-gray-900">Vehicle Photos</h2>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Vehicle Photos</h2>
           </div>
 
           <div className="flex flex-wrap gap-4 mb-6">

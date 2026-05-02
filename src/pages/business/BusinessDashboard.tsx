@@ -23,7 +23,17 @@ import {
   Star,
   CreditCard,
   Car,
-  Activity
+  Activity,
+  Sparkles,
+  BarChart3,
+  TrendingUp,
+  Eye,
+  Crown,
+  CheckCircle,
+  AlertTriangle,
+  Trophy,
+  Percent,
+  UploadCloud
 } from 'lucide-react';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
@@ -35,6 +45,9 @@ import FeedbackForm from '../../components/common/FeedbackForm';
 import WorkerManagement from './WorkerManagement';
 import FleetCommand from './FleetCommand';
 import SupportInbox from './SupportInbox';
+import PaymentMethods from '../plus/PaymentMethods';
+import { Price } from '../../context/CurrencyContext';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function BusinessDashboard() {
   const dispatch = useDispatch<AppDispatch>();
@@ -45,7 +58,9 @@ export default function BusinessDashboard() {
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [businessStats, setBusinessStats] = useState({ tripCount: 0, driverCount: 0, serviceCount: 0 });
-  const [activeTab, setActiveTab] = useState<'overview' | 'team' | 'fleet' | 'support'>('overview');
+  const [activeTab, setActiveTab] = useState<'analytics' | 'directory' | 'team' | 'fleet' | 'support' | 'marketing' | 'audience' | 'payments'>('analytics');
+  const [analytics, setAnalytics] = useState<any>(null);
+  const [discountForm, setDiscountForm] = useState({ percentage: 10, isApplying: false, success: false, error: '' });
 
   // Registration Form State
   const [regData, setRegData] = useState({
@@ -74,6 +89,9 @@ export default function BusinessDashboard() {
   useEffect(() => {
     if (isCorporateVerified) {
       fetchBusinessStats();
+      api.get('/users/me/analytics/')
+        .then(res => setAnalytics(res.data))
+        .catch(console.error);
     }
   }, [isCorporateVerified]);
 
@@ -153,6 +171,22 @@ export default function BusinessDashboard() {
     }
   };
 
+  const handleApplyDiscount = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setDiscountForm(p => ({ ...p, isApplying: true, success: false, error: '' }));
+    try {
+        await api.post('/assets/bulk_discount/', { percentage: discountForm.percentage });
+        setDiscountForm(p => ({ ...p, isApplying: false, success: true }));
+        setTimeout(() => setDiscountForm(p => ({ ...p, success: false })), 5000);
+    } catch (err: any) {
+        setDiscountForm(p => ({ 
+            ...p, 
+            isApplying: false, 
+            error: err.response?.data?.error || 'Failed to apply discount' 
+        }));
+    }
+  };
+
   // TIER GUARD: Allow if account_tier is BUSINESS *or* user has a corporate_profile
   // (handles legacy users who registered before the tier system)
   if (user?.account_tier !== 'BUSINESS' && !user?.corporate_profile) {
@@ -228,7 +262,7 @@ export default function BusinessDashboard() {
           <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
             <button
               onClick={() => setIsEditing(!isEditing)}
-              className="px-6 py-3 bg-white border-2 border-gray-100 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-gray-50 transition-all"
+              className="px-6 py-3 bg-white dark:bg-gray-800 border-2 border-gray-100 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-gray-50 transition-all"
             >
               {isEditing ? 'Cancel Editing' : 'Edit Application'}
             </button>
@@ -254,7 +288,7 @@ export default function BusinessDashboard() {
           <div className="card p-8 md:p-12 animate-in slide-in-from-top-4 duration-500">
             <div className="mb-8">
               <h2 className="text-2xl font-black text-gray-900 tracking-tight">Update Company Details</h2>
-              <p className="text-gray-500 text-sm font-medium">Modify your information if there were mistakes in your application.</p>
+              <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">Modify your information if there were mistakes in your application.</p>
             </div>
             <form onSubmit={handleUpdateProfile} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -297,7 +331,7 @@ export default function BusinessDashboard() {
           </div>
         )}
 
-        <div className="bg-gray-50 rounded-[2.5rem] p-8 border border-gray-100">
+        <div className="bg-gray-50 dark:bg-gray-900 rounded-[2.5rem] p-8 border border-gray-100 dark:border-gray-800">
           <div className="flex items-center gap-3 mb-4">
             <AlertCircle className="h-5 w-5 text-gray-400" />
             <h3 className="text-sm font-black text-gray-900 uppercase tracking-tight">What's next?</h3>
@@ -439,13 +473,13 @@ export default function BusinessDashboard() {
   return (
     <div className="max-w-7xl mx-auto space-y-8 pb-12">
       {/* Business Header Profile */}
-      <div className="relative rounded-[2.5rem] overflow-hidden bg-white border border-gray-100 shadow-xl shadow-gray-200/40">
+      <div className="relative rounded-[2.5rem] overflow-hidden bg-white dark:bg-gray-800 border border-gray-100 shadow-xl shadow-gray-200/40">
         <div className="absolute top-0 left-0 right-0 h-48 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900" />
 
         <div className="relative pt-24 px-8 pb-8 flex flex-col md:flex-row gap-8 items-start md:items-end justify-between">
           <div className="flex flex-col md:flex-row gap-6 items-start md:items-end">
-            <div className="h-32 w-32 rounded-3xl bg-white p-2 shadow-xl ring-1 ring-gray-100 flex-shrink-0 relative z-10">
-              <div className="w-full h-full bg-gray-50 rounded-2xl flex items-center justify-center text-gray-300">
+            <div className="h-32 w-32 rounded-3xl bg-white dark:bg-gray-800 p-2 shadow-xl ring-1 ring-gray-100 flex-shrink-0 relative z-10">
+              <div className="w-full h-full bg-gray-50 dark:bg-gray-900 rounded-2xl flex items-center justify-center text-gray-300">
                 {isRide ? <Car className="h-12 w-12" /> : <Building2 className="h-12 w-12" />}
               </div>
             </div>
@@ -462,7 +496,7 @@ export default function BusinessDashboard() {
                   checkmarkData={user?.checkmark_data}
                 />
               </div>
-              <div className="flex items-center gap-4 text-sm font-black uppercase tracking-widest text-gray-500">
+              <div className="flex items-center gap-4 text-sm font-black uppercase tracking-widest text-gray-500 dark:text-gray-400">
                 <span className="flex items-center gap-1.5"><Briefcase className="h-4 w-4" /> {isRide ? 'Fleet operations' : 'Asset Management'}</span>
                 <span>•</span>
                 <span className="text-gray-400">Reg: {user?.corporate_profile?.registration_number || 'N/A'}</span>
@@ -477,14 +511,14 @@ export default function BusinessDashboard() {
               threadType="SUPPORT"
               subject="Corporate Support Request"
               variant="outline"
-              className="flex-1 md:flex-none px-6 py-3 bg-white rounded-2xl text-xs font-black uppercase tracking-widest border border-gray-200 hover:bg-gray-50 hover:border-gray-300 shadow-sm"
+              className="flex-1 md:flex-none px-6 py-3 bg-white dark:bg-gray-800 rounded-2xl text-xs font-black uppercase tracking-widest border border-gray-200 hover:bg-gray-50 hover:border-gray-300 shadow-sm"
             />
             <Link to={isRide ? "/vehicles/register" : "/assets/create?mode=business"} className="flex-1 md:flex-none btn-primary px-8 py-3 rounded-2xl flex items-center justify-center gap-2 shadow-xl shadow-primary-500/30">
               <Plus className="h-5 w-5" />
               {isRide ? 'Register Vehicle' : 'Add Property'}
             </Link>
             {isRide && (
-              <Link to="/rides/create?mode=business" className="flex-1 md:flex-none px-8 py-3 rounded-2xl flex items-center justify-center gap-2 bg-blue-600 text-white hover:bg-blue-700 shadow-xl shadow-blue-500/30 text-xs font-black uppercase tracking-widest">
+              <Link to="/rides/create?mode=business" className="flex-1 md:flex-none px-8 py-3 rounded-2xl flex items-center justify-center gap-2 bg-primary-600 text-white hover:bg-primary-700 shadow-xl shadow-primary-500/30 text-xs font-black uppercase tracking-widest">
                 <Car className="h-5 w-5" />
                 Create Trip
               </Link>
@@ -493,42 +527,61 @@ export default function BusinessDashboard() {
         </div>
       </div>
 
-      {/* Stats Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="card p-6 border-none bg-white shadow-lg ring-1 ring-gray-200/50 flex items-center gap-5 hover:shadow-xl transition-shadow">
-          <div className="h-14 w-14 bg-gradient-to-br from-blue-50 to-blue-100/50 text-blue-600 rounded-2xl flex items-center justify-center ring-1 ring-blue-100/50">
-            {isRide ? <Car className="h-7 w-7" /> : <Hotel className="h-7 w-7" />}
+      {/* Global Stats Summary */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="card p-5 border border-gray-100 bg-white dark:bg-gray-800 shadow-sm flex items-center gap-4 hover:shadow transition-shadow">
+          <div className="h-10 w-10 bg-gray-50 text-gray-500 rounded-xl flex items-center justify-center border border-gray-100 dark:border-gray-800">
+            {isRide ? <Car className="h-5 w-5" /> : <Building2 className="h-5 w-5" />}
           </div>
           <div>
             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{isRide ? 'Active Vehicles' : 'Active Properties'}</p>
-            <p className="text-3xl font-black text-gray-900 mt-1">{properties.length}</p>
+            <p className="text-xl font-black text-gray-900 mt-0.5">{properties.length}</p>
           </div>
         </div>
-        <div className="card p-6 border-none bg-white shadow-lg ring-1 ring-gray-200/50 flex items-center gap-5 hover:shadow-xl transition-shadow">
-          <div className="h-14 w-14 bg-gradient-to-br from-emerald-50 to-emerald-100/50 text-emerald-600 rounded-2xl flex items-center justify-center ring-1 ring-emerald-100/50">
-            {isRide ? <Users className="h-7 w-7" /> : <Bed className="h-7 w-7" />}
+        <div className="card p-5 border border-gray-100 bg-white dark:bg-gray-800 shadow-sm flex items-center gap-4 hover:shadow transition-shadow">
+          <div className="h-10 w-10 bg-gray-50 text-gray-500 rounded-xl flex items-center justify-center border border-gray-100 dark:border-gray-800">
+            {isRide ? <Users className="h-5 w-5" /> : <Bed className="h-5 w-5" />}
           </div>
           <div>
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{isRide ? 'Total Drivers' : 'Total Services'}</p>
-            <p className="text-3xl font-black text-gray-900 mt-1">{isRide ? businessStats.driverCount : businessStats.serviceCount}</p>
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{isRide ? 'Active Drivers' : 'Total Services'}</p>
+            <p className="text-xl font-black text-gray-900 mt-0.5">{isRide ? businessStats.driverCount : businessStats.serviceCount}</p>
           </div>
         </div>
-        <div className="card p-6 border-none bg-white shadow-lg ring-1 ring-gray-200/50 flex items-center gap-5 hover:shadow-xl transition-shadow">
-          <div className="h-14 w-14 bg-gradient-to-br from-purple-50 to-purple-100/50 text-purple-600 rounded-2xl flex items-center justify-center ring-1 ring-purple-100/50">
-            {isRide ? <Activity className="h-7 w-7" /> : <Users className="h-7 w-7" />}
+        <div className="card p-5 border border-gray-100 bg-white dark:bg-gray-800 shadow-sm flex items-center gap-4 hover:shadow transition-shadow">
+          <div className="h-10 w-10 bg-gray-50 text-gray-500 rounded-xl flex items-center justify-center border border-gray-100 dark:border-gray-800">
+            <Activity className="h-5 w-5" />
           </div>
           <div>
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{isRide ? 'Trip Volume' : 'Booking Volume'}</p>
-            <p className="text-3xl font-black text-gray-900 mt-1">{isRide ? businessStats.tripCount : businessStats.serviceCount}</p>
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{isRide ? 'Total Trips' : 'Total Bookings'}</p>
+            <p className="text-xl font-black text-gray-900 mt-0.5">{isRide ? businessStats.tripCount : businessStats.serviceCount}</p>
+          </div>
+        </div>
+        <div className="card p-5 border border-gray-100 bg-white dark:bg-gray-800 shadow-sm flex items-center gap-4 hover:shadow transition-shadow">
+          <div className="h-10 w-10 bg-gray-900 text-white rounded-xl flex items-center justify-center shadow-md">
+            <TrendingUp className="h-5 w-5" />
+          </div>
+          <div>
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Revenue</p>
+            <p className="text-xl font-black text-gray-900 mt-0.5"><Price amount={analytics?.total_earnings || 0} /></p>
           </div>
         </div>
       </div>
 
       {/* Tab Bar */}
-      <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-xl w-fit">
+      <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-xl w-fit overflow-x-auto no-scrollbar max-w-full">
         <button
-          onClick={() => setActiveTab('overview')}
-          className={`px-6 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'overview'
+          onClick={() => setActiveTab('analytics')}
+          className={`px-6 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'analytics'
+            ? 'bg-white text-gray-900 shadow-sm'
+            : 'text-gray-500 hover:text-gray-700'
+            }`}
+        >
+          <BarChart3 className="h-3.5 w-3.5 inline mr-1.5 align-text-bottom" />
+          Analytics
+        </button>
+        <button
+          onClick={() => setActiveTab('directory')}
+          className={`px-6 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'directory'
             ? 'bg-white text-gray-900 shadow-sm'
             : 'text-gray-500 hover:text-gray-700'
             }`}
@@ -537,7 +590,7 @@ export default function BusinessDashboard() {
         </button>
         <button
           onClick={() => setActiveTab('team')}
-          className={`px-6 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all flex items-center gap-1.5 ${activeTab === 'team'
+          className={`px-6 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all flex items-center gap-1.5 whitespace-nowrap ${activeTab === 'team'
             ? 'bg-white text-gray-900 shadow-sm'
             : 'text-gray-500 hover:text-gray-700'
             }`}
@@ -547,7 +600,7 @@ export default function BusinessDashboard() {
         {isRide && (
           <button
             onClick={() => setActiveTab('fleet')}
-            className={`px-6 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all flex items-center gap-1.5 ${activeTab === 'fleet'
+            className={`px-6 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all flex items-center gap-1.5 whitespace-nowrap ${activeTab === 'fleet'
               ? 'bg-white text-gray-900 shadow-sm'
               : 'text-gray-500 hover:text-gray-700'
               }`}
@@ -556,8 +609,36 @@ export default function BusinessDashboard() {
           </button>
         )}
         <button
+          onClick={() => setActiveTab('marketing')}
+          className={`px-6 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'marketing'
+            ? 'bg-white text-gray-900 shadow-sm'
+            : 'text-gray-500 hover:text-gray-700'
+            }`}
+        >
+          <Percent className="h-3.5 w-3.5 inline mr-1.5 align-text-bottom" />
+          Marketing
+        </button>
+        <button
+          onClick={() => setActiveTab('audience')}
+          className={`px-6 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all flex items-center gap-1.5 whitespace-nowrap ${activeTab === 'audience'
+            ? 'bg-white text-gray-900 shadow-sm'
+            : 'text-gray-500 hover:text-gray-700'
+            }`}
+        >
+          <Users className="h-3.5 w-3.5" /> Audience
+        </button>
+        <button
+          onClick={() => setActiveTab('payments')}
+          className={`px-6 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all flex items-center gap-1.5 whitespace-nowrap ${activeTab === 'payments'
+            ? 'bg-white text-gray-900 shadow-sm'
+            : 'text-gray-500 hover:text-gray-700'
+            }`}
+        >
+          <Star className="h-3.5 w-3.5" /> Payments
+        </button>
+        <button
           onClick={() => setActiveTab('support')}
-          className={`px-6 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all flex items-center gap-1.5 ${activeTab === 'support'
+          className={`px-6 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all flex items-center gap-1.5 whitespace-nowrap ${activeTab === 'support'
             ? 'bg-white text-gray-900 shadow-sm'
             : 'text-gray-500 hover:text-gray-700'
             }`}
@@ -567,7 +648,290 @@ export default function BusinessDashboard() {
       </div>
 
       {/* Tab Content */}
-      {activeTab === 'team' ? (
+      {activeTab === 'analytics' ? (
+        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            {/* Server Warning if advanced analytics missing */}
+            {analytics && !analytics.advanced_analytics && (
+                <div className="bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded-xl flex items-start gap-4 shadow-sm">
+                    <AlertTriangle className="h-6 w-6 shrink-0 text-amber-600" />
+                    <div>
+                        <h3 className="font-bold text-amber-900 leading-tight">Analytics Engine Updating</h3>
+                        <p className="text-sm mt-1 text-amber-700">We recently upgraded your dashboard with new chart capabilities! However, we haven't received the advanced data payload yet. If you are a developer testing locally, please <strong>restart your Python backend server</strong> to load the new data.</p>
+                    </div>
+                </div>
+            )}
+
+            {/* Analytics Engine Space */}
+
+            {/* Advanced Analytics - Charts & Tables */}
+            {analytics?.advanced_analytics && (
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Revenue Chart */}
+                    <div className="card p-6 border border-gray-100 bg-white dark:bg-gray-800 shadow-sm lg:col-span-2">
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-xl font-black text-gray-900 tracking-tight flex items-center gap-2">
+                                <Activity className="h-5 w-5 text-primary-500" />
+                                Revenue Overview (6 Months)
+                            </h2>
+                            <span className="text-xs font-bold text-gray-500 bg-gray-100 px-3 py-1 rounded-full">Completed Bookings</span>
+                        </div>
+                        <div className="h-[300px] w-full">
+                            {analytics.advanced_analytics.revenue_trend?.length > 0 ? (
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <AreaChart data={analytics.advanced_analytics.revenue_trend} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                                        <defs>
+                                            <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
+                                                <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                                            </linearGradient>
+                                        </defs>
+                                        <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6b7280' }} dy={10} />
+                                        <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6b7280' }} tickFormatter={(value) => `$${value}`} />
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+                                        <Tooltip 
+                                            contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' }}
+                                            formatter={(value: number) => [<Price amount={value} key={value} />, "Revenue"]}
+                                        />
+                                        <Area type="monotone" dataKey="revenue" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorRevenue)" />
+                                    </AreaChart>
+                                </ResponsiveContainer>
+                            ) : (
+                                <div className="h-full flex flex-col items-center justify-center text-gray-400">
+                                    <BarChart3 className="h-10 w-10 mb-2 opacity-50" />
+                                    <p className="text-sm font-bold">No revenue data for the past 6 months</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Performance Metrics */}
+                    <div className="space-y-6 lg:col-span-1">
+                        <div className="card p-6 border border-gray-100 bg-white dark:bg-gray-800 shadow-sm relative overflow-hidden">
+                            <Star className="absolute -right-4 -top-4 h-24 w-24 text-gray-900 opacity-[0.03]" />
+                            <h3 className="text-xs font-black text-gray-400 tracking-widest uppercase mb-1">Host Rating</h3>
+                            <div className="flex items-baseline gap-2">
+                                <span className="text-4xl font-black text-gray-900 dark:text-white">{analytics.advanced_analytics.overall_rating}</span>
+                                <span className="text-sm text-gray-500 font-bold">/ 5.0</span>
+                            </div>
+                            <div className="flex gap-1 mt-3">
+                                {[1,2,3,4,5].map(star => (
+                                    <Star key={star} className={`h-4 w-4 ${star <= Math.round(analytics.advanced_analytics.overall_rating) ? 'text-gray-800 fill-gray-800' : 'text-gray-200'}`} />
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="card p-6 border border-gray-100 bg-white dark:bg-gray-800 shadow-sm relative overflow-hidden">
+                            <AlertTriangle className="absolute -right-4 -top-4 h-24 w-24 text-gray-900 opacity-[0.03]" />
+                            <h3 className="text-xs font-black text-gray-400 tracking-widest uppercase mb-1">Cancellation Rate</h3>
+                            <div className="flex items-baseline gap-2">
+                                <span className="text-4xl font-black text-gray-900 dark:text-white">{analytics.advanced_analytics.cancellation_rate}%</span>
+                            </div>
+                            <p className="text-xs font-bold text-gray-500 dark:text-gray-400 mt-2">
+                                {analytics.advanced_analytics.cancellation_rate > 10 ? 'High capacity loss' : 'Healthy engagement'}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Top Listings Table */}
+            {analytics?.advanced_analytics?.top_listings?.length > 0 && (
+                <div className="card border border-gray-100 bg-white dark:bg-gray-800 shadow-sm overflow-hidden">
+                    <div className="p-6 border-b border-gray-100 dark:border-gray-800">
+                        <h2 className="text-xl font-black text-gray-900 tracking-tight flex items-center gap-2">
+                            <Trophy className="h-5 w-5 text-yellow-500" />
+                            Top Performing Listings
+                        </h2>
+                    </div>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="bg-gray-50/50">
+                                    <th className="px-6 py-4 text-xs font-black text-gray-500 uppercase tracking-widest">Listing Name</th>
+                                    <th className="px-6 py-4 text-xs font-black text-gray-500 uppercase tracking-widest text-right">Bookings</th>
+                                    <th className="px-6 py-4 text-xs font-black text-gray-500 uppercase tracking-widest text-right">Earnings</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-100">
+                                {analytics.advanced_analytics.top_listings.map((listing: any, index: number) => (
+                                    <tr key={listing.id} className="hover:bg-gray-50/50 transition-colors">
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="h-8 w-8 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center font-black text-xs">
+                                                    #{index + 1}
+                                                </div>
+                                                <span className="font-bold text-gray-900 dark:text-white">{listing.name}</span>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 text-right font-medium text-gray-600 dark:text-gray-300">
+                                            {listing.bookings}
+                                        </td>
+                                        <td className="px-6 py-4 text-right font-black text-green-600 dark:text-green-400">
+                                            <Price amount={listing.earnings} />
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
+            <div className="card p-8 border border-gray-100 bg-white dark:bg-gray-800 shadow-sm mb-8">
+        <h2 className="text-xl font-black text-gray-900 tracking-tight mb-6 flex items-center gap-2">
+                    <Zap className="h-5 w-5 text-gray-900 dark:text-white" />
+                    Usage & Limits
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="flex flex-col">
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Visibility Multiplier</p>
+                        <p className="text-3xl font-black text-gray-900 mt-1 flex items-baseline gap-2">
+                            {analytics?.visibility_multiplier || 2.5}x
+                            <span className="text-xs text-gray-500 font-medium tracking-normal block mt-1">Maximum search ranking boost</span>
+                        </p>
+                    </div>
+                    <div className="flex flex-col">
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Rides This Month</p>
+                        <p className="text-3xl font-black text-gray-900 mt-1 flex items-baseline gap-2">
+                            {analytics?.rides_this_month || 0} <span className="text-sm text-gray-400">/ {analytics?.max_rides_per_month === -1 ? 'Unlimited' : (analytics?.max_rides_per_month || 'Unlimited')}</span>
+                            <span className="text-xs text-gray-500 font-medium tracking-normal block mt-1">Monthly limit tracker</span>
+                        </p>
+                    </div>
+                    <div className="flex flex-col">
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Active Listings</p>
+                        <p className="text-3xl font-black text-gray-900 mt-1 flex items-baseline gap-2">
+                            {analytics?.active_listings || 0} <span className="text-sm text-gray-400">/ {analytics?.max_assets === -1 ? 'Unlimited' : (analytics?.max_assets || 'Unlimited')}</span>
+                            <span className="text-xs text-gray-500 font-medium tracking-normal block mt-1">Active listings allowed</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+      ) : activeTab === 'marketing' ? (
+        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="card p-8 border border-gray-100 bg-white dark:bg-gray-800 shadow-sm">
+                <div className="flex items-start justify-between mb-6">
+                    <div>
+                        <h2 className="text-xl font-black text-gray-900 tracking-tight flex items-center gap-2">
+                            <Percent className="h-6 w-6 text-gray-900 dark:text-white" />
+                            Global Discount Campaign
+                        </h2>
+                        <p className="text-gray-500 dark:text-gray-400 mt-1 max-w-xl text-sm">
+                            Run a flash sale by quickly applying a single percentage discount across all your active listings at once. This permanently updates current pricing rules.
+                        </p>
+                    </div>
+                </div>
+
+                <form onSubmit={handleApplyDiscount} className="max-w-md bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-indigo-100">
+                    <label className="block text-sm font-bold text-gray-700 dark:text-gray-200 mb-2">
+                        Discount Percentage
+                    </label>
+                    <div className="flex gap-4">
+                        <div className="relative flex-1">
+                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <span className="text-gray-500 font-bold">%</span>
+                            </div>
+                            <input
+                                type="number"
+                                min="1"
+                                max="99"
+                                value={discountForm.percentage}
+                                onChange={e => setDiscountForm(p => ({ ...p, percentage: parseInt(e.target.value) || 0 }))}
+                                className="block w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-900 border-transparent rounded-xl focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-colors font-bold text-gray-900 dark:text-white"
+                            />
+                        </div>
+                        <button
+                            type="submit"
+                            disabled={discountForm.isApplying}
+                            className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold tracking-wide hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-100 transition-all disabled:opacity-50 flex items-center gap-2 whitespace-nowrap"
+                        >
+                            {discountForm.isApplying ? 'Applying...' : 'Apply Sale'}
+                        </button>
+                    </div>
+
+                    {discountForm.error && (
+                        <p className="text-sm text-red-600 mt-3 font-medium bg-red-50 p-2 rounded-lg flex items-center gap-2">
+                            <AlertTriangle className="h-4 w-4" /> {discountForm.error}
+                        </p>
+                    )}
+                    {discountForm.success && (
+                        <p className="text-sm text-green-600 mt-3 font-medium bg-green-50 p-2 rounded-lg flex items-center gap-2">
+                            <CheckCircle className="h-4 w-4" /> Discount rules applied to all active assets!
+                        </p>
+                    )}
+                </form>
+            </div>
+
+            <div className="card p-8 border border-gray-100 bg-white dark:bg-gray-800 shadow-sm">
+                <div className="flex items-center justify-between mb-6">
+                    <div>
+                        <h2 className="text-xl font-black text-gray-900 tracking-tight flex items-center gap-2">
+                            <UploadCloud className="h-5 w-5 text-gray-900 dark:text-white" />
+                            Listing Boosting
+                        </h2>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                            Your Plus/Business plan gives you an automatic visibility multiplier. You can optionally boost specific listings further (coming soon).
+                        </p>
+                    </div>
+                    <span className="px-3 py-1 bg-gray-100 text-gray-700 font-black text-xs uppercase tracking-widest rounded-full">
+                        Active ({analytics?.visibility_multiplier || 2.5}x)
+                    </span>
+                </div>
+            </div>
+        </div>
+      ) : activeTab === 'audience' ? (
+        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="card p-12 border border-gray-100 bg-white dark:bg-gray-800 shadow-sm relative overflow-hidden">
+                <Users className="absolute -right-4 -top-4 h-32 w-32 text-gray-900 opacity-[0.03]" />
+                <h2 className="text-2xl font-black text-gray-900 tracking-tight mb-6 relative z-10">Audience Insights</h2>
+                
+                {analytics?.advanced_analytics?.audience_insights ? (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
+                        <div>
+                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Unique Customers</p>
+                            <p className="text-4xl font-black text-gray-900 dark:text-white">
+                                {analytics.advanced_analytics.audience_insights.unique_customers}
+                            </p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 font-medium">Individuals who have booked your assets</p>
+                        </div>
+                        
+                        <div>
+                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Repeat Customer Rate</p>
+                            <p className="text-4xl font-black text-gray-900 dark:text-white">
+                                {analytics.advanced_analytics.audience_insights.repeat_customer_rate}%
+                            </p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 font-medium">Customers with more than one booking</p>
+                        </div>
+
+                        <div>
+                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Top Locations</p>
+                            <ul className="space-y-2">
+                                {analytics.advanced_analytics.audience_insights.top_locations.map((loc: any, idx: number) => (
+                                    <li key={idx} className="flex justify-between items-center text-sm font-bold text-gray-700 bg-white/60 px-3 py-2 rounded-lg">
+                                        <span>{loc.city}</span>
+                                        <span className="text-gray-500 dark:text-gray-400">{loc.count} bookings</span>
+                                    </li>
+                                ))}
+                                {analytics.advanced_analytics.audience_insights.top_locations.length === 0 && (
+                                    <li className="text-sm text-gray-500 italic">Not enough data yet</li>
+                                )}
+                            </ul>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="text-center flex flex-col items-center justify-center">
+                        <div className="h-20 w-20 bg-primary-100/50 text-primary-500 rounded-full flex items-center justify-center mb-4">
+                            <Users className="h-10 w-10" />
+                        </div>
+                        <p className="text-gray-500 max-w-md mt-2">
+                            Not enough data to generate insights yet. Insights update automatically as you complete bookings.
+                        </p>
+                    </div>
+                )}
+            </div>
+        </div>
+      ) : activeTab === 'payments' ? (
+        <PaymentMethods />
+      ) : activeTab === 'team' ? (
         <WorkerManagement />
       ) : activeTab === 'fleet' && isRide ? (
         <FleetCommand />
@@ -592,7 +956,7 @@ export default function BusinessDashboard() {
                   <h3 className="text-xl font-black text-gray-900 tracking-tight">
                     {isRide ? 'No vehicles registered yet' : 'No properties listed yet'}
                   </h3>
-                  <p className="text-gray-500 text-sm leading-relaxed">
+                  <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
                     {isRide
                       ? 'Register your first vehicle to start building your fleet and creating trips.'
                       : 'Add your first property to start managing bookings and services.'
@@ -635,7 +999,7 @@ export default function BusinessDashboard() {
                       <div className="flex justify-between items-start mb-2">
                         <div>
                           <div className="flex items-center gap-1.5 mb-1.5">
-                            {prop.asset_type === 'HOTEL' ? <Hotel className="h-3.5 w-3.5 text-primary-600" /> : prop.asset_type === 'VEHICLE' ? <Car className="h-3.5 w-3.5 text-blue-600" /> : <Utensils className="h-3.5 w-3.5 text-emerald-600" />}
+                            {prop.asset_type === 'HOTEL' ? <Hotel className="h-3.5 w-3.5 text-primary-600" /> : prop.asset_type === 'VEHICLE' ? <Car className="h-3.5 w-3.5 text-primary-600 dark:text-primary-400" /> : <Utensils className="h-3.5 w-3.5 text-emerald-600" />}
                             <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{prop.asset_type}</span>
                           </div>
                           <h3 className="text-xl font-black text-gray-900 tracking-tight">{prop.name}</h3>
@@ -647,15 +1011,15 @@ export default function BusinessDashboard() {
                       </div>
                     </div>
 
-                    <div className="flex flex-wrap items-center justify-between gap-4 mt-4 pt-4 border-t border-gray-100">
+                    <div className="flex flex-wrap items-center justify-between gap-4 mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
                       <div className="flex gap-8">
                         <div>
                           <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-0.5">{isRide ? 'Seats' : 'Rooms'}</p>
-                          <p className="text-sm font-black text-gray-900">{isRide ? (prop.properties?.seats as string) || '4' : '0'}</p>
+                          <p className="text-sm font-black text-gray-900 dark:text-white">{isRide ? (prop.properties?.seats as string) || '4' : '0'}</p>
                         </div>
                         <div>
                           <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-0.5">{isRide ? 'Condition' : 'Staff'}</p>
-                          <p className="text-sm font-black text-gray-900">{isRide ? ((prop.properties?.status as string) || 'Good') : '--'}</p>
+                          <p className="text-sm font-black text-gray-900 dark:text-white">{isRide ? ((prop.properties?.status as string) || 'Good') : '--'}</p>
                         </div>
                       </div>
 
@@ -688,7 +1052,7 @@ export default function BusinessDashboard() {
 
                   {prop.verification_status === 'PENDING' && (
                     <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
-                      <div className="bg-orange-500/90 backdrop-blur-md text-white px-6 py-2 rounded-2xl font-black tracking-widest text-lg shadow-2xl uppercase transform -rotate-6 border border-orange-400">
+                      <div className="bg-orange-600 text-white px-6 py-2 rounded-2xl font-black tracking-widest text-lg shadow-2xl uppercase transform -rotate-6 border border-orange-500">
                         Pending Review
                       </div>
                     </div>

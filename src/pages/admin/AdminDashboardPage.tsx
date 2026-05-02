@@ -14,7 +14,7 @@ export default function AdminDashboardPage() {
 
   if (isLoading) {
     return <div className="animate-pulse p-8">
-      <div className="h-8 bg-gray-200 rounded w-1/4 mb-8" />
+      <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-8" />
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {[1, 2, 3, 4].map((i) => (
           <div key={i} className="card p-6 h-32" />
@@ -28,7 +28,7 @@ export default function AdminDashboardPage() {
       title: 'Total Users',
       value: stats.total_users,
       icon: Users,
-      color: 'bg-blue-100 text-blue-600',
+      color: 'bg-primary-100 text-primary-600',
       change: '+12%',
     },
     {
@@ -57,7 +57,7 @@ export default function AdminDashboardPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Admin Dashboard</h1>
         <button className="btn-primary">
           <TrendingUp className="h-4 w-4 mr-2" />
           Export Report
@@ -73,8 +73,8 @@ export default function AdminDashboardPage() {
               </div>
               <span className="text-sm text-green-600 font-medium">{stat.change}</span>
             </div>
-            <p className="text-3xl font-bold text-gray-900">{stat.value}</p>
-            <p className="text-sm text-gray-500">{stat.title}</p>
+            <p className="text-3xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{stat.title}</p>
           </div>
         ))}
       </div>
@@ -93,7 +93,7 @@ export default function AdminDashboardPage() {
                       <AlertCircle className="h-5 w-5 text-red-500" />
                       <div>
                         <p className="font-medium">Booking #{dispute.booking_id}</p>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
                           {new Date(dispute.created_at).toLocaleDateString()}
                         </p>
                       </div>
@@ -114,20 +114,20 @@ export default function AdminDashboardPage() {
           </div>
           <div className="p-6 space-y-4">
             <div className="flex justify-between">
-              <span className="text-gray-600">Total Assets</span>
+              <span className="text-gray-600 dark:text-gray-300">Total Assets</span>
               <span className="font-semibold">{stats.total_assets}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Total Rides</span>
+              <span className="text-gray-600 dark:text-gray-300">Total Rides</span>
               <span className="font-semibold">{stats.total_rides}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Completed Transactions</span>
+              <span className="text-gray-600 dark:text-gray-300">Completed Transactions</span>
               <span className="font-semibold">{stats.completed_transactions}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Dispute Rate</span>
-              <span className="font-semibold text-red-600">
+              <span className="text-gray-600 dark:text-gray-300">Dispute Rate</span>
+              <span className="font-semibold text-red-600 dark:text-red-400">
                 {stats.dispute_rate?.toFixed(1)}%
               </span>
             </div>

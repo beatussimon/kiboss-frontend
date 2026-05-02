@@ -88,8 +88,8 @@ export default function UpgradePage() {
             price: 10000,
             icon: <Sparkles className="h-8 w-8" />,
             highlights: ['Up to 10 Active Listings', 'Available 100 Rides/mo', 'Listing Boosts Available', 'Priority Support'],
-            accent: 'text-blue-600',
-            bg: 'from-blue-50 to-indigo-50 border-blue-300'
+            accent: 'text-primary-600',
+            bg: 'from-primary-50 to-indigo-50 border-primary-300'
         },
         {
             id: 'BUSINESS',
@@ -167,7 +167,7 @@ export default function UpgradePage() {
     };
 
     if (isCheckingPending) {
-         return <div className="flex items-center justify-center min-h-[60vh]"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>;
+         return <div className="flex items-center justify-center min-h-[60vh]"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div></div>;
     }
 
     return (
@@ -185,11 +185,11 @@ export default function UpgradePage() {
             
             {/* Header */}
             <div className="text-center mb-12">
-                <div className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-100 to-blue-100 px-4 py-1.5 rounded-full mb-4">
+                <div className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-100 to-primary-100 px-4 py-1.5 rounded-full mb-4">
                     <Crown className="h-4 w-4 text-purple-600" />
                     <span className="text-sm font-bold text-purple-700">Premium Plans</span>
                 </div>
-                <h1 className="text-2xl md:text-4xl font-black text-gray-900 mb-4 tracking-tight">
+                <h1 className="text-2xl md:text-4xl font-black text-gray-900 dark:text-white mb-4 tracking-tight">
                     Upgrade Your Experience
                 </h1>
                 <p className="text-gray-500 max-w-xl mx-auto text-base">
@@ -208,7 +208,7 @@ export default function UpgradePage() {
                     return (
                         <div key={plan.id} className={`relative flex flex-col rounded-3xl border-2 p-8 transition-all duration-300 ${isCurrentPlan ? `bg-gradient-to-b ${plan.bg} ring-4 ring-primary-500/20 scale-105 shadow-xl` : `bg-white hover:border-${plan.accent.split('-')[1]}-300 hover:shadow-2xl`}`}> 
                             {isCurrentPlan && (
-                                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs font-black uppercase tracking-widest px-4 py-1.5 rounded-full shadow-lg">
+                                <div className="absolute -top-4 left-1/2 -trangray-x-1/2 bg-gray-900 text-white text-xs font-black uppercase tracking-widest px-4 py-1.5 rounded-full shadow-lg">
                                     Current Plan
                                 </div>
                             )}
@@ -217,13 +217,13 @@ export default function UpgradePage() {
                                 <div className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gray-50 shadow-inner mb-4 ${plan.accent}`}>
                                     {plan.icon}
                                 </div>
-                                <h3 className="text-xl font-black text-gray-900">{plan.name}</h3>
+                                <h3 className="text-xl font-black text-gray-900 dark:text-white">{plan.name}</h3>
                                 <div className="mt-4">
                                     {plan.price === 0 ? (
-                                        <span className="text-3xl font-black text-gray-900">Free</span>
+                                        <span className="text-3xl font-black text-gray-900 dark:text-white">Free</span>
                                     ) : (
                                         <div className="flex flex-col items-center">
-                                            <span className="text-3xl font-black text-gray-900"><Price amount={plan.price} /></span>
+                                            <span className="text-3xl font-black text-gray-900 dark:text-white"><Price amount={plan.price} /></span>
                                             <span className="text-gray-500 font-medium">/month</span>
                                         </div>
                                     )}
@@ -247,7 +247,7 @@ export default function UpgradePage() {
                                     isDowngrade ? 'bg-gray-50 text-gray-400 cursor-not-allowed shadow-none border-2 border-gray-200' :
                                     isComingSoon ? 'bg-gray-800 text-white hover:bg-gray-700 hover:shadow-xl' :
                                     hasPendingSubscription ? 'bg-amber-100 text-amber-500 cursor-not-allowed shadow-none border-2 border-amber-200' :
-                                    'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white hover:shadow-xl shadow-blue-500/30'
+                                    'bg-gradient-to-r from-primary-600 to-indigo-600 hover:from-primary-700 hover:to-indigo-700 text-white hover:shadow-xl shadow-primary-500/30'
                                 }`}
                             >
                                 {isCurrentPlan ? 'Active' : isDowngrade ? 'Included' : isComingSoon ? 'Coming Soon' : hasPendingSubscription ? 'Pending Review' : 'Upgrade Now'}
@@ -260,56 +260,56 @@ export default function UpgradePage() {
             {/* Payment Modal */}
             {showPaymentModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+                    <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden animate-in zoom-in-95 duration-300">
                         {/* Modal Header */}
-                        <div className="bg-gray-50 px-8 py-6 border-b border-gray-100 flex justify-between items-center relative overflow-hidden">
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full -mr-16 -mt-16" />
+                        <div className="bg-gray-50 dark:bg-gray-900 px-8 py-6 border-b border-gray-100 flex justify-between items-center relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-primary-500/5 rounded-full -mr-16 -mt-16" />
                             <div className="relative">
-                                <h3 className="text-2xl font-black text-gray-900">Manual Payment</h3>
-                                <p className="text-gray-500 mt-1 font-medium">Complete your upgrade to Plus Plan by making an offline payment.</p>
+                                <h3 className="text-2xl font-black text-gray-900 dark:text-white">Manual Payment</h3>
+                                <p className="text-gray-500 dark:text-gray-400 mt-1 font-medium">Complete your upgrade to Plus Plan by making an offline payment.</p>
                             </div>
-                            <button onClick={() => setShowPaymentModal(false)} className="p-2 hover:bg-gray-200 rounded-full transition-colors relative z-10"><X className="h-6 w-6 text-gray-500" /></button>
+                            <button onClick={() => setShowPaymentModal(false)} className="p-2 hover:bg-gray-200 dark:bg-gray-700 rounded-full transition-colors relative z-10"><X className="h-6 w-6 text-gray-500 dark:text-gray-400" /></button>
                         </div>
 
                         <div className="p-8 pb-3 max-h-[70vh] overflow-y-auto">
                             {/* Amount Due Box */}
-                            <div className="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl p-6 text-white text-center shadow-inner mb-8">
-                                <p className="text-blue-100 font-bold uppercase tracking-widest text-xs mb-1">Total Amount Due</p>
+                            <div className="bg-gradient-to-r from-primary-500 to-indigo-600 rounded-2xl p-6 text-white text-center shadow-inner mb-8">
+                                <p className="text-primary-100 font-bold uppercase tracking-widest text-xs mb-1">Total Amount Due</p>
                                 <p className="text-4xl font-black tracking-tight"><Price amount={10000} /></p>
                             </div>
 
                             {/* Method Selection */}
                             <div className="mb-6">
-                                <h4 className="font-bold text-gray-900 mb-3 text-lg">1. Choose Payment Method</h4>
+                                <h4 className="font-bold text-gray-900 dark:text-white mb-3 text-lg">1. Choose Payment Method</h4>
                                 <div className="flex gap-3 overflow-x-auto pb-2">
                                     {methods.map(method => (
                                         <button
                                             key={method.id}
                                             onClick={() => setSelectedMethod(method)}
-                                            className={`px-6 py-3 rounded-xl font-bold whitespace-nowrap transition-all border-2 ${selectedMethod?.id === method.id ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200 text-gray-600 hover:border-blue-300 hover:bg-gray-50'}`}
+                                            className={`px-6 py-3 rounded-xl font-bold whitespace-nowrap transition-all border-2 ${selectedMethod?.id === method.id ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-gray-200 text-gray-600 hover:border-primary-300 hover:bg-gray-50'}`}
                                         >
                                             {method.network_name}
                                         </button>
                                     ))}
-                                    {methods.length === 0 && <p className="text-sm text-gray-500">No payment methods configured.</p>}
+                                    {methods.length === 0 && <p className="text-sm text-gray-500 dark:text-gray-400">No payment methods configured.</p>}
                                 </div>
                             </div>
 
                             {selectedMethod && (
                                 <div className="space-y-8">
                                     {/* Payment Details */}
-                                    <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6">
-                                        <h4 className="font-bold text-gray-900 mb-4 text-lg">2. Make the Transfer</h4>
+                                    <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 rounded-2xl p-6">
+                                        <h4 className="font-bold text-gray-900 dark:text-white mb-4 text-lg">2. Make the Transfer</h4>
                                         <p className="text-gray-600 text-sm mb-4 leading-relaxed">{selectedMethod.instructions}</p>
                                         
                                         <div className="space-y-3">
-                                            <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex justify-between items-center group">
+                                            <div className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-100 shadow-sm flex justify-between items-center group">
                                                 <div>
                                                     <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Account Number / Network</p>
                                                     <p className="font-black text-gray-900 text-lg tracking-tight">{selectedMethod.payment_number}</p>
                                                     <p className="text-sm text-gray-500 font-medium">{selectedMethod.account_name}</p>
                                                 </div>
-                                                <button onClick={() => handleCopy(selectedMethod.payment_number)} className="p-3 bg-gray-50 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all group-hover:scale-105 active:scale-95">
+                                                <button onClick={() => handleCopy(selectedMethod.payment_number)} className="p-3 bg-gray-50 text-gray-500 hover:text-primary-600 hover:bg-primary-50 rounded-xl transition-all group-hover:scale-105 active:scale-95">
                                                     <Copy className="h-5 w-5" />
                                                 </button>
                                             </div>
@@ -318,13 +318,13 @@ export default function UpgradePage() {
 
                                     {/* Proof Submission */}
                                     <form id="payment-proof-form" onSubmit={handleSubmitPayment}>
-                                        <h4 className="font-bold text-gray-900 mb-4 text-lg">3. Submit Proof of Payment</h4>
+                                        <h4 className="font-bold text-gray-900 dark:text-white mb-4 text-lg">3. Submit Proof of Payment</h4>
                                         
                                         <div className="space-y-4">
                                             <div>
-                                                <label className="block text-sm font-bold text-gray-700 mb-2">Transaction ID / SMS Message</label>
+                                                <label className="block text-sm font-bold text-gray-700 dark:text-gray-200 mb-2">Transaction ID / SMS Message</label>
                                                 <textarea
-                                                    className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-0 transition-colors bg-gray-50 hover:bg-white"
+                                                    className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-primary-500 focus:ring-0 transition-colors bg-gray-50 hover:bg-white dark:bg-gray-800"
                                                     rows={3}
                                                     placeholder="Paste the confirmation message or transaction ID..."
                                                     value={confirmationMessage}
@@ -333,8 +333,8 @@ export default function UpgradePage() {
                                             </div>
 
                                             <div>
-                                                <label className="block text-sm font-bold text-gray-700 mb-2">Receipt Screenshot <span className="text-red-500">*</span></label>
-                                                <label className={`w-full flex-col flex items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer transition-all ${receiptFile ? 'border-green-400 bg-green-50' : 'border-gray-300 hover:border-blue-400 hover:bg-blue-50/50'}`}>
+                                                <label className="block text-sm font-bold text-gray-700 dark:text-gray-200 mb-2">Receipt Screenshot <span className="text-red-500">*</span></label>
+                                                <label className={`w-full flex-col flex items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer transition-all ${receiptFile ? 'border-green-400 bg-green-50' : 'border-gray-300 hover:border-primary-400 hover:bg-primary-50/50'}`}>
                                                     <input type="file" className="hidden" accept="image/*" onChange={handleFileChange} />
                                                     {receiptFile ? (
                                                         <div className="flex items-center gap-3 text-green-700 font-bold">
@@ -344,7 +344,7 @@ export default function UpgradePage() {
                                                     ) : (
                                                         <div className="text-center">
                                                             <div className="bg-gray-100 p-3 rounded-full inline-block mb-3 text-gray-400"><UploadCloud className="h-6 w-6" /></div>
-                                                            <p className="text-sm font-bold text-gray-600">Click to upload receipt</p>
+                                                            <p className="text-sm font-bold text-gray-600 dark:text-gray-300">Click to upload receipt</p>
                                                         </div>
                                                     )}
                                                 </label>
@@ -356,11 +356,11 @@ export default function UpgradePage() {
                         </div>
 
                         {/* Modal Footer */}
-                        <div className="bg-gray-50 px-8 py-5 border-t border-gray-100 flex justify-end gap-3 mt-4">
+                        <div className="bg-gray-50 dark:bg-gray-900 px-8 py-5 border-t border-gray-100 flex justify-end gap-3 mt-4">
                             <button
                                 type="button"
                                 onClick={() => setShowPaymentModal(false)}
-                                className="px-6 py-3 rounded-xl bg-white border-2 border-gray-200 text-gray-700 font-bold hover:bg-gray-50 focus:ring-4 focus:ring-gray-100 transition-all"
+                                className="px-6 py-3 rounded-xl bg-white dark:bg-gray-800 border-2 border-gray-200 text-gray-700 font-bold hover:bg-gray-50 focus:ring-4 focus:ring-gray-100 transition-all"
                             >
                                 Cancel
                             </button>
@@ -368,7 +368,7 @@ export default function UpgradePage() {
                                 type="submit"
                                 form="payment-proof-form"
                                 disabled={isSubmitting || methods.length === 0}
-                                className="px-8 py-3 rounded-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg shadow-blue-500/30 flex items-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
+                                className="px-8 py-3 rounded-xl font-bold bg-gradient-to-r from-primary-600 to-indigo-600 hover:from-primary-700 hover:to-indigo-700 text-white shadow-lg shadow-primary-500/30 flex items-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
                             >
                                 {isSubmitting ? (
                                     <div className="animate-spin h-5 w-5 border-2 border-white/30 border-t-white rounded-full" />
@@ -387,8 +387,8 @@ export default function UpgradePage() {
             {currentTier !== 'FREE' && (
                 <div className="mt-16 px-4">
                     <div className="card p-8 border-2 border-gray-200 rounded-3xl">
-                        <h3 className="text-lg font-black text-gray-900 mb-2">Cancel Subscription</h3>
-                        <p className="text-sm text-gray-500 mb-4">
+                        <h3 className="text-lg font-black text-gray-900 dark:text-white mb-2">Cancel Subscription</h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
                             Cancellation requests are reviewed by our team to ensure all obligations are settled.
                             Your subscription remains active until the review is complete.
                         </p>

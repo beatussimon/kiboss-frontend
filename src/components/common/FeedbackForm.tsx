@@ -42,10 +42,10 @@ export default function FeedbackForm({ isOpen, onClose, initialSubject = '', cat
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 bg-gray-900/60 backdrop-blur-sm animate-in fade-in duration-300">
-      <div className="bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl overflow-hidden relative border border-gray-100">
+      <div className="bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl overflow-hidden relative border border-gray-100 dark:border-gray-800">
         <button 
           onClick={onClose}
-          className="absolute top-6 right-6 p-2 text-gray-400 hover:text-gray-600 bg-gray-50 rounded-xl transition-colors"
+          className="absolute top-6 right-6 p-2 text-gray-400 hover:text-gray-600 bg-gray-50 dark:bg-gray-900 rounded-xl transition-colors"
         >
           <X className="h-5 w-5" />
         </button>
@@ -67,7 +67,7 @@ export default function FeedbackForm({ isOpen, onClose, initialSubject = '', cat
                   <span className="text-[10px] font-black uppercase tracking-[0.2em]">Feedback & Support</span>
                 </div>
                 <h2 className="text-3xl font-black text-gray-900 tracking-tighter leading-none">How can we help?</h2>
-                <p className="text-gray-500 text-sm font-medium">Your input helps us improve KIBOSS for everyone.</p>
+                <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">Your input helps us improve KIBOSS for everyone.</p>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-6">

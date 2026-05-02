@@ -266,10 +266,10 @@ export default function CreateRidePage() {
     return (
       <div className="max-w-2xl mx-auto">
         <div className="card p-12 text-center bg-orange-50 border-orange-200 border-2">
-          <div className="h-24 w-24 bg-white rounded-full flex items-center justify-center mx-auto mb-8 shadow-xl">
+          <div className="h-24 w-24 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-8 shadow-xl">
             <AlertTriangle className="h-12 w-12 text-orange-500" />
           </div>
-          <h1 className="text-3xl font-black text-gray-900 mb-4 tracking-tighter uppercase">Verification Required</h1>
+          <h1 className="text-3xl font-black text-gray-900 dark:text-white mb-4 tracking-tighter uppercase">Verification Required</h1>
           <p className="text-gray-600 font-medium mb-8">
             To ensure the safety of our community, all drivers must have at least one verified vehicle before they can offer rides.
           </p>
@@ -291,10 +291,10 @@ export default function CreateRidePage() {
     return (
       <div className="max-w-2xl mx-auto">
         <div className="card p-12 text-center bg-red-50 border-red-200 border-2">
-          <div className="h-24 w-24 bg-white rounded-full flex items-center justify-center mx-auto mb-8 shadow-xl">
+          <div className="h-24 w-24 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-8 shadow-xl">
             <AlertTriangle className="h-12 w-12 text-red-500" />
           </div>
-          <h1 className="text-3xl font-black text-gray-900 mb-4 tracking-tighter uppercase">Subscription Required</h1>
+          <h1 className="text-3xl font-black text-gray-900 dark:text-white mb-4 tracking-tighter uppercase">Subscription Required</h1>
           <p className="text-gray-600 font-medium mb-8">
             Your business subscription is inactive or expired. You need an active Business subscription to offer corporate rides.
           </p>
@@ -329,7 +329,7 @@ export default function CreateRidePage() {
             <Upload className="w-5 h-5" />
             Vehicle Photos
           </h2>
-          <p className="text-sm text-gray-500 mb-4">
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
             Add photos of your vehicle to help passengers identify it.
             <span className="block text-xs text-primary-600 font-semibold mt-1">If no photos are uploaded, your vehicle's photos will be used automatically.</span>
           </p>
@@ -349,7 +349,7 @@ export default function CreateRidePage() {
           </h2>
           <div className="space-y-4">
             <div>
-              <label htmlFor="route_name" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="route_name" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                 Route Name <span className="text-gray-400">(optional)</span>
               </label>
               <input
@@ -364,7 +364,7 @@ export default function CreateRidePage() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label htmlFor="origin" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="origin" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                   Origin <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -379,7 +379,7 @@ export default function CreateRidePage() {
                 />
               </div>
               <div>
-                <label htmlFor="destination" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="destination" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                   Destination <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -406,7 +406,7 @@ export default function CreateRidePage() {
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label htmlFor="departure_time" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="departure_time" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                   Departure Time <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -420,7 +420,7 @@ export default function CreateRidePage() {
                 />
               </div>
               <div>
-                <label htmlFor="estimated_arrival" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="estimated_arrival" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                   Estimated Arrival <span className="text-gray-400">(optional)</span>
                 </label>
                 <input
@@ -465,20 +465,20 @@ export default function CreateRidePage() {
                   </option>
                 ))}
               </select>
-              <p className="text-[10px] text-gray-500 mt-1 uppercase font-bold tracking-widest">
+              <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-1 uppercase font-bold tracking-widest">
                 Only verified vehicles can be used to offer rides.
               </p>
             </div>
 
             {selectedVehicleId && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-xl border border-gray-100">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800">
                 <div>
                   <p className="text-[10px] font-bold text-gray-400 uppercase">Description</p>
-                  <p className="text-sm font-black text-gray-900">{formData.vehicle_description}</p>
+                  <p className="text-sm font-black text-gray-900 dark:text-white">{formData.vehicle_description}</p>
                 </div>
                 <div>
                   <p className="text-[10px] font-bold text-gray-400 uppercase">Color</p>
-                  <p className="text-sm font-black text-gray-900">{formData.vehicle_color}</p>
+                  <p className="text-sm font-black text-gray-900 dark:text-white">{formData.vehicle_color}</p>
                 </div>
                 <div>
                   <p className="text-[10px] font-bold text-gray-400 uppercase">License Plate</p>
@@ -493,14 +493,14 @@ export default function CreateRidePage() {
         <div className="card p-6">
           <h2 className="text-lg font-semibold mb-4">Ride Configuration & Pricing</h2>
 
-          <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50 p-4 rounded-xl border border-gray-100">
+          <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50 dark:bg-gray-900 p-4 rounded-xl border border-gray-100 dark:border-gray-800">
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">Ride Classification</label>
+              <label className="block text-sm font-bold text-gray-700 dark:text-gray-200 mb-1">Ride Classification</label>
               <select
                 name="ride_type"
                 value={formData.ride_type}
                 onChange={handleInputChange}
-                className="input bg-white disabled:bg-gray-100 disabled:text-gray-500"
+                className="input bg-white disabled:bg-gray-100 disabled:text-gray-500 dark:text-gray-400"
                 disabled={mode === 'business'}
               >
                 <option value="PERSONAL">Personal Ride (Standard)</option>
@@ -519,8 +519,8 @@ export default function CreateRidePage() {
                   onChange={(e) => setFormData(prev => ({ ...prev, cargo_enabled: e.target.checked }))}
                   className="sr-only peer"
                 />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
-                <span className="ml-3 text-sm font-bold text-gray-700">Enable Cargo / Carry My Load</span>
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:trangray-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
+                <span className="ml-3 text-sm font-bold text-gray-700 dark:text-gray-200">Enable Cargo / Carry My Load</span>
               </label>
             </div>
           </div>
@@ -533,7 +533,7 @@ export default function CreateRidePage() {
                   name="assigned_driver"
                   value={formData.assigned_driver}
                   onChange={handleInputChange}
-                  className="input bg-white"
+                  className="input bg-white dark:bg-gray-800"
                 >
                   <option value="">-- Assign a driver (optional) --</option>
                   {drivers.map(d => (
@@ -551,7 +551,7 @@ export default function CreateRidePage() {
               <h3 className="text-sm font-bold text-gray-900 border-b pb-2 mb-4">Passenger Seats</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                     Total Seats <span className="text-xs text-gray-400 font-normal">(auto from vehicle)</span>
                   </label>
                   <input
@@ -565,11 +565,11 @@ export default function CreateRidePage() {
                   <p className="text-[10px] text-gray-400 mt-1 font-medium">Vehicle capacity − 1 (driver)</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                     Price per Seat <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-bold text-xs">
+                    <span className="absolute left-3 top-1/2 -trangray-y-1/2 text-gray-500 font-bold text-xs">
                       {formData.currency}
                     </span>
                     <input
@@ -585,7 +585,7 @@ export default function CreateRidePage() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                     Currency
                   </label>
                   <select
@@ -607,7 +607,7 @@ export default function CreateRidePage() {
                 <h3 className="text-sm font-bold text-primary-900 pb-2 mb-4">Cargo Capacity (Carry My Load)</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                       Max Cargo Weight (kg) <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -622,11 +622,11 @@ export default function CreateRidePage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                       Price per kg <span className="text-red-500">*</span>
                     </label>
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-bold text-xs">
+                      <span className="absolute left-3 top-1/2 -trangray-y-1/2 text-gray-500 font-bold text-xs">
                         {formData.currency}
                       </span>
                       <input
@@ -678,7 +678,7 @@ export default function CreateRidePage() {
                     <Trash2 className="w-4 h-4" />
                   </button>
 
-                  <p className="text-sm font-medium text-gray-700 mb-3">Stop {index + 1}</p>
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-3">Stop {index + 1}</p>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div>

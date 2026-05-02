@@ -10,6 +10,7 @@ class WebSocketManager {
   private reconnectTimers: Map<string, ReturnType<typeof setTimeout>> = new Map();
   private connectionTimers: Map<string, ReturnType<typeof setTimeout>> = new Map();
   private isConnecting: Map<string, boolean> = new Map();
+  private retryCounts: Map<string, number> = new Map();
   private activeThreadId: string | null = null;
 
   private constructor() {}
@@ -46,6 +47,7 @@ class WebSocketManager {
       socket.onopen = () => {
         console.log(`[WSManager] Connected to ${key}`);
         this.isConnecting.set(key, false);
+        this.retryCounts.set(key, 0); // Reset backoff on successful connect
         if (type === 'chat' && threadId) {
           this.activeThreadId = threadId;
         }
@@ -65,11 +67,25 @@ class WebSocketManager {
         this.sockets.delete(key);
         this.isConnecting.set(key, false);
         
-        // Only reconnect if not intentionally disconnected
-        // Key is still in isConnecting or sockets during connection attempt
-        // We use a timer to prevent rapid cycles
-        const timer = setTimeout(() => this.connect(type, url, threadId), 5000);
-        this.reconnectTimers.set(key, timer);
+        // Exponential Backoff with Jitter
+        const retries = this.retryCounts.get(key) || 0;
+        const maxRetries = 10;
+        
+        if (retries < maxRetries) {
+          // Base delay ranges: 1s, 2s, 4s, 8s, 16s, 30s max
+          const baseDelay = Math.min(1000 * Math.pow(2, retries), 30000);
+          // Add up to 30% jitter to prevent thundering herd
+          const jitter = baseDelay * 0.3 * Math.random();
+          const nextDelay = baseDelay + jitter;
+          
+          console.log(`[WSManager] Reconnecting ${key} in ${Math.round(nextDelay)}ms (Attempt ${retries + 1})`);
+          
+          this.retryCounts.set(key, retries + 1);
+          const timer = setTimeout(() => this.connect(type, url, threadId), nextDelay);
+          this.reconnectTimers.set(key, timer);
+        } else {
+          console.error(`[WSManager] Max retries reached for ${key}. Giving up.`);
+        }
       };
 
       socket.onerror = (error) => {
@@ -107,6 +123,7 @@ class WebSocketManager {
     }
     
     this.isConnecting.set(key, false);
+    this.retryCounts.set(key, 0); // Reset retries on manual disconnect
     
     if (type === 'chat' && this.activeThreadId === threadId) {
       this.activeThreadId = null;

@@ -50,12 +50,12 @@ export default function FAQPage() {
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
           </div>
         ) : faqs.length === 0 ? (
-          <div className="text-center p-12 text-gray-500">
+          <div className="text-center p-12 text-gray-500 dark:text-gray-400">
             No FAQs available at the moment. Please check back later.
           </div>
         ) : (
           <div className="card overflow-hidden border-none shadow-sm ring-1 ring-gray-100">
-            <div className="bg-gray-50 px-6 py-4 border-b border-gray-100">
+            <div className="bg-gray-50 dark:bg-gray-900 px-6 py-4 border-b border-gray-100 dark:border-gray-800">
               <h2 className="text-sm font-black text-gray-900 uppercase tracking-widest flex items-center gap-2">
                 <HelpCircle className="h-5 w-5" />
                 General Questions
@@ -65,12 +65,12 @@ export default function FAQPage() {
               {faqs.map((item, itemIndex) => {
                 const isOpen = openItems[`item-${itemIndex}`];
                 return (
-                  <div key={itemIndex} className="border-gray-100">
+                  <div key={itemIndex} className="border-gray-100 dark:border-gray-800">
                     <button
                       onClick={() => toggleItem(itemIndex)}
                       className="w-full px-6 py-5 text-left flex items-center justify-between hover:bg-gray-50/50 transition-colors"
                     >
-                      <span className="font-bold text-gray-700">{item.question}</span>
+                      <span className="font-bold text-gray-700 dark:text-gray-200">{item.question}</span>
                       {isOpen ? (
                         <ChevronUp className="h-4 w-4 text-primary-600 flex-shrink-0" />
                       ) : (

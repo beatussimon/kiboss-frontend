@@ -4,9 +4,9 @@ import api from '../../services/api';
 
 const initialState: AuthState = {
   user: null,
-  accessToken: localStorage.getItem('accessToken'),
-  refreshToken: localStorage.getItem('refreshToken'),
-  isAuthenticated: !!localStorage.getItem('accessToken'),
+  accessToken: null,
+  refreshToken: null,
+  isAuthenticated: false, // Will be set to true upon fetching me/ successfully
   isLoading: false,
   error: null,
 };
@@ -15,15 +15,13 @@ export const login = createAsyncThunk(
   'auth/login',
   async (credentials: { email: string; password: string }, { rejectWithValue }) => {
     try {
-      // Django SimpleJWT expects 'email' field for authentication
       const response = await api.post<LoginResponse>('/users/token/', {
         email: credentials.email,
         password: credentials.password,
       });
-      const { access, refresh, user } = response.data;
-      localStorage.setItem('accessToken', access);
-      localStorage.setItem('refreshToken', refresh);
-      return { accessToken: access, refreshToken: refresh, user };
+      // The tokens are now set as HttpOnly cookies by the backend
+      const { user } = response.data;
+      return { user };
     } catch (error: unknown) {
       const axiosError = error as { response?: { data?: { message?: string; detail?: string } } };
       return rejectWithValue(axiosError.response?.data?.message || axiosError.response?.data?.detail || 'Login failed');
@@ -47,10 +45,10 @@ export const register = createAsyncThunk(
 
 export const refreshToken = createAsyncThunk(
   'auth/refresh',
-  async (data: { accessToken: string }, { rejectWithValue }) => {
+  async (_, { rejectWithValue }) => {
     try {
-      localStorage.setItem('accessToken', data.accessToken);
-      return { accessToken: data.accessToken };
+      // Backend automatically sets HttpOnly cookie on success
+      return {};
     } catch (error) {
       return rejectWithValue('Token refresh failed');
     }
@@ -72,7 +70,7 @@ export const fetchCurrentUser = createAsyncThunk(
 
 export const updateProfile = createAsyncThunk(
   'auth/updateProfile',
-  async (data: Partial<User>, { rejectWithValue }) => {
+  async (data: Partial<User> | FormData, { rejectWithValue }) => {
     try {
       const response = await api.patch<User>('/users/me/', data);
       return response.data;
@@ -92,12 +90,14 @@ const authSlice = createSlice({
       state.accessToken = null;
       state.refreshToken = null;
       state.isAuthenticated = false;
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
+      // We don't remove from localStorage anymore, backend clears the HttpOnly cookie
     },
     updateUser: (state, action: PayloadAction<User>) => {
       state.user = action.payload;
     },
+    setAuthenticated: (state, action: PayloadAction<boolean>) => {
+      state.isAuthenticated = action.payload;
+    }
   },
   extraReducers: (builder) => {
     builder
@@ -107,8 +107,6 @@ const authSlice = createSlice({
       .addCase(login.fulfilled, (state, action) => {
         state.isLoading = false;
         state.isAuthenticated = true;
-        state.accessToken = action.payload.accessToken;
-        state.refreshToken = action.payload.refreshToken;
         state.user = action.payload.user;
       })
       .addCase(login.rejected, (state, action) => {
@@ -125,9 +123,6 @@ const authSlice = createSlice({
       .addCase(register.rejected, (state) => {
         state.isLoading = false;
       })
-      .addCase(refreshToken.fulfilled, (state, action) => {
-        state.accessToken = action.payload.accessToken;
-      })
       .addCase(fetchCurrentUser.pending, (state) => {
         state.isLoading = true;
       })
@@ -140,10 +135,6 @@ const authSlice = createSlice({
         state.isLoading = false;
         state.user = null;
         state.isAuthenticated = false;
-        state.accessToken = null;
-        state.refreshToken = null;
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
       })
       .addCase(updateProfile.fulfilled, (state, action) => {
         state.user = action.payload;
@@ -151,5 +142,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { logout, updateUser } = authSlice.actions;
+export const { logout, updateUser, setAuthenticated } = authSlice.actions;
 export default authSlice.reducer;

@@ -122,7 +122,7 @@ export default function RideEditPage() {
           </Link>
           <h1 className="text-3xl font-black text-gray-900 tracking-tighter ">Edit Trip</h1>
         </div>
-        <div className="px-4 py-2 bg-gray-100 rounded-2xl border border-gray-200">
+        <div className="px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700">
            <p className="text-[10px] font-black text-gray-400  tracking-widest">Current Status</p>
            <p className="text-sm font-black text-primary-600 ">{ride.status}</p>
         </div>
@@ -140,8 +140,8 @@ export default function RideEditPage() {
       
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Status Control */}
-        <div className="card p-8 border-none shadow-xl bg-white">
-          <h2 className="text-xl font-black text-gray-900 mb-6 flex items-center gap-2  tracking-tight">
+        <div className="card p-8 border-none shadow-xl bg-white dark:bg-gray-800">
+          <h2 className="text-xl font-black text-gray-900 dark:text-white mb-6 flex items-center gap-2  tracking-tight">
             <Ban className="w-5 h-5 text-primary-600" />
             Trip Lifecycle
           </h2>
@@ -152,7 +152,7 @@ export default function RideEditPage() {
                 name="status"
                 value={formData.status}
                 onChange={handleInputChange}
-                className="w-full bg-gray-50 border-2 border-gray-100 rounded-2xl p-4 text-sm font-black focus:ring-2 focus:ring-primary-500 focus:outline-none transition-all "
+                className="w-full bg-gray-50 dark:bg-gray-900 border-2 border-gray-100 rounded-2xl p-4 text-sm font-black focus:ring-2 focus:ring-primary-500 focus:outline-none transition-all "
               >
                 <option value="OPEN">Open for Booking</option>
                 <option value="FULL">Mark as Full</option>
@@ -171,8 +171,8 @@ export default function RideEditPage() {
         </div>
 
         {/* Route Information */}
-        <div className="card p-8 border-none shadow-xl bg-white">
-          <h2 className="text-xl font-black text-gray-900 mb-6 flex items-center gap-2  tracking-tight">
+        <div className="card p-8 border-none shadow-xl bg-white dark:bg-gray-800">
+          <h2 className="text-xl font-black text-gray-900 dark:text-white mb-6 flex items-center gap-2  tracking-tight">
             <MapPin className="w-5 h-5 text-primary-600" />
             Route Details
           </h2>
@@ -184,7 +184,7 @@ export default function RideEditPage() {
                 name="route_name"
                 value={formData.route_name}
                 onChange={handleInputChange}
-                className="w-full bg-gray-50 border-2 border-gray-100 rounded-2xl p-4 text-sm font-bold focus:ring-2 focus:ring-primary-500 focus:outline-none transition-all"
+                className="w-full bg-gray-50 dark:bg-gray-900 border-2 border-gray-100 rounded-2xl p-4 text-sm font-bold focus:ring-2 focus:ring-primary-500 focus:outline-none transition-all"
                 placeholder="e.g., Nairobi to Mombasa Express"
               />
             </div>
@@ -196,7 +196,7 @@ export default function RideEditPage() {
                   name="origin"
                   value={formData.origin}
                   onChange={handleInputChange}
-                  className="w-full bg-gray-50 border-2 border-gray-100 rounded-2xl p-4 text-sm font-bold focus:ring-2 focus:ring-primary-500 focus:outline-none transition-all"
+                  className="w-full bg-gray-50 dark:bg-gray-900 border-2 border-gray-100 rounded-2xl p-4 text-sm font-bold focus:ring-2 focus:ring-primary-500 focus:outline-none transition-all"
                   required
                 />
               </div>
@@ -207,7 +207,7 @@ export default function RideEditPage() {
                   name="destination"
                   value={formData.destination}
                   onChange={handleInputChange}
-                  className="w-full bg-gray-50 border-2 border-gray-100 rounded-2xl p-4 text-sm font-bold focus:ring-2 focus:ring-primary-500 focus:outline-none transition-all"
+                  className="w-full bg-gray-50 dark:bg-gray-900 border-2 border-gray-100 rounded-2xl p-4 text-sm font-bold focus:ring-2 focus:ring-primary-500 focus:outline-none transition-all"
                   required
                 />
               </div>
@@ -216,8 +216,8 @@ export default function RideEditPage() {
         </div>
 
         {/* Schedule */}
-        <div className="card p-8 border-none shadow-xl bg-white">
-          <h2 className="text-xl font-black text-gray-900 mb-6 flex items-center gap-2  tracking-tight">
+        <div className="card p-8 border-none shadow-xl bg-white dark:bg-gray-800">
+          <h2 className="text-xl font-black text-gray-900 dark:text-white mb-6 flex items-center gap-2  tracking-tight">
             <Clock className="w-5 h-5 text-primary-600" />
             Schedule
           </h2>
@@ -229,7 +229,7 @@ export default function RideEditPage() {
                 name="departure_time"
                 value={formData.departure_time}
                 onChange={handleInputChange}
-                className="w-full bg-gray-50 border-2 border-gray-100 rounded-2xl p-4 text-sm font-bold focus:ring-2 focus:ring-primary-500 focus:outline-none transition-all"
+                className="w-full bg-gray-50 dark:bg-gray-900 border-2 border-gray-100 rounded-2xl p-4 text-sm font-bold focus:ring-2 focus:ring-primary-500 focus:outline-none transition-all"
                 required
               />
             </div>
@@ -240,15 +240,15 @@ export default function RideEditPage() {
                 name="estimated_arrival"
                 value={formData.estimated_arrival}
                 onChange={handleInputChange}
-                className="w-full bg-gray-50 border-2 border-gray-100 rounded-2xl p-4 text-sm font-bold focus:ring-2 focus:ring-primary-500 focus:outline-none transition-all"
+                className="w-full bg-gray-50 dark:bg-gray-900 border-2 border-gray-100 rounded-2xl p-4 text-sm font-bold focus:ring-2 focus:ring-primary-500 focus:outline-none transition-all"
               />
             </div>
           </div>
         </div>
 
         {/* Pricing */}
-        <div className="card p-8 border-none shadow-xl bg-white">
-          <h2 className="text-xl font-black text-gray-900 mb-6 flex items-center gap-2  tracking-tight">
+        <div className="card p-8 border-none shadow-xl bg-white dark:bg-gray-800">
+          <h2 className="text-xl font-black text-gray-900 dark:text-white mb-6 flex items-center gap-2  tracking-tight">
             Seats & Pricing
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -271,7 +271,7 @@ export default function RideEditPage() {
                 name="seat_price"
                 value={formData.seat_price}
                 onChange={handleInputChange}
-                className="w-full bg-gray-50 border-2 border-gray-100 rounded-2xl p-4 text-sm font-bold focus:ring-2 focus:ring-primary-500 focus:outline-none transition-all"
+                className="w-full bg-gray-50 dark:bg-gray-900 border-2 border-gray-100 rounded-2xl p-4 text-sm font-bold focus:ring-2 focus:ring-primary-500 focus:outline-none transition-all"
                 step="0.01"
                 required
               />
@@ -282,7 +282,7 @@ export default function RideEditPage() {
                 name="currency"
                 value={formData.currency}
                 onChange={handleInputChange}
-                className="w-full bg-gray-50 border-2 border-gray-100 rounded-2xl p-4 text-sm font-bold focus:ring-2 focus:ring-primary-500 focus:outline-none transition-all"
+                className="w-full bg-gray-50 dark:bg-gray-900 border-2 border-gray-100 rounded-2xl p-4 text-sm font-bold focus:ring-2 focus:ring-primary-500 focus:outline-none transition-all"
               >
                 <option value="TZS">TZS</option>
                 <option value="KES">KES</option>
@@ -292,15 +292,15 @@ export default function RideEditPage() {
         </div>
 
         {/* Notes */}
-        <div className="card p-8 border-none shadow-xl bg-white">
-          <h2 className="text-xl font-black text-gray-900 mb-6 flex items-center gap-2  tracking-tight">
+        <div className="card p-8 border-none shadow-xl bg-white dark:bg-gray-800">
+          <h2 className="text-xl font-black text-gray-900 dark:text-white mb-6 flex items-center gap-2  tracking-tight">
             Driver Notes
           </h2>
           <textarea
             name="driver_notes"
             value={formData.driver_notes}
             onChange={handleInputChange}
-            className="w-full bg-gray-50 border-2 border-gray-100 rounded-2xl p-4 text-sm font-medium focus:ring-2 focus:ring-primary-500 focus:outline-none transition-all min-h-[120px]"
+            className="w-full bg-gray-50 dark:bg-gray-900 border-2 border-gray-100 rounded-2xl p-4 text-sm font-medium focus:ring-2 focus:ring-primary-500 focus:outline-none transition-all min-h-[120px]"
             placeholder="Additional trip details..."
           />
         </div>
@@ -318,7 +318,7 @@ export default function RideEditPage() {
           <button 
             type="button" 
             onClick={() => navigate(-1)} 
-            className="px-8 bg-white border-2 border-gray-100 rounded-2xl font-black text-gray-400  tracking-widest hover:bg-gray-50 transition-all"
+            className="px-8 bg-white dark:bg-gray-800 border-2 border-gray-100 rounded-2xl font-black text-gray-400  tracking-widest hover:bg-gray-50 transition-all"
           >
             Cancel
           </button>

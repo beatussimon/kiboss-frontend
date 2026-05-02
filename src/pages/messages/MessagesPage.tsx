@@ -53,15 +53,15 @@ export default function MessagesPage() {
 
   const getContextIcon = (thread: typeof threads[0]) => {
     if (thread.thread_type === 'BOOKING' || thread.booking) {
-      return <Calendar className="h-4 w-4 text-blue-600" />;
+      return <Calendar className="h-4 w-4 text-primary-600 dark:text-primary-400" />;
     }
     if (thread.thread_type === 'RIDE' || thread.ride) {
-      return <Car className="h-4 w-4 text-green-600" />;
+      return <Car className="h-4 w-4 text-green-600 dark:text-green-400" />;
     }
     if (thread.thread_type === 'SUPPORT') {
       return <MessageCircle className="h-4 w-4 text-purple-600" />;
     }
-    return <Home className="h-4 w-4 text-gray-600" />;
+    return <Home className="h-4 w-4 text-gray-600 dark:text-gray-300" />;
   };
 
   const getContextLabel = (thread: typeof threads[0]) => {
@@ -83,8 +83,8 @@ export default function MessagesPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Messages</h1>
-        <p className="text-sm text-gray-500">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Messages</h1>
+        <p className="text-sm text-gray-500 dark:text-gray-400">
           Continue conversations about your listings and bookings
         </p>
       </div>
@@ -92,7 +92,7 @@ export default function MessagesPage() {
       {/* Search */}
       <div className="mb-4">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 transform -trangray-y-1/2 h-5 w-5 text-gray-400" />
           <input
             type="text"
             placeholder="Search conversations..."
@@ -108,10 +108,10 @@ export default function MessagesPage() {
           {[1, 2, 3].map((i) => (
             <div key={i} className="card p-4 animate-pulse">
               <div className="flex gap-4">
-                <div className="w-12 h-12 bg-gray-200 rounded-full" />
+                <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-full" />
                 <div className="flex-1 space-y-2">
-                  <div className="h-4 bg-gray-200 rounded w-1/3" />
-                  <div className="h-4 bg-gray-200 rounded w-1/2" />
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3" />
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2" />
                 </div>
               </div>
             </div>
@@ -126,12 +126,12 @@ export default function MessagesPage() {
               <Link
                 key={thread.id}
                 to={`/messages/${thread.id}`}
-                className={`card p-4 hover:shadow-md transition-shadow block border-l-4 ${
+                className={`card p-4 hover:shadow-lg transition-shadow block border-l-4 ${
                   isUnread ? 'border-l-primary-600 bg-primary-50/10' : 'border-l-transparent'
                 }`}
               >
                 <div className="flex gap-4 relative">
-                  <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center overflow-hidden">
+                  <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center overflow-hidden">
                     {otherUser?.profile?.avatar ? (
                       <img 
                         src={getMediaUrl(otherUser.profile.avatar)} 
@@ -145,10 +145,10 @@ export default function MessagesPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-2">
-                        <p className={`text-gray-900 truncate ${isUnread ? 'font-bold' : 'font-semibold'}`}>
+                        <p className={`text-gray-900 dark:text-white truncate ${isUnread ? 'font-bold' : 'font-semibold'}`}>
                           {getUserDisplayName(otherUser)}
                         </p>
-                        <span className="flex items-center gap-1 text-[10px] px-2 py-0.5 bg-white border border-gray-100 rounded-full font-bold uppercase tracking-wider text-gray-500">
+                        <span className="flex items-center gap-1 text-[10px] px-2 py-0.5 bg-white dark:bg-gray-800 border border-gray-100 rounded-full font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                           {getContextIcon(thread)}
                           <span>{getContextLabel(thread)}</span>
                         </span>
@@ -184,8 +184,8 @@ export default function MessagesPage() {
       ) : (
         <div className="card p-12 text-center">
           <MessageCircle className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No messages yet</h3>
-          <p className="text-gray-500">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No messages yet</h3>
+          <p className="text-gray-500 dark:text-gray-400">
             Messages about your listings and bookings will appear here.
           </p>
           <p className="text-sm text-gray-400 mt-2">

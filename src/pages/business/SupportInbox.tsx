@@ -62,15 +62,15 @@ export default function SupportInbox() {
                         <HeadphonesIcon className="h-5 w-5 text-gray-400" />
                         Support Inbox
                     </h2>
-                    <p className="text-sm text-gray-500 mt-1">{threads.length} support conversations</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{threads.length} support conversations</p>
                 </div>
             </div>
 
             {threads.length === 0 ? (
-                <div className="card p-12 text-center border-dashed border-2 border-gray-200">
+                <div className="card p-12 text-center border-dashed border-2 border-gray-200 dark:border-gray-700">
                     <MessageCircle className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-bold text-gray-900 mb-2">No support requests yet</h3>
-                    <p className="text-gray-500 text-sm">Customer support messages will appear here when they reach out.</p>
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">No support requests yet</h3>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm">Customer support messages will appear here when they reach out.</p>
                 </div>
             ) : (
                 <div className="space-y-3">
@@ -98,7 +98,7 @@ export default function SupportInbox() {
                                         </span>
                                     )}
                                 </div>
-                                <p className="text-xs text-gray-500 truncate">
+                                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                                     {thread.latest_message?.content || 'No messages yet'}
                                 </p>
                             </div>

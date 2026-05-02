@@ -52,7 +52,7 @@ export default function ContractDetailPage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px]">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-        <p className="mt-4 text-gray-500">Loading legal document...</p>
+        <p className="mt-4 text-gray-500 dark:text-gray-400">Loading legal document...</p>
       </div>
     );
   }
@@ -61,8 +61,8 @@ export default function ContractDetailPage() {
     return (
       <div className="card p-8 text-center max-w-2xl mx-auto mt-8">
         <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-        <h2 className="text-xl font-bold text-gray-900 mb-2">Contract Not Found</h2>
-        <p className="text-gray-500 mb-6">{error || 'This contract does not exist or you do not have permission to view it.'}</p>
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Contract Not Found</h2>
+        <p className="text-gray-500 dark:text-gray-400 mb-6">{error || 'This contract does not exist or you do not have permission to view it.'}</p>
         <Link to="/bookings" className="btn-primary inline-flex items-center">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Bookings
@@ -92,7 +92,7 @@ export default function ContractDetailPage() {
         </div>
       </div>
 
-      <div className="bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-100">
+      <div className="bg-white dark:bg-gray-800 shadow-xl rounded-2xl overflow-hidden border border-gray-100 dark:border-gray-800">
         {/* Header Section */}
         <div className="bg-gray-900 text-white p-8">
           <div className="flex items-center gap-3 mb-4">
@@ -117,29 +117,29 @@ export default function ContractDetailPage() {
         <div className="p-8 md:p-12 space-y-10">
           {/* Parties */}
           <section>
-            <h2 className="text-lg font-bold text-gray-900 mb-4 pb-2 border-b border-gray-100 uppercase tracking-wide">1. The Parties</h2>
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4 pb-2 border-b border-gray-100 uppercase tracking-wide">1. The Parties</h2>
             <div className="grid md:grid-cols-2 gap-6">
-              <div className="p-4 bg-gray-50 rounded-xl">
+              <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-xl">
                 <p className="text-xs font-bold text-gray-400 uppercase mb-2">Owner / Provider</p>
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center border border-gray-200">
+                  <div className="w-10 h-10 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center border border-gray-200 dark:border-gray-700">
                     <User className="h-5 w-5 text-gray-400" />
                   </div>
                   <div>
-                    <p className="font-bold text-gray-900">Resource Owner</p>
-                    <p className="text-xs text-gray-500">Verified Platform User</p>
+                    <p className="font-bold text-gray-900 dark:text-white">Resource Owner</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Verified Platform User</p>
                   </div>
                 </div>
               </div>
-              <div className="p-4 bg-gray-50 rounded-xl">
+              <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-xl">
                 <p className="text-xs font-bold text-gray-400 uppercase mb-2">Renter / User</p>
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center border border-gray-200">
+                  <div className="w-10 h-10 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center border border-gray-200 dark:border-gray-700">
                     <User className="h-5 w-5 text-gray-400" />
                   </div>
                   <div>
-                    <p className="font-bold text-gray-900">Platform Renter</p>
-                    <p className="text-xs text-gray-500">Verified Identity</p>
+                    <p className="font-bold text-gray-900 dark:text-white">Platform Renter</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Verified Identity</p>
                   </div>
                 </div>
               </div>
@@ -147,20 +147,20 @@ export default function ContractDetailPage() {
           </section>
 
           {/* Core Terms */}
-          <section className="prose prose-sm max-w-none text-gray-600">
-            <h2 className="text-lg font-bold text-gray-900 mb-4 pb-2 border-b border-gray-100 uppercase tracking-wide">2. Standard Terms</h2>
+          <section className="prose prose-sm max-w-none text-gray-600 dark:text-gray-300">
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4 pb-2 border-b border-gray-100 uppercase tracking-wide">2. Standard Terms</h2>
             <div className="space-y-4">
               <div className="flex gap-4">
                 <Shield className="h-5 w-5 text-primary-600 flex-shrink-0" />
                 <div>
-                  <p className="font-bold text-gray-900">Liability & Insurance</p>
+                  <p className="font-bold text-gray-900 dark:text-white">Liability & Insurance</p>
                   <p>The Renter agrees to assume all responsibility for the item/service during the rental period. KIBOSS provides an escrow-based protection but does not replace professional insurance.</p>
                 </div>
               </div>
               <div className="flex gap-4">
                 <Info className="h-5 w-5 text-primary-600 flex-shrink-0" />
                 <div>
-                  <p className="font-bold text-gray-900">Usage Policies</p>
+                  <p className="font-bold text-gray-900 dark:text-white">Usage Policies</p>
                   <p>The Renter must adhere to the specific usage rules defined by the Owner. This includes cancellation policies ({contract.cancellation_policy}), damage policies ({contract.damage_policy}), and late return penalties ({contract.late_return_policy}).</p>
                 </div>
               </div>
@@ -168,40 +168,40 @@ export default function ContractDetailPage() {
           </section>
 
           {/* Snapshot Data (Simulated for Now) */}
-          <section className="bg-blue-50/50 p-6 rounded-2xl border border-blue-100">
-            <h2 className="text-sm font-bold text-blue-900 mb-4 uppercase tracking-wider flex items-center">
+          <section className="bg-primary-50/50 p-6 rounded-2xl border border-primary-100">
+            <h2 className="text-sm font-bold text-primary-900 mb-4 uppercase tracking-wider flex items-center">
               <CheckCircle className="h-4 w-4 mr-2" />
               Contract Snapshot
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-white p-3 rounded-lg shadow-sm border border-blue-100">
+              <div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm border border-primary-100">
                 <p className="text-[10px] text-gray-400 font-bold uppercase mb-1">Jurisdiction</p>
-                <p className="text-xs font-bold text-blue-900">{contract.jurisdiction}</p>
+                <p className="text-xs font-bold text-primary-900">{contract.jurisdiction}</p>
               </div>
-              <div className="bg-white p-3 rounded-lg shadow-sm border border-blue-100">
+              <div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm border border-primary-100">
                 <p className="text-[10px] text-gray-400 font-bold uppercase mb-1">Agreement Type</p>
-                <p className="text-xs font-bold text-blue-900">Peer-to-Peer Rental</p>
+                <p className="text-xs font-bold text-primary-900">Peer-to-Peer Rental</p>
               </div>
-              <div className="bg-white p-3 rounded-lg shadow-sm border border-blue-100">
+              <div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm border border-primary-100">
                 <p className="text-[10px] text-gray-400 font-bold uppercase mb-1">Status</p>
-                <p className="text-xs font-bold text-blue-900">{contract.status}</p>
+                <p className="text-xs font-bold text-primary-900">{contract.status}</p>
               </div>
-              <div className="bg-white p-3 rounded-lg shadow-sm border border-blue-100">
+              <div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm border border-primary-100">
                 <p className="text-[10px] text-gray-400 font-bold uppercase mb-1">Digital Trace</p>
-                <p className="text-[10px] font-mono font-bold text-blue-900">HASH_{contract.id.substring(0, 8)}</p>
+                <p className="text-[10px] font-mono font-bold text-primary-900">HASH_{contract.id.substring(0, 8)}</p>
               </div>
             </div>
           </section>
 
           {/* Signatures */}
-          <section className="pt-8 mt-8 border-t border-gray-100">
+          <section className="pt-8 mt-8 border-t border-gray-100 dark:border-gray-800">
             <div className="grid md:grid-cols-2 gap-12">
               <div className="space-y-4">
                 <h3 className="font-bold text-gray-900 flex items-center gap-2">
                   Owner Signature
                   {contract.owner_signature && <CheckCircle className="h-4 w-4 text-green-500" />}
                 </h3>
-                <div className="h-24 bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center italic text-gray-400">
+                <div className="h-24 bg-gray-50 dark:bg-gray-900 border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center italic text-gray-400">
                   {contract.owner_signature ? (
                     <div className="text-center">
                       <p className="text-gray-900 font-signature text-xl">Electronically Signed</p>
@@ -217,7 +217,7 @@ export default function ContractDetailPage() {
                   Renter Signature
                   {contract.renter_signature && <CheckCircle className="h-4 w-4 text-green-500" />}
                 </h3>
-                <div className="h-24 bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center italic text-gray-400">
+                <div className="h-24 bg-gray-50 dark:bg-gray-900 border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center italic text-gray-400">
                   {contract.renter_signature ? (
                     <div className="text-center">
                       <p className="text-gray-900 font-signature text-xl">Electronically Signed</p>

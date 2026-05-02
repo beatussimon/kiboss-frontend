@@ -30,7 +30,7 @@ export default function TaskDashboard() {
   const getRoleConfig = () => {
     if (isSuperRole) return { title: 'Internal Task Dashboard', subtitle: 'Full Administrative Control', icon: <Shield className="h-6 w-6" />, label: 'Super Admin', accent: 'from-primary-600 to-primary-700' };
     if (userRoles.includes('VERIFIER')) return { title: 'Verification Workspace', subtitle: 'Identity & Vehicle Review', icon: <CheckCircle className="h-6 w-6" />, label: 'Verifier', accent: 'from-emerald-600 to-emerald-700' };
-    if (userRoles.includes('CAR_VERIFIER')) return { title: 'Fleet Verification', subtitle: 'Vehicle & Asset Review', icon: <Car className="h-6 w-6" />, label: 'Car Verifier', accent: 'from-blue-600 to-blue-700' };
+    if (userRoles.includes('CAR_VERIFIER')) return { title: 'Fleet Verification', subtitle: 'Vehicle & Asset Review', icon: <Car className="h-6 w-6" />, label: 'Car Verifier', accent: 'from-primary-600 to-primary-700' };
     if (userRoles.includes('RIDE_BUSINESS_VERIFIER')) return { title: 'Ride Business Verification', subtitle: 'Corporate Transport Review', icon: <Briefcase className="h-6 w-6" />, label: 'Ride Business Verifier', accent: 'from-violet-600 to-violet-700' };
     if (userRoles.includes('ASSET_BUSINESS_VERIFIER')) return { title: 'Asset Business Verification', subtitle: 'Corporate Real Estate Review', icon: <Briefcase className="h-6 w-6" />, label: 'Asset Business Verifier', accent: 'from-violet-600 to-violet-700' };
     if (userRoles.includes('SUPPORT')) return { title: 'Support & Resolution Hub', subtitle: 'Ticket & Dispute Management', icon: <MessageSquare className="h-6 w-6" />, label: 'Support', accent: 'from-sky-600 to-sky-700' };
@@ -84,14 +84,19 @@ export default function TaskDashboard() {
     
     setIsProcessing(true);
     let successCount = 0;
-    for (const taskId of selectedTasks) {
-      try {
-        await api.post(`/tasks/${taskId}/process/`, { action: 'APPROVE', notes: 'Batch Approved' });
-        successCount++;
-      } catch (e) {
-        console.error(`Failed to approve ${taskId}`, e);
-      }
+    
+    // Process in chunks of 5 to avoid overloading the backend
+    const chunkSize = 5;
+    for (let i = 0; i < selectedTasks.length; i += chunkSize) {
+      const chunk = selectedTasks.slice(i, i + chunkSize);
+      const promises = chunk.map(taskId => 
+        api.post(`/tasks/${taskId}/process/`, { action: 'APPROVE', notes: 'Batch Approved' })
+          .then(() => { successCount++; })
+          .catch(e => { console.error(`Failed to approve ${taskId}`, e); })
+      );
+      await Promise.all(promises);
     }
+    
     toast.success(`Successfully approved ${successCount}/${selectedTasks.length} tasks`);
     setSelectedTasks([]);
     fetchData();
@@ -119,6 +124,15 @@ export default function TaskDashboard() {
       fetchAnalytics();
     }
   }, [isSuperRole, activeTab]);
+
+  useEffect(() => {
+    const handleNotification = (event: any) => {
+      // Refresh dashboard when a notification is received
+      fetchData();
+    };
+    window.addEventListener('ws:notification', handleNotification);
+    return () => window.removeEventListener('ws:notification', handleNotification);
+  }, []);
 
   const fetchData = async (tab?: string) => {
     try {
@@ -283,10 +297,10 @@ export default function TaskDashboard() {
                 <Briefcase className="h-3 w-3" /> Business Identity
               </h3>
               <div className="space-y-4">
-                <div><p className="text-[10px] font-bold text-gray-500 uppercase">Company Name</p><p className="text-sm font-black text-gray-900">{detail.company_name}</p></div>
+                <div><p className="text-[10px] font-bold text-gray-500 uppercase">Company Name</p><p className="text-sm font-black text-gray-900 dark:text-white">{detail.company_name}</p></div>
                 <div className="grid grid-cols-2 gap-4">
-                  <div><p className="text-[10px] font-bold text-gray-500 uppercase">Reg. Number</p><p className="text-xs font-bold text-gray-900">{detail.registration_number}</p></div>
-                  <div><p className="text-[10px] font-bold text-gray-500 uppercase">Tax ID / TIN</p><p className="text-xs font-bold text-gray-900">{detail.tax_id}</p></div>
+                  <div><p className="text-[10px] font-bold text-gray-500 uppercase">Reg. Number</p><p className="text-xs font-bold text-gray-900 dark:text-white">{detail.registration_number}</p></div>
+                  <div><p className="text-[10px] font-bold text-gray-500 uppercase">Tax ID / TIN</p><p className="text-xs font-bold text-gray-900 dark:text-white">{detail.tax_id}</p></div>
                 </div>
                 <div><p className="text-[10px] font-bold text-gray-500 uppercase">Represented By</p><p className="text-sm font-black text-primary-600">{detail.user_email}</p></div>
               </div>
@@ -298,15 +312,15 @@ export default function TaskDashboard() {
               <div className="space-y-3">
                 {(detail.verification_documents || []).length > 0 ? (
                   detail.verification_documents.map((doc: any, idx: number) => (
-                    <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-transparent">
+                    <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900 rounded-xl border border-transparent">
                       <div className="flex items-center gap-3">
                         <FileText className="h-4 w-4 text-gray-400" />
-                        <div><p className="text-xs font-bold text-gray-900">{doc.name}</p><p className="text-[8px] font-black text-gray-400 uppercase">Size: {(doc.size / 1024).toFixed(1)} KB</p></div>
+                        <div><p className="text-xs font-bold text-gray-900 dark:text-white">{doc.name}</p><p className="text-[8px] font-black text-gray-400 uppercase">Size: {(doc.size / 1024).toFixed(1)} KB</p></div>
                       </div>
                       <span className="text-[10px] font-black text-primary-600 uppercase">STAMPED</span>
                     </div>
                   ))
-                ) : (<p className="text-xs italic text-gray-500">No digital documents attached.</p>)}
+                ) : (<p className="text-xs italic text-gray-500 dark:text-gray-400">No digital documents attached.</p>)}
               </div>
             </div>
             <div className="md:col-span-2 card p-6 bg-primary-50/50 border-primary-100">
@@ -328,8 +342,8 @@ export default function TaskDashboard() {
             <div className="card p-6">
               <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2"><User className="h-3 w-3" /> Applicant & Resource</h3>
               <div className="space-y-4">
-                <div><p className="text-[10px] font-bold text-gray-500 uppercase">Owner</p><p className="text-sm font-black text-gray-900">{detail.owner_email}</p></div>
-                <div><p className="text-[10px] font-bold text-gray-500 uppercase">Location</p><p className="text-sm font-black text-gray-900">{detail.city}, {detail.country}</p></div>
+                <div><p className="text-[10px] font-bold text-gray-500 uppercase">Owner</p><p className="text-sm font-black text-gray-900 dark:text-white">{detail.owner_email}</p></div>
+                <div><p className="text-[10px] font-bold text-gray-500 uppercase">Location</p><p className="text-sm font-black text-gray-900 dark:text-white">{detail.city}, {detail.country}</p></div>
                 <div className="grid grid-cols-2 gap-4">
                   {Object.entries(detail.properties || {}).map(([key, val]) => (
                     <div key={key}><p className="text-[10px] font-bold text-gray-500 uppercase">{key.replace('_', ' ')}</p><p className="text-xs font-bold text-primary-600">{val as string}</p></div>
@@ -341,8 +355,8 @@ export default function TaskDashboard() {
               <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2"><FileText className="h-3 w-3" /> Uploaded Documents</h3>
               <div className="space-y-3">
                 {detail.documents?.map((doc: any) => (
-                  <a key={doc.id} href={getMediaUrl(doc.file)} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-3 bg-gray-50 rounded-xl hover:bg-primary-50 transition-all border border-transparent group">
-                    <div className="flex items-center gap-3"><FileText className="h-4 w-4 text-gray-400" /><div><p className="text-xs font-bold text-gray-900">{doc.name}</p><p className="text-[8px] font-black text-primary-600 uppercase">{doc.document_type}</p></div></div>
+                  <a key={doc.id} href={getMediaUrl(doc.file)} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900 rounded-xl hover:bg-primary-50 transition-all border border-transparent group">
+                    <div className="flex items-center gap-3"><FileText className="h-4 w-4 text-gray-400" /><div><p className="text-xs font-bold text-gray-900 dark:text-white">{doc.name}</p><p className="text-[8px] font-black text-primary-600 uppercase">{doc.document_type}</p></div></div>
                     <ExternalLink className="h-3 w-3 text-gray-300 group-hover:text-primary-600" />
                   </a>
                 ))}
@@ -365,8 +379,8 @@ export default function TaskDashboard() {
             <div className="card p-6">
               <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2"><User className="h-3 w-3" /> User Identity Profile</h3>
               <div className="space-y-4">
-                <div><p className="text-[10px] font-bold text-gray-500 uppercase">Full Name</p><p className="text-sm font-black text-gray-900">{detail.first_name} {detail.last_name}</p></div>
-                <div><p className="text-[10px] font-bold text-gray-500 uppercase">Email Address</p><p className="text-sm font-black text-gray-900">{detail.email}</p></div>
+                <div><p className="text-[10px] font-bold text-gray-500 uppercase">Full Name</p><p className="text-sm font-black text-gray-900 dark:text-white">{detail.first_name} {detail.last_name}</p></div>
+                <div><p className="text-[10px] font-bold text-gray-500 uppercase">Email Address</p><p className="text-sm font-black text-gray-900 dark:text-white">{detail.email}</p></div>
                 <div className="grid grid-cols-2 gap-4">
                   <div><p className="text-[10px] font-bold text-gray-500 uppercase">Email Verified</p><p className={`text-xs font-bold ${detail.is_email_verified ? 'text-green-600' : 'text-red-600'}`}>{detail.is_email_verified ? 'Yes' : 'No'}</p></div>
                   <div><p className="text-[10px] font-bold text-gray-500 uppercase">Phone Verified</p><p className={`text-xs font-bold ${detail.is_phone_verified ? 'text-green-600' : 'text-red-600'}`}>{detail.is_phone_verified ? 'Yes' : 'No'}</p></div>
@@ -377,13 +391,13 @@ export default function TaskDashboard() {
               <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2"><Shield className="h-3 w-3" /> Identification Document</h3>
               {detail.profile?.identity_document ? (
                 <div className="space-y-4">
-                  <p className="text-xs font-medium text-gray-600">Review the government ID provided.</p>
+                  <p className="text-xs font-medium text-gray-600 dark:text-gray-300">Review the government ID provided.</p>
                   <a href={getMediaUrl(detail.profile.identity_document)} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-4 bg-primary-50 rounded-2xl border border-primary-200 group transition-all hover:bg-primary-100">
-                    <div className="flex items-center gap-3"><FileText className="h-6 w-6 text-primary-600" /><div><p className="text-sm font-black text-gray-900">Identity Document</p><p className="text-[10px] font-bold text-primary-600 uppercase">Open & verify</p></div></div>
+                    <div className="flex items-center gap-3"><FileText className="h-6 w-6 text-primary-600" /><div><p className="text-sm font-black text-gray-900 dark:text-white">Identity Document</p><p className="text-[10px] font-bold text-primary-600 uppercase">Open & verify</p></div></div>
                     <ExternalLink className="h-4 w-4 text-primary-400 group-hover:text-primary-600" />
                   </a>
                 </div>
-              ) : <div className="flex flex-col items-center justify-center h-full py-8 text-center bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200"><AlertCircle className="h-8 w-8 text-gray-300 mb-2" /><p className="text-xs font-black text-gray-400 uppercase tracking-widest">No Document Found</p></div>}
+              ) : <div className="flex flex-col items-center justify-center h-full py-8 text-center bg-gray-50 dark:bg-gray-900 rounded-2xl border-2 border-dashed border-gray-200 dark:border-gray-700"><AlertCircle className="h-8 w-8 text-gray-300 mb-2" /><p className="text-xs font-black text-gray-400 uppercase tracking-widest">No Document Found</p></div>}
             </div>
           </div>
         );
@@ -401,29 +415,29 @@ export default function TaskDashboard() {
         const clientInitial = clientName ? clientName.charAt(0).toUpperCase() : 'U';
 
         return (
-          <div className="card p-6 bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-100">
+          <div className="card p-6 bg-gradient-to-br from-primary-50 to-indigo-50 border-primary-100">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xs font-black text-blue-600 uppercase tracking-widest flex items-center gap-2">
+              <h3 className="text-xs font-black text-primary-600 uppercase tracking-widest flex items-center gap-2">
                 <MessageSquare className="h-4 w-4" />
                 {detail.id ? 'Live Support Connection' : 'Support Request'}
               </h3>
               {detail.message_count !== undefined && (
-                <span className="text-xs font-bold text-blue-600 bg-blue-100/50 px-2 py-1 rounded border border-blue-200">
+                <span className="text-xs font-bold text-primary-600 bg-primary-100/50 px-2 py-1 rounded border border-primary-200 dark:border-primary-800">
                   {detail.message_count} Message{detail.message_count !== 1 ? 's' : ''}
                 </span>
               )}
             </div>
             <div className="space-y-6">
               {detail.id ? (
-                <div className="bg-white rounded-2xl p-6 shadow-sm border border-blue-100">
-                  <div className="flex items-center gap-4 mb-6 pb-6 border-b border-gray-100">
-                    <div className="h-12 w-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-lg border-2 border-white shadow-sm">{clientInitial}</div>
-                    <div><h4 className="text-base font-black text-gray-900 leading-tight">{clientName}</h4><p className="text-xs font-medium text-gray-500 mt-0.5">{clientUser?.email || detail.user_email || task.created_by_email}</p></div>
+                <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-primary-100">
+                  <div className="flex items-center gap-4 mb-6 pb-6 border-b border-gray-100 dark:border-gray-800">
+                    <div className="h-12 w-12 bg-primary-100 rounded-full flex items-center justify-center text-primary-600 font-bold text-lg border-2 border-white shadow-sm">{clientInitial}</div>
+                    <div><h4 className="text-base font-black text-gray-900 dark:text-white leading-tight">{clientName}</h4><p className="text-xs font-medium text-gray-500 dark:text-gray-400 mt-0.5">{clientUser?.email || detail.user_email || task.created_by_email}</p></div>
                   </div>
-                  <div className="bg-gray-50 rounded-xl p-4 mb-6 border border-gray-100">
+                  <div className="bg-gray-50 dark:bg-gray-900 rounded-xl p-4 mb-6 border border-gray-100 dark:border-gray-800">
                     <h5 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center justify-between">
                       <span>Subject: {detail.subject || 'Support Request'}</span>
-                      {detail.last_message && (<span className="text-[10px] bg-white px-2 py-0.5 rounded border border-gray-200">Latest</span>)}
+                      {detail.last_message && (<span className="text-[10px] bg-white px-2 py-0.5 rounded border border-gray-200 dark:border-gray-700">Latest</span>)}
                     </h5>
                     <p className="text-sm font-medium text-gray-700 italic border-l-2 border-primary-200 pl-3 py-1">
                       "{detail.last_message?.content || detail.message || 'No messages yet.'}"
@@ -431,17 +445,17 @@ export default function TaskDashboard() {
                     {detail.last_message && (<p className="text-[10px] text-gray-400 mt-3 text-right font-medium pr-1">{new Date(detail.last_message.created_at).toLocaleString()}</p>)}
                   </div>
                   {detail.is_resolved !== undefined ? (
-                    <div className="flex items-center gap-2 px-4 py-3 bg-blue-50 rounded-xl text-sm font-bold text-blue-800 border border-blue-100"><AlertCircle className="h-5 w-5 text-blue-500 flex-shrink-0" />Feedback form submitted — please reach out via email.</div>
+                    <div className="flex items-center gap-2 px-4 py-3 bg-primary-50 rounded-xl text-sm font-bold text-primary-800 border border-primary-100"><AlertCircle className="h-5 w-5 text-primary-500 flex-shrink-0" />Feedback form submitted — please reach out via email.</div>
                   ) : (
                     <div className="flex items-center justify-end mt-4">
-                      <button onClick={() => navigate(`/messages/${detail.id}`)} className="btn-primary w-full sm:w-auto px-6 py-2.5 rounded-xl shadow-md shadow-primary-500/20 flex items-center justify-center gap-2 hover:translate-y-[-1px] transition-all">
+                      <button onClick={() => navigate(`/messages/${detail.id}`)} className="btn-primary w-full sm:w-auto px-6 py-2.5 rounded-xl shadow-md shadow-primary-500/20 flex items-center justify-center gap-2 hover:trangray-y-[-1px] transition-all">
                         <MessageSquare className="h-4 w-4" /> Enter Live Chat
                       </button>
                     </div>
                   )}
                 </div>
               ) : (
-                <div className="bg-white rounded-2xl p-6 shadow-sm border border-red-50 text-center"><AlertCircle className="h-8 w-8 text-red-400 mx-auto mb-3" /><p className="text-sm font-medium text-gray-900">No direct connection found.</p><p className="text-xs text-gray-500 mt-1 italic">This support ticket is missing its threaded context.</p></div>
+                <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-red-50 text-center"><AlertCircle className="h-8 w-8 text-red-400 mx-auto mb-3" /><p className="text-sm font-medium text-gray-900 dark:text-white">No direct connection found.</p><p className="text-xs text-gray-500 dark:text-gray-400 mt-1 italic">This support ticket is missing its threaded context.</p></div>
               )}
             </div>
           </div>
@@ -476,12 +490,12 @@ export default function TaskDashboard() {
                   <div><h3 className="text-base font-black text-gray-900 tracking-tight">Corporate Entity Profile</h3><p className="text-[10px] font-black text-indigo-500 uppercase tracking-widest mt-0.5">Registration & Tax Details</p></div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="bg-white/60 rounded-2xl p-5 border border-white hover:bg-white hover:shadow-md hover:-translate-y-0.5 transition-all duration-300"><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 drop-shadow-sm">Registered Company Name</p><p className="text-sm font-black text-gray-900 tracking-tight">{detail.company_name || 'N/A'}</p></div>
-                  <div className="bg-white/60 rounded-2xl p-5 border border-white hover:bg-white hover:shadow-md hover:-translate-y-0.5 transition-all duration-300"><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 drop-shadow-sm">Business Category</p><div className="inline-flex items-center px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg text-xs font-black uppercase ring-1 ring-indigo-100">{detail.business_category || 'N/A'}</div></div>
-                  <div className="bg-white/60 rounded-2xl p-5 border border-white hover:bg-white hover:shadow-md hover:-translate-y-0.5 transition-all duration-300"><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 drop-shadow-sm">Registration Number</p><p className="text-sm font-bold text-gray-700 font-mono tracking-tight bg-gray-50/50 inline-block px-2 py-0.5 rounded border border-gray-100">{detail.registration_number || 'N/A'}</p></div>
-                  <div className="bg-white/60 rounded-2xl p-5 border border-white hover:bg-white hover:shadow-md hover:-translate-y-0.5 transition-all duration-300"><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 drop-shadow-sm">Tax Identification (TIN)</p><p className="text-sm font-bold text-gray-700 font-mono tracking-tight bg-gray-50/50 inline-block px-2 py-0.5 rounded border border-gray-100">{detail.tax_id || 'N/A'}</p></div>
-                  <div className="bg-white/60 rounded-2xl p-5 border border-white hover:bg-white hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 md:col-span-2 flex items-center justify-between group/contact">
-                    <div><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 drop-shadow-sm">Primary Contact Email</p><p className="text-sm font-black text-gray-900">{detail.user_email || 'N/A'}</p></div>
+                  <div className="bg-white/60 rounded-2xl p-5 border border-white hover:bg-white hover:shadow-lg hover:-trangray-y-0.5 transition-all duration-300"><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 drop-shadow-sm">Registered Company Name</p><p className="text-sm font-black text-gray-900 tracking-tight">{detail.company_name || 'N/A'}</p></div>
+                  <div className="bg-white/60 rounded-2xl p-5 border border-white hover:bg-white hover:shadow-lg hover:-trangray-y-0.5 transition-all duration-300"><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 drop-shadow-sm">Business Category</p><div className="inline-flex items-center px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg text-xs font-black uppercase ring-1 ring-indigo-100">{detail.business_category || 'N/A'}</div></div>
+                  <div className="bg-white/60 rounded-2xl p-5 border border-white hover:bg-white hover:shadow-lg hover:-trangray-y-0.5 transition-all duration-300"><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 drop-shadow-sm">Registration Number</p><p className="text-sm font-bold text-gray-700 font-mono tracking-tight bg-gray-50/50 inline-block px-2 py-0.5 rounded border border-gray-100 dark:border-gray-800">{detail.registration_number || 'N/A'}</p></div>
+                  <div className="bg-white/60 rounded-2xl p-5 border border-white hover:bg-white hover:shadow-lg hover:-trangray-y-0.5 transition-all duration-300"><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 drop-shadow-sm">Tax Identification (TIN)</p><p className="text-sm font-bold text-gray-700 font-mono tracking-tight bg-gray-50/50 inline-block px-2 py-0.5 rounded border border-gray-100 dark:border-gray-800">{detail.tax_id || 'N/A'}</p></div>
+                  <div className="bg-white/60 rounded-2xl p-5 border border-white hover:bg-white hover:shadow-lg hover:-trangray-y-0.5 transition-all duration-300 md:col-span-2 flex items-center justify-between group/contact">
+                    <div><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 drop-shadow-sm">Primary Contact Email</p><p className="text-sm font-black text-gray-900 dark:text-white">{detail.user_email || 'N/A'}</p></div>
                     {detail.user_email && (<a href={`mailto:${detail.user_email}`} className="h-10 w-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center group-hover/contact:bg-indigo-600 group-hover/contact:text-white transition-all shadow-sm ring-1 ring-indigo-100 group-hover/contact:ring-indigo-600"><ExternalLink className="h-4 w-4" /></a>)}
                   </div>
                 </div>
@@ -498,17 +512,17 @@ export default function TaskDashboard() {
               {detail.verification_documents && detail.verification_documents.length > 0 ? (
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                   {detail.verification_documents.map((doc: any, idx: number) => (
-                    <a key={doc.id} href={getMediaUrl(doc.file)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 hover:border-indigo-300 hover:shadow-xl hover:shadow-indigo-500/10 hover:-translate-y-1 transition-all duration-300 group">
-                      <div className="h-12 w-12 rounded-xl bg-gray-50 flex items-center justify-center group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors border border-gray-100"><FileText className="h-5 w-5 text-gray-400 group-hover:text-indigo-500 transition-colors" /></div>
-                      <div className="flex-1 min-w-0"><p className="text-sm font-black text-gray-900 truncate group-hover:text-indigo-900 transition-colors">{doc.name || `Document ${idx + 1}`}</p><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mt-1">{doc.document_type || 'Corporate File'}</p></div>
+                    <a key={doc.id} href={getMediaUrl(doc.file)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 p-4 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 hover:border-indigo-300 hover:shadow-xl hover:shadow-indigo-500/10 hover:-trangray-y-1 transition-all duration-300 group">
+                      <div className="h-12 w-12 rounded-xl bg-gray-50 flex items-center justify-center group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors border border-gray-100 dark:border-gray-800"><FileText className="h-5 w-5 text-gray-400 group-hover:text-indigo-500 transition-colors" /></div>
+                      <div className="flex-1 min-w-0"><p className="text-sm font-black text-gray-900 dark:text-white truncate group-hover:text-indigo-900 transition-colors">{doc.name || `Document ${idx + 1}`}</p><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mt-1">{doc.document_type || 'Corporate File'}</p></div>
                       <div className="h-8 w-8 rounded-full bg-gray-50 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-sm border border-gray-100 group-hover:border-indigo-600"><ExternalLink className="h-3 w-3 text-gray-400 group-hover:text-white transition-colors" /></div>
                     </a>
                   ))}
                 </div>
               ) : (
-                <div className="flex flex-col items-center justify-center py-12 px-4 text-center bg-gray-50/50 rounded-[2rem] border-2 border-dashed border-gray-200">
-                  <div className="h-16 w-16 bg-white rounded-full flex items-center justify-center shadow-sm mb-4 border border-gray-100"><AlertCircle className="h-8 w-8 text-gray-300" /></div>
-                  <h4 className="text-sm font-black text-gray-900 mb-1">No Documents Available</h4>
+                <div className="flex flex-col items-center justify-center py-12 px-4 text-center bg-gray-50/50 rounded-[2rem] border-2 border-dashed border-gray-200 dark:border-gray-700">
+                  <div className="h-16 w-16 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center shadow-sm mb-4 border border-gray-100 dark:border-gray-800"><AlertCircle className="h-8 w-8 text-gray-300" /></div>
+                  <h4 className="text-sm font-black text-gray-900 dark:text-white mb-1">No Documents Available</h4>
                   <p className="text-xs font-medium text-gray-500 max-w-[200px]">The user has not uploaded any required corporate files yet.</p>
                 </div>
               )}
@@ -521,11 +535,11 @@ export default function TaskDashboard() {
           <div className="card p-6 border-l-4 border-l-orange-500 bg-orange-50/10">
             <h3 className="text-xs font-black text-orange-600 uppercase tracking-widest mb-4 flex items-center gap-2"><Activity className="h-4 w-4" /> Physical Asset Audit</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              <div><p className="text-[10px] font-bold text-gray-500 uppercase">Target Asset Category</p><p className="text-sm font-black text-gray-900">{detail.category || 'N/A'}</p></div>
-              <div><p className="text-[10px] font-bold text-gray-500 uppercase">Owner Identification</p><p className="text-sm font-black text-gray-900">{detail.owner?.first_name} {detail.owner?.last_name} ({detail.owner?.email})</p></div>
+              <div><p className="text-[10px] font-bold text-gray-500 uppercase">Target Asset Category</p><p className="text-sm font-black text-gray-900 dark:text-white">{detail.category || 'N/A'}</p></div>
+              <div><p className="text-[10px] font-bold text-gray-500 uppercase">Owner Identification</p><p className="text-sm font-black text-gray-900 dark:text-white">{detail.owner?.first_name} {detail.owner?.last_name} ({detail.owner?.email})</p></div>
             </div>
             {detail.location && (
-              <div className="bg-white p-4 rounded-xl border border-gray-100 flex items-center gap-3"><Flag className="h-5 w-5 text-gray-400" /><div><p className="text-[10px] font-bold text-gray-500 uppercase mb-0.5">Reported Location</p><p className="text-xs font-bold text-gray-900">{detail.location.address || 'Coordinates provided'}</p></div></div>
+              <div className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-100 flex items-center gap-3"><Flag className="h-5 w-5 text-gray-400" /><div><p className="text-[10px] font-bold text-gray-500 uppercase mb-0.5">Reported Location</p><p className="text-xs font-bold text-gray-900 dark:text-white">{detail.location.address || 'Coordinates provided'}</p></div></div>
             )}
           </div>
         );
@@ -545,11 +559,11 @@ export default function TaskDashboard() {
               </div>
               <div>
                 <p className="text-[10px] font-bold text-gray-500 uppercase">Payment Method</p>
-                <p className="text-sm font-black text-gray-900">{detail.payment_method_details?.network_name || 'Manual Transfer'}</p>
+                <p className="text-sm font-black text-gray-900 dark:text-white">{detail.payment_method_details?.network_name || 'Manual Transfer'}</p>
               </div>
               <div>
                 <p className="text-[10px] font-bold text-gray-500 uppercase">User / Account Info</p>
-                <p className="text-sm font-black text-gray-900">{detail.user_payment_method_details?.account_name || 'N/A'}</p>
+                <p className="text-sm font-black text-gray-900 dark:text-white">{detail.user_payment_method_details?.account_name || 'N/A'}</p>
               </div>
               <div>
                 <p className="text-[10px] font-bold text-gray-500 uppercase">Plan / Type</p>
@@ -558,11 +572,11 @@ export default function TaskDashboard() {
             </div>
             
             {(detail.transaction_id || detail.confirmation_message) && (
-              <div className="bg-white p-4 rounded-xl border border-gray-100 flex items-start gap-3 mb-4">
+              <div className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-100 flex items-start gap-3 mb-4">
                 <FileText className="h-5 w-5 text-gray-400 mt-0.5" />
                 <div>
                   <p className="text-[10px] font-bold text-gray-500 uppercase mb-0.5">Confirmation Message / TX ID</p>
-                  <p className="text-xs font-medium text-gray-700">{detail.confirmation_message || detail.transaction_id || 'N/A'}</p>
+                  <p className="text-xs font-medium text-gray-700 dark:text-gray-200">{detail.confirmation_message || detail.transaction_id || 'N/A'}</p>
                 </div>
               </div>
             )}
@@ -570,7 +584,7 @@ export default function TaskDashboard() {
             {detail.receipt_image && (
                <div className="mt-2">
                  <p className="text-[10px] font-bold text-gray-500 uppercase mb-2">Attached Receipt</p>
-                 <a href={detail.receipt_image.includes('http') ? detail.receipt_image : getMediaUrl(detail.receipt_image)} target="_blank" rel="noopener noreferrer" className="inline-block relative rounded-xl overflow-hidden border-2 border-gray-100 hover:border-emerald-300 transition-colors group bg-white p-2">
+                 <a href={detail.receipt_image.includes('http') ? detail.receipt_image : getMediaUrl(detail.receipt_image)} target="_blank" rel="noopener noreferrer" className="inline-block relative rounded-xl overflow-hidden border-2 border-gray-100 hover:border-emerald-300 transition-colors group bg-white dark:bg-gray-800 p-2">
                    <img src={detail.receipt_image.includes('http') ? detail.receipt_image : getMediaUrl(detail.receipt_image)} alt="Receipt" className="h-32 object-contain" />
                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity flex-col gap-2">
                      <ExternalLink className="h-6 w-6 text-white" />
@@ -584,9 +598,9 @@ export default function TaskDashboard() {
 
       default:
         return (
-          <div className="card p-6 border-l-4 border-l-gray-300 bg-gray-50">
+          <div className="card p-6 border-l-4 border-l-gray-300 bg-gray-50 dark:bg-gray-900">
             <div className="flex items-center gap-2 mb-4"><AlertCircle className="h-4 w-4 text-gray-400" /><h3 className="text-xs font-black text-gray-600 uppercase tracking-widest">Unparsed Payload Data</h3></div>
-            <pre className="text-[10px] font-mono bg-white p-4 rounded-xl border border-gray-200 overflow-auto shadow-inner text-gray-600">{JSON.stringify(detail, null, 2)}</pre>
+            <pre className="text-[10px] font-mono bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 overflow-auto shadow-inner text-gray-600 dark:text-gray-300">{JSON.stringify(detail, null, 2)}</pre>
           </div>
         );
     }
@@ -628,12 +642,12 @@ export default function TaskDashboard() {
   const getStatusConfig = (status: string) => {
     const c: Record<string, { color: string; bg: string; icon: any }> = {
       PENDING: { color: 'text-amber-600', bg: 'bg-amber-50 border-amber-200', icon: <Clock className="h-3 w-3" /> },
-      ASSIGNED: { color: 'text-blue-600', bg: 'bg-blue-50 border-blue-200', icon: <UserPlus className="h-3 w-3" /> },
+      ASSIGNED: { color: 'text-primary-600', bg: 'bg-primary-50 dark:bg-primary-900/20 border-primary-200', icon: <UserPlus className="h-3 w-3" /> },
       IN_PROGRESS: { color: 'text-indigo-600', bg: 'bg-indigo-50 border-indigo-200', icon: <Activity className="h-3 w-3" /> },
       COMPLETED: { color: 'text-green-600', bg: 'bg-green-50 border-green-200', icon: <CheckCircle className="h-3 w-3" /> },
       REJECTED: { color: 'text-red-600', bg: 'bg-red-50 border-red-200', icon: <XCircle className="h-3 w-3" /> },
       CHANGES_REQUESTED: { color: 'text-orange-600', bg: 'bg-orange-50 border-orange-200', icon: <RotateCcw className="h-3 w-3" /> },
-      CANCELLED: { color: 'text-gray-500', bg: 'bg-gray-50 border-gray-200', icon: <X className="h-3 w-3" /> },
+      CANCELLED: { color: 'text-gray-500', bg: 'bg-gray-50 dark:bg-gray-900 border-gray-200', icon: <X className="h-3 w-3" /> },
     };
     return c[status] || c.PENDING;
   };
@@ -667,7 +681,7 @@ export default function TaskDashboard() {
           </div>
           <div className="flex items-center gap-3 flex-wrap">
             <span className="text-xs font-bold px-3 py-1.5 rounded-lg border bg-amber-400/20 text-amber-200 border-amber-400/30 flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />{pendingCount} Pending</span>
-            <span className="text-xs font-bold px-3 py-1.5 rounded-lg border bg-blue-400/20 text-blue-200 border-blue-400/30">{assignedCount} Active</span>
+            <span className="text-xs font-bold px-3 py-1.5 rounded-lg border bg-primary-400/20 text-primary-200 border-primary-400/30">{assignedCount} Active</span>
             <span className="text-xs font-bold px-3 py-1.5 rounded-lg border bg-green-400/20 text-green-200 border-green-400/30">{completedCount} Done</span>
             <span className="text-xs font-bold px-3 py-1.5 rounded-lg border bg-red-400/20 text-red-200 border-red-400/30">{rejectedCount} Rejected</span>
             <span className="text-xs font-black text-white/30 bg-white/10 px-2 py-1 rounded border border-white/10">{roleConfig.label}</span>
@@ -704,7 +718,7 @@ export default function TaskDashboard() {
                     {selectedTask.description && <p className="text-sm text-gray-600 mt-2">{selectedTask.description}</p>}
                     <div className="flex items-center gap-3 mt-4 pt-4 border-t border-gray-100 flex-wrap">
                       <span className={`inline-flex items-center gap-1 text-xs font-bold px-3 py-1 rounded-full border ${getStatusConfig(selectedTask.status).bg} ${getStatusConfig(selectedTask.status).color}`}>{getStatusConfig(selectedTask.status).icon} {selectedTask.status}</span>
-                      <span className="text-xs font-bold text-gray-500">{selectedTask.priority}</span>
+                      <span className="text-xs font-bold text-gray-500 dark:text-gray-400">{selectedTask.priority}</span>
                       <span className="text-xs text-gray-400">{timeAgo(selectedTask.created_at)}</span>
                     </div>
                   </div>
@@ -717,8 +731,8 @@ export default function TaskDashboard() {
                 <div className="card p-6 bg-gray-900 text-white border-gray-800">
                   <h3 className="text-sm font-black mb-4 flex items-center gap-2"><PenTool className="h-4 w-4 text-indigo-400" /> Completion Report</h3>
                   <div className="space-y-4">
-                    <textarea className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm focus:outline-none min-h-[120px] placeholder:text-gray-600" placeholder="Describe what was done..." value={processNotes} onChange={e => setProcessNotes(e.target.value)} />
-                    <input type="url" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm focus:outline-none placeholder:text-gray-600" placeholder="Attachment URL (optional)" value={feedbackAttachment} onChange={e => setFeedbackAttachment(e.target.value)} />
+                    <textarea className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm focus:outline-none min-h-[120px] placeholder:text-gray-600 dark:text-gray-300" placeholder="Describe what was done..." value={processNotes} onChange={e => setProcessNotes(e.target.value)} />
+                    <input type="url" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm focus:outline-none placeholder:text-gray-600 dark:text-gray-300" placeholder="Attachment URL (optional)" value={feedbackAttachment} onChange={e => setFeedbackAttachment(e.target.value)} />
                     <button onClick={() => handleProcessTask('SUBMIT_COMPLETION')} disabled={isProcessing || !processNotes} className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white font-black rounded-xl"><CheckCircle className="h-4 w-4 inline mr-2" />Submit</button>
                   </div>
                 </div>
@@ -754,8 +768,8 @@ export default function TaskDashboard() {
         <div className="space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center gap-4">
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <input type="text" placeholder="Search tasks..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white border border-gray-200 focus:border-primary-300 focus:ring-2 focus:ring-primary-100 focus:outline-none text-sm" />
+              <Search className="absolute left-3 top-1/2 -trangray-y-1/2 h-4 w-4 text-gray-400" />
+              <input type="text" placeholder="Search tasks..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 focus:border-primary-300 focus:ring-2 focus:ring-primary-100 focus:outline-none text-sm" />
             </div>
             <div className="flex items-center gap-2 overflow-x-auto scrollbar-none">
               {filterOptions.map(opt => (
@@ -784,13 +798,13 @@ export default function TaskDashboard() {
                       const done = ['COMPLETED', 'REJECTED'].includes(task.status);
                       const isUrgentUnread = task.priority === 'URGENT' && task.status === 'PENDING';
                       return (
-                        <div key={task.id} className={`relative text-left card p-5 transition-all group hover:shadow-lg hover:-translate-y-0.5 ${selectedTask?.id === task.id ? 'ring-2 ring-primary-500 border-primary-200' : ''} ${isUrgentUnread ? 'border-2 border-red-500' : ''} ${done ? 'opacity-60' : ''}`}>
+                        <div key={task.id} className={`relative text-left card p-5 transition-all group hover:shadow-lg hover:-trangray-y-0.5 ${selectedTask?.id === task.id ? 'ring-2 ring-primary-500 border-primary-200' : ''} ${isUrgentUnread ? 'border-2 border-red-500' : ''} ${done ? 'opacity-60' : ''}`}>
                           {!done && (
                             <button onClick={(e) => {
                               e.stopPropagation();
                               setSelectedTasks(prev => prev.includes(task.id) ? prev.filter(id => id !== task.id) : [...prev, task.id]);
                             }} className="absolute top-4 right-4 z-10 p-1">
-                              <div className={`h-5 w-5 rounded flex items-center justify-center transition-colors ${selectedTasks.includes(task.id) ? 'bg-primary-600 border border-primary-600' : 'bg-white border border-gray-300 group-hover:border-primary-400'}`}>
+                              <div className={`h-5 w-5 rounded flex items-center justify-center transition-colors ${selectedTasks.includes(task.id) ? 'bg-primary-600 border border-primary-600' : 'bg-white dark:bg-gray-800 border border-gray-300 group-hover:border-primary-400'}`}>
                                  {selectedTasks.includes(task.id) && <CheckSquare className="h-4 w-4 text-white" />}
                               </div>
                             </button>
@@ -805,7 +819,7 @@ export default function TaskDashboard() {
                               {task.priority === 'HIGH' && <span className="text-[10px] font-black text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full border border-orange-200">HIGH</span>}
                             </div>
                             <h3 className={`text-sm font-bold leading-snug mb-2 group-hover:text-primary-600 transition-colors ${done ? 'text-gray-400 line-through' : 'text-gray-900'}`}>{task.title}</h3>
-                            <div className="flex items-center justify-between mt-auto pt-2 border-t border-gray-100">
+                            <div className="flex items-center justify-between mt-auto pt-2 border-t border-gray-100 dark:border-gray-800">
                               <span className="text-[10px] font-bold text-gray-400 uppercase">{task.task_type.replace(/_/g, ' ')}</span>
                               <div className="flex items-center gap-2">
                                 {task.assigned_to_email && <span className="text-[10px] font-bold text-primary-600 bg-primary-50 px-2 py-0.5 rounded-full">{task.assigned_to_email.split('@')[0]}</span>}
@@ -844,12 +858,12 @@ export default function TaskDashboard() {
             </div>
             <div className="flex items-center gap-3 mt-4 flex-wrap">
               <span className={`inline-flex items-center gap-1 text-xs font-bold px-3 py-1 rounded-full border ${getStatusConfig(selectedTask.status).bg} ${getStatusConfig(selectedTask.status).color}`}>{getStatusConfig(selectedTask.status).icon} {selectedTask.status}</span>
-              <span className="text-xs font-bold text-gray-500">{selectedTask.priority}</span>
+              <span className="text-xs font-bold text-gray-500 dark:text-gray-400">{selectedTask.priority}</span>
               <span className="text-xs text-gray-400">{timeAgo(selectedTask.created_at)}</span>
               {selectedTask.assigned_to_email && <span className="text-xs font-bold text-primary-400">→ {selectedTask.assigned_to_email}</span>}
             </div>
           </div>
-          <div className="p-5 bg-gray-50 border-b border-gray-200">
+          <div className="p-5 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
             <h3 className="text-xs font-black text-gray-900 uppercase tracking-widest mb-4 flex items-center gap-2"><UserPlus className="h-4 w-4 text-primary-600" /> Assignment</h3>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
               <div><label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">Person</label><select className="w-full rounded-xl border-gray-200 text-sm h-10 px-3" value={assignTo} onChange={e => setAssignTo(e.target.value)}><option value="">Unassigned</option>{staffUsers.map(u => <option key={u.id} value={u.id}>{u.first_name} {u.last_name}</option>)}</select></div>
@@ -859,19 +873,19 @@ export default function TaskDashboard() {
             </div>
           </div>
           <div className="p-6">{renderResourceDetails(selectedTask)}</div>
-          <div className="p-6 border-t border-gray-200">
+          <div className="p-6 border-t border-gray-200 dark:border-gray-700">
             <h3 className="text-xs font-black text-gray-900 uppercase tracking-widest mb-4 flex items-center gap-2"><Shield className="h-4 w-4 text-primary-600" /> Review Decision</h3>
             {selectedTask.task_type === 'CUSTOM_TASK' && selectedTask.extra_data?.completion_feedback && (
               <div className="card p-4 bg-indigo-50 border-indigo-100 mb-4">
                 <p className="text-xs font-bold text-indigo-600 uppercase mb-2">Staff Feedback</p>
-                <p className="text-sm text-gray-700">{selectedTask.extra_data.completion_feedback}</p>
+                <p className="text-sm text-gray-700 dark:text-gray-200">{selectedTask.extra_data.completion_feedback}</p>
                 {selectedTask.extra_data.completion_attachment && <a href={selectedTask.extra_data.completion_attachment} target="_blank" rel="noopener noreferrer" className="text-xs text-indigo-600 hover:underline mt-2 inline-flex items-center gap-1"><ExternalLink className="h-3 w-3" /> Attachment</a>}
               </div>
             )}
             <textarea className="w-full rounded-xl border-gray-200 p-4 text-sm min-h-[80px] focus:ring-2 focus:ring-primary-100 focus:border-primary-300 focus:outline-none mb-4" placeholder="Decision notes..." value={processNotes} onChange={e => setProcessNotes(e.target.value)} />
             {['COMPLETED', 'REJECTED'].includes(selectedTask.status) ? (
               <div className="space-y-3">
-                <div className="card p-4 bg-gray-50 flex items-center gap-3">{selectedTask.status === 'COMPLETED' ? <CheckCircle className="h-5 w-5 text-green-500" /> : <XCircle className="h-5 w-5 text-red-500" />}<div><p className="text-sm font-bold text-gray-900">{selectedTask.status}</p><p className="text-xs text-gray-500 italic">"{selectedTask.reviewer_notes || 'No notes.'}"</p></div></div>
+                <div className="card p-4 bg-gray-50 flex items-center gap-3">{selectedTask.status === 'COMPLETED' ? <CheckCircle className="h-5 w-5 text-green-500" /> : <XCircle className="h-5 w-5 text-red-500" />}<div><p className="text-sm font-bold text-gray-900 dark:text-white">{selectedTask.status}</p><p className="text-xs text-gray-500 italic">"{selectedTask.reviewer_notes || 'No notes.'}"</p></div></div>
                 <button onClick={() => handleProcessTask('REVOKE')} disabled={isProcessing} className="w-full py-3 bg-orange-50 text-orange-600 border border-orange-200 font-black rounded-xl hover:bg-orange-100 flex items-center justify-center gap-2"><RotateCcw className="h-4 w-4" /> Revoke & Reopen</button>
               </div>
             ) : (
@@ -888,10 +902,10 @@ export default function TaskDashboard() {
       {/* CREATE MODAL */}
       {isCreateModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50">
-              <div className="flex items-center gap-3"><div className="h-10 w-10 bg-primary-100 text-primary-600 rounded-xl flex items-center justify-center"><PenTool className="h-5 w-5" /></div><div><h2 className="text-lg font-black text-gray-900">Create Custom Task</h2><p className="text-xs text-gray-500 mt-0.5">Assign work to your team</p></div></div>
-              <button onClick={() => setIsCreateModalOpen(false)} className="h-9 w-9 flex items-center justify-center rounded-xl bg-gray-100 text-gray-400 hover:bg-gray-200"><X className="h-4 w-4" /></button>
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50 dark:bg-gray-900">
+              <div className="flex items-center gap-3"><div className="h-10 w-10 bg-primary-100 text-primary-600 rounded-xl flex items-center justify-center"><PenTool className="h-5 w-5" /></div><div><h2 className="text-lg font-black text-gray-900 dark:text-white">Create Custom Task</h2><p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Assign work to your team</p></div></div>
+              <button onClick={() => setIsCreateModalOpen(false)} className="h-9 w-9 flex items-center justify-center rounded-xl bg-gray-100 text-gray-400 hover:bg-gray-200 dark:bg-gray-700"><X className="h-4 w-4" /></button>
             </div>
             <div className="p-6 overflow-y-auto flex-1">
               <form id="create-task-form" onSubmit={handleCreateCustomTask} className="space-y-5">
@@ -901,7 +915,7 @@ export default function TaskDashboard() {
                   <div><label className="text-xs font-bold text-gray-500 uppercase block mb-2">Priority</label><select value={newTask.priority} onChange={e => setNewTask({ ...newTask, priority: e.target.value })} className="w-full rounded-xl border-gray-200 font-bold text-sm h-12 px-3"><option value="LOW">Low</option><option value="MEDIUM">Medium</option><option value="HIGH">High</option><option value="URGENT">Urgent</option></select></div>
                   <div><label className="text-xs font-bold text-gray-500 uppercase block mb-2">Link</label><input type="url" value={newTask.attachments} onChange={e => setNewTask({ ...newTask, attachments: e.target.value })} className="w-full rounded-xl border-gray-200 text-sm h-12 px-3" placeholder="https://..." /></div>
                 </div>
-                <div className="p-5 bg-gray-50 rounded-xl border border-gray-200 space-y-4">
+                <div className="p-5 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 space-y-4">
                   <h4 className="text-xs font-black text-gray-900 uppercase tracking-widest flex items-center gap-2"><UserPlus className="h-3.5 w-3.5 text-primary-600" /> Assignment</h4>
                   <div className="flex gap-3 mb-3">
                     <button type="button" onClick={() => setNewTask({ ...newTask, assignType: 'person' })} className={`flex-1 py-2 rounded-lg text-sm font-bold ${newTask.assignType === 'person' ? 'bg-primary-600 text-white' : 'bg-gray-100 text-gray-600'}`}>Person</button>
@@ -916,7 +930,7 @@ export default function TaskDashboard() {
               </form>
             </div>
             <div className="p-5 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
-              <button onClick={() => setIsCreateModalOpen(false)} className="px-5 py-2.5 font-bold text-sm text-gray-600 hover:bg-gray-200 rounded-xl">Cancel</button>
+              <button onClick={() => setIsCreateModalOpen(false)} className="px-5 py-2.5 font-bold text-sm text-gray-600 hover:bg-gray-200 dark:bg-gray-700 rounded-xl">Cancel</button>
               <button type="submit" form="create-task-form" disabled={isProcessing || !newTask.title} className="btn-primary px-6 py-2.5 rounded-xl shadow-lg disabled:opacity-50 flex items-center gap-2">{isProcessing ? <RotateCcw className="h-4 w-4 animate-spin" /> : <><Save className="h-4 w-4" /> Create Task</>}</button>
             </div>
           </div>

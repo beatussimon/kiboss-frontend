@@ -8,6 +8,7 @@ import { getMediaUrl } from '../../utils/media';
 import { Calendar, Clock, AlertCircle, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../services/api';
+import { Price } from '../../context/CurrencyContext';
 
 export default function CreateBookingPage() {
   const [searchParams] = useSearchParams();
@@ -31,6 +32,8 @@ export default function CreateBookingPage() {
   const [availabilityError, setAvailabilityError] = useState<string | null>(null);
   const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
   const [agreesToTerms, setAgreesToTerms] = useState(false);
+  const [priceInfo, setPriceInfo] = useState<any>(null);
+  const [isCalculatingPrice, setIsCalculatingPrice] = useState(false);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -83,42 +86,54 @@ export default function CreateBookingPage() {
   };
 
   useEffect(() => {
-    const checkAvailability = async () => {
+    const checkAvailabilityAndPrice = async () => {
       if (!assetId || !formData.start_time || !formData.end_time || formData.quantity < 1) {
         setAvailabilityError(null);
+        setPriceInfo(null);
         return;
       }
 
       const start = new Date(formData.start_time);
       const end = new Date(formData.end_time);
       if (end <= start || start < new Date()) {
+        setPriceInfo(null);
         return; 
       }
 
       setIsCheckingAvailability(true);
+      setIsCalculatingPrice(true);
       setAvailabilityError(null);
       try {
         const queryParams = new URLSearchParams({
+          asset_id: assetId,
           start_time: new Date(formData.start_time).toISOString(),
           end_time: new Date(formData.end_time).toISOString(),
           quantity: formData.quantity.toString()
         });
-        const res = await api.get(`/assets/${assetId}/check_availability/?${queryParams.toString()}`);
-        if (!res.data.is_available) {
-          if (res.data.conflict_info?.error) {
-            setAvailabilityError(res.data.conflict_info.error);
+        
+        // Check availability
+        const availRes = await api.get(`/assets/${assetId}/check_availability/?${queryParams.toString()}`);
+        if (!availRes.data.is_available) {
+          if (availRes.data.conflict_info?.error) {
+            setAvailabilityError(availRes.data.conflict_info.error);
           } else {
             setAvailabilityError('Asset is not available for the selected dates and quantity.');
           }
         }
+        
+        // Calculate price
+        const priceRes = await api.get(`/bookings/calculate_price/?${queryParams.toString()}`);
+        setPriceInfo(priceRes.data);
       } catch (err: any) {
-        console.error('Failed to check availability', err);
+        console.error('Failed to check availability or price', err);
+        setPriceInfo(null);
       } finally {
         setIsCheckingAvailability(false);
+        setIsCalculatingPrice(false);
       }
     };
 
-    const timeoutId = setTimeout(checkAvailability, 500);
+    const timeoutId = setTimeout(checkAvailabilityAndPrice, 500);
     return () => clearTimeout(timeoutId);
   }, [assetId, formData.start_time, formData.end_time, formData.quantity]);
 
@@ -167,44 +182,6 @@ export default function CreateBookingPage() {
     }
   };
 
-  // Calculate estimated price
-  const calculatePrice = () => {
-    if (!asset?.pricing_rules?.[0] || !formData.start_time || !formData.end_time) {
-      return null;
-    }
-
-    const start = new Date(formData.start_time);
-    const end = new Date(formData.end_time);
-    const diffMs = end.getTime() - start.getTime();
-    
-    const unitType = asset.pricing_rules[0].unit_type || 'HOUR';
-    let timeMultiplier = 1;
-
-    if (unitType === 'HOUR') {
-      timeMultiplier = Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60)));
-    } else if (unitType === 'DAY') {
-      timeMultiplier = Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
-    } else if (unitType === 'WEEK') {
-      timeMultiplier = Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24 * 7)));
-    } else if (unitType === 'MONTH') {
-      timeMultiplier = Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24 * 30)));
-    } else {
-      timeMultiplier = 1; // FIXED, UNIT, SEAT, MILE, KM
-    }
-
-    const pricePerUnit = typeof asset.pricing_rules[0].price === 'string'
-      ? parseFloat(asset.pricing_rules[0].price)
-      : asset.pricing_rules[0].price || 0;
-
-    return {
-      timeMultiplier,
-      unitType,
-      subtotal: timeMultiplier * pricePerUnit * formData.quantity,
-      pricePerUnit,
-    };
-  };
-
-  const priceInfo = calculatePrice();
   const isOwner = user?.id === asset?.owner?.id;
 
   if (assetLoading) {
@@ -220,8 +197,8 @@ export default function CreateBookingPage() {
       <div className="max-w-2xl mx-auto">
         <div className="card p-8 text-center">
           <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Asset Not Found</h2>
-          <p className="text-gray-500 mb-4">The asset you're trying to book doesn't exist or has been removed.</p>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Asset Not Found</h2>
+          <p className="text-gray-500 dark:text-gray-400 mb-4">The asset you're trying to book doesn't exist or has been removed.</p>
           <Link to="/assets" className="btn-primary">
             Browse Assets
           </Link>
@@ -238,7 +215,7 @@ export default function CreateBookingPage() {
         </Link>
         <div className="card p-8 text-center bg-yellow-50 border-yellow-100">
           <AlertCircle className="h-12 w-12 text-yellow-600 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-gray-900 mb-2">This is your asset</h2>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">This is your asset</h2>
           <p className="text-gray-600 mb-6">You cannot book your own asset. You can manage availability and pricing from the dashboard.</p>
           <Link to="/profile" className="btn-primary">
             Go to Dashboard
@@ -254,13 +231,13 @@ export default function CreateBookingPage() {
         ← Back to Asset
       </Link>
 
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Book {asset.name}</h1>
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Book {asset.name}</h1>
 
       <div className="grid gap-6">
         {/* Asset Summary */}
         <div className="card p-6">
           <div className="flex gap-4">
-            <div className="w-24 h-24 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
+            <div className="w-24 h-24 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center overflow-hidden">
               {asset.photos?.[0] ? (
                 <img src={getMediaUrl(asset.photos[0].url)} alt={asset.name} className="w-full h-full object-cover" />
               ) : (
@@ -268,8 +245,8 @@ export default function CreateBookingPage() {
               )}
             </div>
             <div>
-              <h2 className="font-semibold text-gray-900">{asset.name}</h2>
-              <p className="text-sm text-gray-500">{asset.city}, {asset.country}</p>
+              <h2 className="font-semibold text-gray-900 dark:text-white">{asset.name}</h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{asset.city}, {asset.country}</p>
               <p className="text-lg font-bold text-primary-600 mt-2">
                 ${asset.pricing_rules?.[0]?.price || '0'}/{asset.pricing_rules?.[0]?.unit_type?.toLowerCase() || 'hour'}
               </p>
@@ -281,7 +258,7 @@ export default function CreateBookingPage() {
         <form onSubmit={handleSubmit} className="card p-6 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                 Start Time <span className="text-red-500">*</span>
               </label>
               <input
@@ -298,7 +275,7 @@ export default function CreateBookingPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                 End Time <span className="text-red-500">*</span>
               </label>
               <input
@@ -316,7 +293,7 @@ export default function CreateBookingPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
               Quantity
             </label>
             <input
@@ -334,14 +311,14 @@ export default function CreateBookingPage() {
           </div>
 
           {asset.asset_type === 'VEHICLE' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 rounded-xl border border-gray-100">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800">
               <div className="md:col-span-2">
-                <h3 className="font-bold text-gray-900 mb-1">Driver Qualifications</h3>
-                <p className="text-xs text-gray-500 mb-3">Please provide your driver's license details to rent this vehicle.</p>
+                <h3 className="font-bold text-gray-900 dark:text-white mb-1">Driver Qualifications</h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">Please provide your driver's license details to rent this vehicle.</p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                   Driver's License Number <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -358,7 +335,7 @@ export default function CreateBookingPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                   Driving Experience (Years) <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -377,7 +354,7 @@ export default function CreateBookingPage() {
           )}
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
               Notes (optional)
             </label>
             <textarea
@@ -391,19 +368,33 @@ export default function CreateBookingPage() {
           </div>
 
           {/* Price Estimate */}
-          {priceInfo && (
-            <div className="bg-gray-50 rounded-lg p-4">
-              <h3 className="font-medium text-gray-900 mb-2">Price Estimate</h3>
+          {isCalculatingPrice ? (
+            <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 animate-pulse flex items-center justify-center h-24">
+              <Loader2 className="h-6 w-6 text-primary-400 animate-spin" />
+            </div>
+          ) : priceInfo && (
+            <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
+              <h3 className="font-medium text-gray-900 dark:text-white mb-2">Price Estimate</h3>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-500">
-                    ${priceInfo.pricePerUnit} × {priceInfo.timeMultiplier} {priceInfo.unitType.toLowerCase()}(s) × {formData.quantity} unit(s)
-                  </span>
-                  <span>${priceInfo.subtotal.toFixed(2)}</span>
+                  <span className="text-gray-500 dark:text-gray-400">Base Price</span>
+                  <span><Price amount={priceInfo.base_price} from={priceInfo.currency} /></span>
                 </div>
+                {Number(priceInfo.service_fee) > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-500 dark:text-gray-400">Service Fee</span>
+                    <span><Price amount={priceInfo.service_fee} from={priceInfo.currency} /></span>
+                  </div>
+                )}
+                {Number(priceInfo.taxes) > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-500 dark:text-gray-400">Taxes ({(priceInfo.tax_rate * 100).toFixed(1)}%)</span>
+                    <span><Price amount={priceInfo.taxes} from={priceInfo.currency} /></span>
+                  </div>
+                )}
                 <div className="flex justify-between font-bold text-lg pt-2 border-t">
                   <span>Estimated Total</span>
-                  <span className="text-primary-600">${priceInfo.subtotal.toFixed(2)}</span>
+                  <span className="text-primary-600"><Price amount={priceInfo.total} from={priceInfo.currency} /></span>
                 </div>
               </div>
             </div>
@@ -411,14 +402,14 @@ export default function CreateBookingPage() {
 
           <div className="pt-4 border-t border-gray-100 mt-6">
             <div className="mb-6 flex flex-col gap-2">
-              <label className="flex items-start gap-3 p-3 bg-gray-50 border-2 rounded-xl border-gray-100 hover:border-gray-200 cursor-pointer transition-all">
+              <label className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-900 border-2 rounded-xl border-gray-100 hover:border-gray-200 cursor-pointer transition-all">
                 <input
                   type="checkbox"
                   checked={agreesToTerms}
                   onChange={(e) => setAgreesToTerms(e.target.checked)}
                   className="mt-1 w-4 h-4 text-primary-600 rounded focus:ring-primary-500 cursor-pointer border-2 border-gray-300"
                 />
-                <span className="text-sm text-gray-700">
+                <span className="text-sm text-gray-700 dark:text-gray-200">
                   I agree to the <Link to="/terms" target="_blank" className="text-primary-600 font-medium hover:underline">Standard Terms and Conditions</Link>, including the cancellation and late return policies for this asset. A digital contract will be generated upon booking.
                 </span>
               </label>
@@ -433,7 +424,7 @@ export default function CreateBookingPage() {
             
             <button
               type="submit"
-              disabled={bookingLoading || isCheckingAvailability || !!availabilityError || !agreesToTerms}
+              disabled={bookingLoading || isCheckingAvailability || isCalculatingPrice || !!availabilityError || !agreesToTerms}
               className="btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-50"
             >
               {bookingLoading ? (
@@ -441,10 +432,10 @@ export default function CreateBookingPage() {
                   <Loader2 className="h-4 w-4 animate-spin" />
                   Creating Booking...
                 </>
-              ) : isCheckingAvailability ? (
+              ) : isCheckingAvailability || isCalculatingPrice ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Checking Availability...
+                  Checking Details...
                 </>
               ) : (
                 <>

@@ -45,7 +45,7 @@ export default function VerificationBadge({
             alt="Verified Badge" 
           />
           {showLabel && (
-            <span className={`${labelSizeClasses[size]} ${tier === 'business' ? 'text-indigo-700' : 'text-blue-700'}`}>
+            <span className={`${labelSizeClasses[size]} ${tier === 'business' ? 'text-indigo-700' : 'text-primary-700'}`}>
               {tier === 'business' ? 'Business' : 'Verified'}
             </span>
           )}
@@ -77,8 +77,8 @@ export default function VerificationBadge({
     if (color === 'blue' || tier === 'premium') {
       return (
         <div className="relative inline-flex items-center gap-2" title="Plus Verified">
-          <BadgeCheck className={`${sizeClasses[size]} text-blue-500 fill-blue-500`} />
-          {showLabel && <span className={`${labelSizeClasses[size]} text-blue-700`}>Plus</span>}
+          <BadgeCheck className={`${sizeClasses[size]} text-primary-500 fill-primary-500`} />
+          {showLabel && <span className={`${labelSizeClasses[size]} text-primary-700`}>Plus</span>}
         </div>
       );
     }

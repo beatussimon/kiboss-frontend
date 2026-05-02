@@ -63,8 +63,8 @@ export default function RideBookingDetailPage() {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="card p-8 text-center">
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Booking Not Found</h2>
-          <p className="text-gray-500">{error}</p>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Booking Not Found</h2>
+          <p className="text-gray-500 dark:text-gray-400">{error}</p>
           <Link to="/bookings" className="text-primary-600 hover:text-primary-700 mt-4 inline-block">
             ← Back to Bookings
           </Link>
@@ -134,7 +134,7 @@ export default function RideBookingDetailPage() {
           <div className="card p-6">
             <div className="flex items-start justify-between mb-4">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                   {bookingType === 'cargo' ? 'Cargo Shipping' : 'Seat Reservation'}
                 </h1>
                 <p className="text-gray-500 flex items-center mt-1">
@@ -147,8 +147,8 @@ export default function RideBookingDetailPage() {
               </span>
             </div>
 
-            <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
-              <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+            <div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
+              <div className="w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center overflow-hidden">
                 {ride.photos?.[0] ? (
                   <img src={getMediaUrl(ride.photos[0].url)} alt="Ride" className="w-full h-full object-cover" />
                 ) : (
@@ -157,7 +157,7 @@ export default function RideBookingDetailPage() {
               </div>
               <div>
                 <p className="font-medium">{riseRouteName(ride)}</p>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
                   {isOwnerView ? `Booked by ${passengerUser?.first_name || 'Unknown'}` : `Driven by ${ride.driver?.first_name || 'Unknown'}`}
                 </p>
                 {isAuthenticated && user && counterparty && counterparty.id !== user.id && (
@@ -184,25 +184,25 @@ export default function RideBookingDetailPage() {
             <h2 className="text-lg font-semibold mb-4">Booking Details</h2>
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-gray-500">Departure</span>
+                <span className="text-gray-500 dark:text-gray-400">Departure</span>
                 <span className="font-medium">{new Date(ride.departure_time).toLocaleDateString()} {new Date(ride.departure_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
               </div>
               
               {bookingType === 'seat' && (
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-500">Seat Number</span>
+                  <span className="text-gray-500 dark:text-gray-400">Seat Number</span>
                   <span className="font-medium">{booking.seat_number > 0 ? booking.seat_number : 'Unassigned'}</span>
                 </div>
               )}
 
               {bookingType === 'cargo' && (
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-500">Weight</span>
+                  <span className="text-gray-500 dark:text-gray-400">Weight</span>
                   <span className="font-medium">{booking.weight} kg/units</span>
                 </div>
               )}
 
-              <hr className="border-gray-200" />
+              <hr className="border-gray-200 dark:border-gray-700" />
               <div className="flex items-center justify-between text-lg">
                 <span className="font-bold">Total Price</span>
                 <span className="font-bold text-primary-600"><Price amount={booking.price} /></span>
@@ -216,7 +216,7 @@ export default function RideBookingDetailPage() {
               <h2 className="text-lg font-semibold mb-4">Payment Details</h2>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-500">Status</span>
+                  <span className="text-gray-500 dark:text-gray-400">Status</span>
                   <span className={`badge ${['VERIFIED', 'COMPLETED', 'SUCCESS'].includes(booking.payment.status?.toUpperCase() || '') ? 'badge-success' : 'badge-warning'}`}>
                     {booking.payment.status_display || booking.payment.status}
                   </span>
@@ -224,7 +224,7 @@ export default function RideBookingDetailPage() {
                 
                 {booking.payment.payment_method_display && (
                   <div className="flex items-center justify-between mt-2">
-                    <span className="text-gray-500">Method</span>
+                    <span className="text-gray-500 dark:text-gray-400">Method</span>
                     <span className="font-medium text-right max-w-[200px] truncate" title={booking.payment.payment_method_display}>
                       {booking.payment.payment_method_display}
                     </span>
@@ -233,22 +233,22 @@ export default function RideBookingDetailPage() {
 
                 {isOwnerView && booking.payment.sender_phone && (
                   <div className="flex items-center justify-between mt-2">
-                    <span className="text-gray-500">Sender Phone</span>
+                    <span className="text-gray-500 dark:text-gray-400">Sender Phone</span>
                     <span className="font-mono bg-gray-100 px-2 py-0.5 rounded text-sm">{booking.payment.sender_phone}</span>
                   </div>
                 )}
 
                 {isOwnerView && booking.payment.transaction_reference && (
                   <div className="flex items-center justify-between mt-2">
-                    <span className="text-gray-500">Transaction Ref</span>
+                    <span className="text-gray-500 dark:text-gray-400">Transaction Ref</span>
                     <span className="font-mono bg-gray-100 px-2 py-0.5 rounded text-sm">{booking.payment.transaction_reference}</span>
                   </div>
                 )}
                 
                 {booking.payment.manual_receipt_url && (
-                  <div className="mt-4 pt-4 border-t border-gray-100">
+                  <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
                     <span className="text-gray-500 block mb-2 text-sm">Receipt / Proof of Payment</span>
-                    <a href={getMediaUrl(booking.payment.manual_receipt_url)} target="_blank" rel="noopener noreferrer" className="block w-full h-32 rounded-lg overflow-hidden border border-gray-200 hover:border-primary-400 hover:shadow-md transition-all">
+                    <a href={getMediaUrl(booking.payment.manual_receipt_url)} target="_blank" rel="noopener noreferrer" className="block w-full h-32 rounded-lg overflow-hidden border border-gray-200 hover:border-primary-400 hover:shadow-lg transition-all">
                       <img src={getMediaUrl(booking.payment.manual_receipt_url)} alt="Payment Receipt" className="w-full h-full object-cover shadow-sm" />
                     </a>
                   </div>
@@ -275,7 +275,7 @@ export default function RideBookingDetailPage() {
             <div className="mb-6 card p-6 border-l-4 border-l-green-500 bg-green-50 shadow-sm">
               <div className="flex items-start gap-4">
                 <div className="bg-green-100 p-2 rounded-full mt-1">
-                  <CheckCircle className="h-6 w-6 text-green-600" />
+                  <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
                 </div>
                 <div>
                   <h3 className="font-bold text-green-800 text-lg mb-1">Payment Submitted</h3>

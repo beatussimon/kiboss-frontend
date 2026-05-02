@@ -102,7 +102,7 @@ export default function RidesPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Find Rides</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Find Rides</h1>
         <div className="flex gap-2">
           <Link to="/vehicles" className="btn-secondary">
             Manage Vehicles
@@ -120,7 +120,7 @@ export default function RidesPage() {
         <form onSubmit={handleSearch}>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="relative">
-              <MapPin className="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <MapPin className="h-5 w-5 absolute left-3 top-1/2 -trangray-y-1/2 text-gray-400" />
               <input
                 type="text"
                 placeholder="From"
@@ -130,7 +130,7 @@ export default function RidesPage() {
               />
             </div>
             <div className="relative">
-              <MapPin className="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <MapPin className="h-5 w-5 absolute left-3 top-1/2 -trangray-y-1/2 text-gray-400" />
               <input
                 type="text"
                 placeholder="To"
@@ -159,9 +159,9 @@ export default function RidesPage() {
             <div key={i} className="flex flex-col md:flex-row gap-0 overflow-hidden animate-pulse">
               <div className="w-full md:w-1/2 rounded-2xl md:rounded-r-none bg-gray-200 aspect-[4/3]" />
               <div className="w-full md:w-1/2 p-4 space-y-4">
-                <div className="h-4 bg-gray-200 rounded w-1/3" />
-                <div className="h-4 bg-gray-200 rounded w-1/2" />
-                <div className="h-10 bg-gray-200 rounded w-full mt-auto" />
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3" />
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2" />
+                <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded w-full mt-auto" />
               </div>
             </div>
           ))}
@@ -189,8 +189,8 @@ export default function RidesPage() {
       ) : (
         <div className="card p-12 text-center">
           <ArrowRight className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No rides available</h3>
-          <p className="text-gray-500">Be the first to offer a ride!</p>
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No rides available</h3>
+          <p className="text-gray-500 dark:text-gray-400">Be the first to offer a ride!</p>
         </div>
       )}
     </div>

@@ -32,7 +32,7 @@ function getDisplayStatus(booking: { end_time: string; status: string }): string
 const getStatusConfig = (status: string) => {
   const configs: Record<string, { class: string; icon: React.ReactNode; label: string }> = {
     PENDING: { class: 'bg-amber-50 text-amber-700 border border-amber-200', icon: <Timer className="h-3 w-3" />, label: 'Pending' },
-    CONFIRMED: { class: 'bg-blue-50 text-blue-700 border border-blue-200', icon: <CheckCircle className="h-3 w-3" />, label: 'Confirmed' },
+    CONFIRMED: { class: 'bg-primary-50 text-primary-700 border border-primary-200', icon: <CheckCircle className="h-3 w-3" />, label: 'Confirmed' },
     ACTIVE: { class: 'bg-emerald-50 text-emerald-700 border border-emerald-200', icon: <CheckCircle className="h-3 w-3" />, label: 'Active' },
     COMPLETED: { class: 'bg-green-50 text-green-700 border border-green-200', icon: <CheckCircle className="h-3 w-3" />, label: 'Completed' },
     CANCELLED: { class: 'bg-red-50 text-red-700 border border-red-200', icon: <XCircle className="h-3 w-3" />, label: 'Cancelled' },
@@ -92,13 +92,13 @@ export default function UnifiedBookingsPage() {
             <Calendar className="h-6 w-6 text-primary-600" />
             Bookings Dashboard
           </h1>
-          <p className="text-gray-500 mt-1">Manage your bookings and incoming requests.</p>
+          <p className="text-gray-500 dark:text-gray-400 mt-1">Manage your bookings and incoming requests.</p>
         </div>
       </div>
 
       <div className="card p-0 overflow-hidden">
         {/* Top Tabs */}
-        <div className="flex border-b border-gray-200">
+        <div className="flex border-b border-gray-200 dark:border-gray-700">
           <button
             onClick={() => handleTabChange('my_bookings')}
             className={`flex-1 py-4 text-center font-bold text-sm transition-colors ${
@@ -118,7 +118,7 @@ export default function UnifiedBookingsPage() {
         </div>
 
         {/* Sub-filters */}
-        <div className="p-4 bg-gray-50 border-b border-gray-100 flex items-center gap-4">
+        <div className="p-4 bg-gray-50 dark:bg-gray-900 border-b border-gray-100 flex items-center gap-4">
           <span className="text-sm font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1">
             <Filter className="h-4 w-4" /> Filter
           </span>
@@ -137,7 +137,7 @@ export default function UnifiedBookingsPage() {
             </button>
             <button
               onClick={() => handleFilterChange('ASSETS')}
-              className={`px-3 py-1.5 rounded-full text-xs font-bold transition-colors flex items-center gap-1 ${filterType === 'ASSETS' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'}`}
+              className={`px-3 py-1.5 rounded-full text-xs font-bold transition-colors flex items-center gap-1 ${filterType === 'ASSETS' ? 'bg-primary-600 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'}`}
             >
               <Briefcase className="h-3.5 w-3.5" /> Assets
             </button>
@@ -166,17 +166,17 @@ export default function UnifiedBookingsPage() {
                 const rideId = booking.ride || booking.ride_details?.id;
                 const bookingTypeParam = booking.weight ? 'cargo' : 'seat'; // weight is present on CargoBooking, or we can use booking_category if it exists
                 const wrapperProps = expired
-                  ? { className: "block bg-white border border-gray-200 rounded-xl p-5 transition-all opacity-60 grayscale cursor-not-allowed" }
+                  ? { className: "block bg-white dark:bg-gray-800 border border-gray-200 rounded-xl p-5 transition-all opacity-60 grayscale cursor-not-allowed" }
                   : {
                       to: isRide ? `/rides/bookings/${booking.id}?type=${bookingTypeParam}` : `/bookings/${booking.id}`,
-                      className: "block bg-white border border-gray-200 rounded-xl p-5 hover:border-primary-300 hover:shadow-md transition-all cursor-pointer"
+                      className: "block bg-white dark:bg-gray-800 border border-gray-200 rounded-xl p-5 hover:border-primary-300 hover:shadow-lg transition-all cursor-pointer"
                     };
 
                 return (
                   <CardWrapper key={booking.id} {...(wrapperProps as any)}>
                     <div className="flex flex-col md:flex-row gap-5">
                       {/* Image Thumbnail */}
-                      <div className="w-full md:w-32 h-32 bg-gray-100 rounded-lg overflow-hidden shrink-0 relative">
+                      <div className="w-full md:w-32 h-32 bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden shrink-0 relative">
                         {isRide ? (
                           booking.ride_details?.photos?.[0] ? (
                             <img
@@ -196,11 +196,11 @@ export default function UnifiedBookingsPage() {
                             className={`w-full h-full object-cover ${expired ? 'grayscale' : ''}`}
                           />
                         ) : (
-                          <div className="h-full w-full flex items-center justify-center bg-blue-50">
-                             <Briefcase className="h-10 w-10 text-blue-400" />
+                          <div className="h-full w-full flex items-center justify-center bg-primary-50 dark:bg-primary-900/20">
+                             <Briefcase className="h-10 w-10 text-primary-400" />
                           </div>
                         )}
-                        <span className={`absolute top-2 left-2 px-2 py-0.5 text-[10px] uppercase font-black tracking-wider rounded border ${isRide ? 'bg-indigo-100 text-indigo-800 border-indigo-200' : 'bg-blue-100 text-blue-800 border-blue-200'}`}>
+                        <span className={`absolute top-2 left-2 px-2 py-0.5 text-[10px] uppercase font-black tracking-wider rounded border ${isRide ? 'bg-indigo-100 text-indigo-800 border-indigo-200' : 'bg-primary-100 text-primary-800 border-primary-200'}`}>
                           {isRide ? 'Ride' : 'Asset'}
                         </span>
                       </div>
@@ -231,7 +231,7 @@ export default function UnifiedBookingsPage() {
                           )}
                         </div>
 
-                        <div className="flex justify-between items-end mt-4 pt-4 border-t border-gray-100">
+                        <div className="flex justify-between items-end mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
                           <div className="space-y-1">
                             {currentTab === 'incoming_bookings' && booking.renter && (
                                <p className="text-xs text-gray-500 font-bold flex items-center gap-1">
@@ -248,7 +248,7 @@ export default function UnifiedBookingsPage() {
                           </div>
                           <div className="text-right">
                              <p className="text-[10px] font-black uppercase text-gray-400 tracking-widest">{currentTab === 'my_bookings' ? 'Total Cost' : 'Earnings'}</p>
-                             <p className="text-lg font-black text-gray-900 leading-none mt-1">
+                             <p className="text-lg font-black text-gray-900 dark:text-white leading-none mt-1">
                                <Price amount={booking.total_price || booking.price || 0} />
                              </p>
                           </div>
@@ -262,8 +262,8 @@ export default function UnifiedBookingsPage() {
           ) : (
             <div className="text-center py-16">
               <Calendar className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-xl font-bold text-gray-900 mb-2">No bookings found</h3>
-              <p className="text-gray-500">You don't have any {filterType.toLowerCase() !== 'all' ? filterType.toLowerCase() : ''} bookings in this category.</p>
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">No bookings found</h3>
+              <p className="text-gray-500 dark:text-gray-400">You don't have any {filterType.toLowerCase() !== 'all' ? filterType.toLowerCase() : ''} bookings in this category.</p>
             </div>
           )}
         </div>

@@ -35,7 +35,7 @@ export default function MyListingsPage() {
             <Briefcase className="h-6 w-6 text-primary-600" />
             My Listings
           </h1>
-          <p className="text-gray-500 mt-1">Manage your listed assets.</p>
+          <p className="text-gray-500 dark:text-gray-400 mt-1">Manage your listed assets.</p>
         </div>
         <Link to="/assets/create" className="btn-primary whitespace-nowrap">
           <Plus className="h-4 w-4 mr-2" /> List Asset
@@ -62,25 +62,25 @@ export default function MyListingsPage() {
                   </div>
                 </div>
                 <div>
-                  <h3 className="font-bold text-gray-900 leading-tight group-hover:text-primary-600 transition-colors">
+                  <h3 className="font-bold text-gray-900 dark:text-white leading-tight group-hover:text-primary-600 transition-colors">
                     {asset.name}
                   </h3>
-                  <p className="text-sm text-gray-500">{asset.city}, {asset.country}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{asset.city}, {asset.country}</p>
                 </div>
                 <div className="flex items-center justify-between mt-2">
                   <p className="text-sm">
                     <span className="font-bold"><Price amount={asset.pricing_rules?.[0]?.price || '0'} /></span>
-                    <span className="text-gray-500"> / {asset.pricing_rules?.[0]?.unit_type?.toLowerCase() || 'hr'}</span>
+                    <span className="text-gray-500 dark:text-gray-400"> / {asset.pricing_rules?.[0]?.unit_type?.toLowerCase() || 'hr'}</span>
                   </p>
                 </div>
               </Link>
             ))}
           </div>
         ) : (
-          <div className="text-center py-12 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+          <div className="text-center py-12 bg-gray-50 dark:bg-gray-900 rounded-xl border border-dashed border-gray-200 dark:border-gray-700">
             <Briefcase className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No assets yet</h3>
-            <p className="text-gray-500 mb-4">You haven't listed any assets.</p>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No assets yet</h3>
+            <p className="text-gray-500 dark:text-gray-400 mb-4">You haven't listed any assets.</p>
             <Link to="/assets/create" className="btn-primary inline-flex">
               List Your First Asset
             </Link>

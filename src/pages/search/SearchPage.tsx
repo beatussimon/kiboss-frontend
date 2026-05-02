@@ -184,7 +184,7 @@ export default function SearchPage() {
       <div className="mb-6">
         <form onSubmit={handleSearchSubmit} className="flex gap-2">
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -trangray-y-1/2 h-5 w-5 text-gray-400" />
             <input
               type="text"
               name="search"
@@ -216,7 +216,7 @@ export default function SearchPage() {
       {showFilters && (
         <div className="card p-4 mb-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-gray-900">Filters</h3>
+            <h3 className="font-semibold text-gray-900 dark:text-white">Filters</h3>
             {hasActiveFilters && (
               <button
                 onClick={clearFilters}
@@ -231,7 +231,7 @@ export default function SearchPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Price Range */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                 <DollarSign className="h-4 w-4 inline mr-1" />
                 Price Range
               </label>
@@ -255,7 +255,7 @@ export default function SearchPage() {
 
             {/* Location */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                 <MapPin className="h-4 w-4 inline mr-1" />
                 Location
               </label>
@@ -270,7 +270,7 @@ export default function SearchPage() {
 
             {/* Category (for assets) */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                 <Home className="h-4 w-4 inline mr-1" />
                 Category
               </label>
@@ -290,7 +290,7 @@ export default function SearchPage() {
 
             {/* Date Range (for rides) */}
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                 <Calendar className="h-4 w-4 inline mr-1" />
                 Date Range
               </label>
@@ -316,10 +316,10 @@ export default function SearchPage() {
       {/* Results Header */}
       {query && (
         <div className="mb-4">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
             Search Results
           </h1>
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-gray-300">
             Showing results for "{query}"
             {hasActiveFilters && ' with filters applied'}
           </p>
@@ -367,9 +367,9 @@ export default function SearchPage() {
               <Link
                 key={`${result.type}-${result.id}`}
                 to={getLink(result)}
-                className="card p-4 flex items-center gap-4 hover:shadow-md transition-shadow"
+                className="card p-4 flex items-center gap-4 hover:shadow-lg transition-shadow"
               >
-                <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
+                <div className="w-16 h-16 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
                   {result.image ? (
                     <img src={getMediaUrl(result.image)} alt={result.title} className="w-full h-full object-cover" />
                   ) : (
@@ -382,8 +382,8 @@ export default function SearchPage() {
                       {result.type}
                     </span>
                   </div>
-                  <h3 className="font-semibold text-gray-900 truncate">{result.title}</h3>
-                  <p className="text-sm text-gray-500 truncate">{result.subtitle}</p>
+                  <h3 className="font-semibold text-gray-900 dark:text-white truncate">{result.title}</h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{result.subtitle}</p>
                   {result.location && (
                     <p className="text-xs text-gray-400 flex items-center mt-1">
                       <MapPin className="h-3 w-3 mr-1" />
@@ -401,7 +401,7 @@ export default function SearchPage() {
       ) : query ? (
         <div className="text-center py-12">
           <Search className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-          <p className="text-gray-500">No results found for "{query}"</p>
+          <p className="text-gray-500 dark:text-gray-400">No results found for "{query}"</p>
           {hasActiveFilters && (
             <button
               onClick={clearFilters}
@@ -415,7 +415,7 @@ export default function SearchPage() {
       ) : (
         <div className="text-center py-12">
           <Search className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-          <p className="text-gray-500">Enter a search term to find assets, rides, or users</p>
+          <p className="text-gray-500 dark:text-gray-400">Enter a search term to find assets, rides, or users</p>
         </div>
       )}
     </div>

@@ -173,10 +173,10 @@ export default function ImageUpload({
             <Upload className={`w-6 h-6 ${isDragging ? 'text-primary-600' : 'text-gray-400'}`} />
           </div>
           
-          <p className="text-sm font-medium text-gray-700">
+          <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
             {isDragging ? 'Drop images here' : 'Drag and drop images'}
           </p>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
             or click to browse
           </p>
           
@@ -192,7 +192,7 @@ export default function ImageUpload({
 
       {/* Error Message */}
       {error && (
-        <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
+        <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600 dark:text-red-400">
           <AlertCircle className="w-4 h-4 flex-shrink-0" />
           <span>{error}</span>
         </div>
@@ -202,7 +202,7 @@ export default function ImageUpload({
       {previews.length > 0 && (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-gray-700">
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
               {previews.length} of {maxImages} images
             </span>
             <button
@@ -218,7 +218,7 @@ export default function ImageUpload({
             {previews.map((preview, index) => (
               <div
                 key={preview.id}
-                className="relative group aspect-square rounded-lg overflow-hidden bg-gray-100"
+                className="relative group aspect-square rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800"
               >
                 <img
                   src={preview.preview}
@@ -237,9 +237,9 @@ export default function ImageUpload({
                 <button
                   type="button"
                   onClick={() => removeImage(preview.id)}
-                  className="absolute top-2 right-2 p-1 bg-white/90 rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white"
+                  className="absolute top-2 right-2 p-1 bg-white/90 rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white dark:bg-gray-800"
                 >
-                  <X className="w-4 h-4 text-gray-600" />
+                  <X className="w-4 h-4 text-gray-600 dark:text-gray-300" />
                 </button>
                 
                 {/* File info */}
@@ -288,7 +288,7 @@ export function ImageGallery({
       {images.map((image) => (
         <div
           key={image.id}
-          className="relative group aspect-square rounded-lg overflow-hidden bg-gray-100"
+          className="relative group aspect-square rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800"
         >
           <img
             src={image.url}
@@ -310,20 +310,20 @@ export function ImageGallery({
                 <button
                   type="button"
                   onClick={() => onSetPrimary(image.id)}
-                  className="p-2 bg-white rounded-full shadow-sm hover:bg-gray-100"
+                  className="p-2 bg-white dark:bg-gray-800 rounded-full shadow-sm hover:bg-gray-100 dark:bg-gray-800"
                   title="Set as primary"
                 >
-                  <ImageIcon className="w-4 h-4 text-gray-600" />
+                  <ImageIcon className="w-4 h-4 text-gray-600 dark:text-gray-300" />
                 </button>
               )}
               {onRemove && (
                 <button
                   type="button"
                   onClick={() => onRemove(image.id)}
-                  className="p-2 bg-white rounded-full shadow-sm hover:bg-gray-100"
+                  className="p-2 bg-white dark:bg-gray-800 rounded-full shadow-sm hover:bg-gray-100 dark:bg-gray-800"
                   title="Remove image"
                 >
-                  <X className="w-4 h-4 text-red-600" />
+                  <X className="w-4 h-4 text-red-600 dark:text-red-400" />
                 </button>
               )}
             </div>

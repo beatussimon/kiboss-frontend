@@ -38,8 +38,8 @@ export default function SettingsPage() {
           <Settings className="h-6 w-6 text-primary-600" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Account Settings</h1>
-          <p className="text-gray-500">Manage your account preferences and security</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Account Settings</h1>
+          <p className="text-gray-500 dark:text-gray-400">Manage your account preferences and security</p>
         </div>
       </div>
 
@@ -50,11 +50,11 @@ export default function SettingsPage() {
             <Bell className="h-4 w-4" />
             Notifications
           </button>
-          <button className="w-full flex items-center gap-3 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-lg">
+          <button className="w-full flex items-center gap-3 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 dark:bg-gray-900 rounded-lg">
             <Lock className="h-4 w-4" />
             Security
           </button>
-          <button className="w-full flex items-center gap-3 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-lg">
+          <button className="w-full flex items-center gap-3 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 dark:bg-gray-900 rounded-lg">
             <Shield className="h-4 w-4" />
             Privacy
           </button>
@@ -67,49 +67,49 @@ export default function SettingsPage() {
         {/* Content */}
         <div className="md:col-span-2 space-y-6">
           <div className="card p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Notification Preferences</h2>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Notification Preferences</h2>
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-medium text-gray-900">Email Notifications</p>
-                  <p className="text-sm text-gray-500">Receive booking updates via email</p>
+                  <p className="font-medium text-gray-900 dark:text-white">Email Notifications</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Receive booking updates via email</p>
                 </div>
                 <button 
                   onClick={() => handleToggle('email')}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${notifications.email ? 'bg-primary-600' : 'bg-gray-200'}`}
                 >
-                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${notifications.email ? 'translate-x-6' : 'translate-x-1'}`} />
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${notifications.email ? 'trangray-x-6' : 'trangray-x-1'}`} />
                 </button>
               </div>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-medium text-gray-900">Push Notifications</p>
-                  <p className="text-sm text-gray-500">Receive real-time alerts on your device</p>
+                  <p className="font-medium text-gray-900 dark:text-white">Push Notifications</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Receive real-time alerts on your device</p>
                 </div>
                 <button 
                   onClick={() => handleToggle('push')}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${notifications.push ? 'bg-primary-600' : 'bg-gray-200'}`}
                 >
-                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${notifications.push ? 'translate-x-6' : 'translate-x-1'}`} />
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${notifications.push ? 'trangray-x-6' : 'trangray-x-1'}`} />
                 </button>
               </div>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-medium text-gray-900">SMS Notifications</p>
-                  <p className="text-sm text-gray-500">Important alerts via text message</p>
+                  <p className="font-medium text-gray-900 dark:text-white">SMS Notifications</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Important alerts via text message</p>
                 </div>
                 <button 
                   onClick={() => handleToggle('sms')}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${notifications.sms ? 'bg-primary-600' : 'bg-gray-200'}`}
                 >
-                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${notifications.sms ? 'translate-x-6' : 'translate-x-1'}`} />
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${notifications.sms ? 'trangray-x-6' : 'trangray-x-1'}`} />
                 </button>
               </div>
             </div>
           </div>
 
           <div className="card p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Security</h2>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Security</h2>
             <button className="btn-secondary w-full justify-center">
               Change Password
             </button>

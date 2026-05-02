@@ -243,10 +243,10 @@ export default function LocationModal({ onClose }: LocationModalProps) {
       <div className="absolute inset-0 bg-black bg-opacity-50" onClick={handleDismiss}></div>
       
       {/* Modal */}
-      <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
+      <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
         {/* Icon */}
         <div className="flex justify-center mb-4">
-          <div className="bg-primary-100 rounded-full p-4">
+          <div className="bg-primary-100 dark:bg-primary-900/30 rounded-full p-4">
             <svg 
               className="w-12 h-12 text-primary-600" 
               fill="none" 
@@ -270,20 +270,20 @@ export default function LocationModal({ onClose }: LocationModalProps) {
         </div>
 
         {/* Title */}
-        <h2 className="text-xl font-bold text-center text-gray-900 mb-2">
+        <h2 className="text-xl font-bold text-center text-gray-900 dark:text-white mb-2">
           Enable Location Services
         </h2>
 
         {/* Description */}
-        <p className="text-gray-600 text-center mb-4">
+        <p className="text-gray-600 dark:text-gray-300 text-center mb-4">
           Allow KIBOSS to access your location to find rides with departure points near you. 
           This helps us show you the most relevant rides in order of proximity.
         </p>
 
         {/* Error Message */}
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-md p-3 mb-4">
-            <p className="text-sm text-red-600">{error}</p>
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-3 mb-4">
+            <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
           </div>
         )}
 
@@ -316,7 +316,7 @@ export default function LocationModal({ onClose }: LocationModalProps) {
           <button
             onClick={handleUseFallback}
             disabled={isRequesting}
-            className="w-full bg-gray-100 text-gray-700 py-3 px-4 rounded-lg font-medium hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 py-3 px-4 rounded-lg font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
@@ -326,14 +326,14 @@ export default function LocationModal({ onClose }: LocationModalProps) {
           
           <button
             onClick={handleSkip}
-            className="w-full text-gray-500 py-2 px-4 rounded-lg font-medium hover:text-gray-700 transition-colors"
+            className="w-full text-gray-500 dark:text-gray-400 py-2 px-4 rounded-lg font-medium hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
           >
             Skip for now
           </button>
         </div>
 
         {/* Privacy Note */}
-        <p className="text-xs text-gray-500 text-center mt-4">
+        <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-4">
           Your location data is stored locally and only used to improve your ride suggestions. 
           We never share your precise location with other users.
         </p>

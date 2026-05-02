@@ -120,14 +120,14 @@ export default function CreateAssetPage() {
 
   return (
     <div className="max-w-3xl mx-auto pb-20">
-      <h1 className="text-3xl font-black text-gray-900 mb-2 tracking-tighter uppercase">
+      <h1 className="text-3xl font-black text-gray-900 dark:text-white mb-2 tracking-tighter uppercase">
         {formData.asset_type === 'VEHICLE' ? 'Register Vehicle' : 'List Your Asset'}
       </h1>
       <p className="text-gray-500 font-medium mb-8">Share your resources with the KIBOSS community.</p>
 
       {isBusinessTier && (
         <div className="bg-indigo-50 border-2 border-indigo-100 rounded-3xl p-6 mb-8 flex gap-4 shadow-sm shadow-indigo-100/50">
-          <div className="h-12 w-12 bg-white rounded-2xl flex items-center justify-center shadow-sm flex-shrink-0">
+          <div className="h-12 w-12 bg-white dark:bg-gray-800 rounded-2xl flex items-center justify-center shadow-sm flex-shrink-0">
             <Building2 className="h-6 w-6 text-indigo-600" />
           </div>
           <div>
@@ -141,8 +141,8 @@ export default function CreateAssetPage() {
 
       {user?.corporate_profile?.verification_status === 'REJECTED' && (
         <div className="bg-red-50 border-2 border-red-100 rounded-3xl p-6 mb-8 flex gap-4 shadow-sm shadow-red-100/50">
-          <div className="h-12 w-12 bg-white rounded-2xl flex items-center justify-center shadow-sm flex-shrink-0">
-            <AlertCircle className="h-6 w-6 text-red-600" />
+          <div className="h-12 w-12 bg-white dark:bg-gray-800 rounded-2xl flex items-center justify-center shadow-sm flex-shrink-0">
+            <AlertCircle className="h-6 w-6 text-red-600 dark:text-red-400" />
           </div>
           <div>
             <p className="text-sm font-black text-red-900 uppercase tracking-tight mb-1">Corporate Account Rejected</p>
@@ -169,7 +169,7 @@ export default function CreateAssetPage() {
               <Upload className="w-5 h-5" />
               Images
             </h2>
-            <p className="text-sm text-gray-500 mb-4">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
               Add up to 5 images. The first image will be used as the primary image.
             </p>
             <ImageUpload
@@ -185,7 +185,7 @@ export default function CreateAssetPage() {
             <h2 className="text-lg font-semibold mb-4">Basic Information</h2>
             <div className="space-y-4">
               <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">Asset Name</label>
+                <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Asset Name</label>
                 <input
                   id="name"
                   type="text"
@@ -197,7 +197,7 @@ export default function CreateAssetPage() {
                 />
               </div>
               <div>
-                <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Description</label>
                 <textarea
                   id="description"
                   value={formData.description}
@@ -209,7 +209,7 @@ export default function CreateAssetPage() {
                 />
               </div>
               <div>
-                <label htmlFor="asset_type" className="block text-sm font-medium text-gray-700 mb-1">Asset Type</label>
+                <label htmlFor="asset_type" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Asset Type</label>
                 <select
                   id="asset_type"
                   value={formData.asset_type}
@@ -259,7 +259,7 @@ export default function CreateAssetPage() {
               <h2 className="text-lg font-semibold mb-4">{formData.asset_type === 'CONFERENCE_HALL' ? 'Venue Capacity' : 'Stay Details'}</h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Max Guests</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Max Guests</label>
                   <input
                     type="number"
                     value={formData.properties.guests}
@@ -274,7 +274,7 @@ export default function CreateAssetPage() {
                 {formData.asset_type !== 'CONFERENCE_HALL' && (
                   <>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Bedrooms</label>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Bedrooms</label>
                       <input
                         type="number"
                         value={formData.properties.bedrooms}
@@ -287,7 +287,7 @@ export default function CreateAssetPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Beds</label>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Beds</label>
                       <input
                         type="number"
                         value={formData.properties.beds}
@@ -300,7 +300,7 @@ export default function CreateAssetPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Baths</label>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Baths</label>
                       <input
                         type="number"
                         value={formData.properties.baths}
@@ -317,7 +317,7 @@ export default function CreateAssetPage() {
               </div>
               <div className="grid grid-cols-2 gap-4 mt-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Available From</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Available From</label>
                   <input
                     type="time"
                     value={formData.properties.check_in_after}
@@ -329,7 +329,7 @@ export default function CreateAssetPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Available Until</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Available Until</label>
                   <input
                     type="time"
                     value={formData.properties.check_out_before}
@@ -350,7 +350,7 @@ export default function CreateAssetPage() {
               <h2 className="text-lg font-semibold mb-4">Dining Details</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Seating Capacity</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Seating Capacity</label>
                   <input
                     type="number"
                     value={formData.properties.guests}
@@ -363,7 +363,7 @@ export default function CreateAssetPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Table Number/Location</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Table Number/Location</label>
                   <input
                     type="text"
                     className="input"
@@ -379,7 +379,7 @@ export default function CreateAssetPage() {
             <h2 className="text-lg font-semibold mb-4">Location</h2>
             <div className="space-y-4">
               <div>
-                <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                <label htmlFor="address" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Address</label>
                 <input
                   id="address"
                   type="text"
@@ -392,7 +392,7 @@ export default function CreateAssetPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                  <label htmlFor="city" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">City</label>
                   <input
                     id="city"
                     type="text"
@@ -404,7 +404,7 @@ export default function CreateAssetPage() {
                   />
                 </div>
                 <div>
-                  <label htmlFor="country" className="block text-sm font-medium text-gray-700 mb-1">Country</label>
+                  <label htmlFor="country" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Country</label>
                   <CountrySelect
                     id="country"
                     name="country"
@@ -423,9 +423,9 @@ export default function CreateAssetPage() {
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Price</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Price</label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-bold">
+                    <span className="absolute left-3 top-1/2 -trangray-y-1/2 text-gray-500 font-bold">
                       {(formData as any).currency === 'KES' ? 'KSh' : 'TSh'}
                     </span>
                     <input
@@ -443,7 +443,7 @@ export default function CreateAssetPage() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Currency</label>
                   <select
                     value={(formData as any).currency || 'TZS'}
                     onChange={(e) => setFormData({
@@ -457,7 +457,7 @@ export default function CreateAssetPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Unit Type</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Unit Type</label>
                   <select
                     value={formData.pricing_rules[0].unit_type}
                     onChange={(e) => setFormData({
@@ -474,7 +474,7 @@ export default function CreateAssetPage() {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Minimum Duration (minutes)</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Minimum Duration (minutes)</label>
                 <input
                   type="number"
                   value={formData.pricing_rules[0].min_duration_minutes}

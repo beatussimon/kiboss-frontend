@@ -94,18 +94,18 @@ export default function InlineMessagingPanel({
 
   return (
     <div
-      className="flex flex-col border border-gray-200 rounded-lg bg-white shadow-lg"
+      className="flex flex-col border border-gray-200 rounded-lg bg-white dark:bg-gray-800 shadow-lg"
       style={{ height }}
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-gray-50 rounded-t-lg">
-        <h3 className="font-semibold text-gray-900">Messages</h3>
+      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-gray-50 dark:bg-gray-900 rounded-t-lg">
+        <h3 className="font-semibold text-gray-900 dark:text-white">Messages</h3>
         {onClose && (
           <button
             onClick={onClose}
-            className="p-1 hover:bg-gray-200 rounded-full transition-colors"
+            className="p-1 hover:bg-gray-200 dark:bg-gray-700 rounded-full transition-colors"
           >
-            <X className="h-5 w-5 text-gray-500" />
+            <X className="h-5 w-5 text-gray-500 dark:text-gray-400" />
           </button>
         )}
       </div>
@@ -128,7 +128,7 @@ export default function InlineMessagingPanel({
             <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
           </div>
         ) : messages.length === 0 ? (
-          <div className="flex items-center justify-center h-full text-gray-500">
+          <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">
             No messages yet. Start the conversation!
           </div>
         ) : (
@@ -189,7 +189,7 @@ export default function InlineMessagingPanel({
 
         {isOtherTyping && (
           <div className="flex justify-start">
-            <div className="bg-white border border-gray-100 px-4 py-2 rounded-2xl rounded-tl-none shadow-sm flex items-center space-x-1 w-fit">
+            <div className="bg-white dark:bg-gray-800 border border-gray-100 px-4 py-2 rounded-2xl rounded-tl-none shadow-sm flex items-center space-x-1 w-fit">
               <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
               <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
               <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
@@ -199,9 +199,9 @@ export default function InlineMessagingPanel({
       </div>
 
       {/* Input Area */}
-      <div className="p-3 border-t border-gray-200 bg-gray-50 rounded-b-lg">
+      <div className="p-3 border-t border-gray-200 bg-gray-50 dark:bg-gray-900 rounded-b-lg">
         <div className="flex gap-2">
-          <label className="cursor-pointer p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
+          <label className="cursor-pointer p-2 text-gray-500 hover:text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:bg-gray-800 rounded-lg transition-colors">
             <Paperclip className="h-5 w-5" />
             <input type="file" className="hidden" accept="image/*,.pdf,.doc,.docx,.txt" />
           </label>

@@ -71,7 +71,7 @@ export default function FleetCommand() {
     }
 
     const STATUS_COLORS: Record<string, string> = {
-        SCHEDULED: 'bg-blue-100 text-blue-700',
+        SCHEDULED: 'bg-primary-100 text-primary-700',
         OPEN: 'bg-emerald-100 text-emerald-700',
         DEPARTED: 'bg-orange-100 text-orange-700',
         IN_TRANSIT: 'bg-purple-100 text-purple-700',
@@ -85,7 +85,7 @@ export default function FleetCommand() {
             {stats && (
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                     {[
-                        { label: 'Fleet Size', value: stats.vehicle_count, icon: Car, color: 'from-blue-50 to-blue-100/50 text-blue-600 ring-blue-100/50' },
+                        { label: 'Fleet Size', value: stats.vehicle_count, icon: Car, color: 'from-primary-50 to-primary-100/50 text-primary-600 ring-primary-100/50' },
                         { label: 'Active Trips', value: stats.active_trips, icon: Activity, color: 'from-emerald-50 to-emerald-100/50 text-emerald-600 ring-emerald-100/50' },
                         { label: 'Completed', value: stats.completed_trips, icon: TrendingUp, color: 'from-purple-50 to-purple-100/50 text-purple-600 ring-purple-100/50' },
                         { label: 'Passengers', value: stats.total_passengers, icon: Users, color: 'from-orange-50 to-orange-100/50 text-orange-600 ring-orange-100/50' },
@@ -97,7 +97,7 @@ export default function FleetCommand() {
                             </div>
                             <div>
                                 <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{stat.label}</p>
-                                <p className="text-2xl font-black text-gray-900">{stat.value}</p>
+                                <p className="text-2xl font-black text-gray-900 dark:text-white">{stat.value}</p>
                             </div>
                         </div>
                     ))}
@@ -119,9 +119,9 @@ export default function FleetCommand() {
                 </div>
 
                 {vehicles.length === 0 ? (
-                    <div className="card p-10 text-center border-dashed border-2 border-gray-200">
+                    <div className="card p-10 text-center border-dashed border-2 border-gray-200 dark:border-gray-700">
                         <Car className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-                        <p className="text-gray-500 text-sm">No vehicles registered yet.</p>
+                        <p className="text-gray-500 dark:text-gray-400 text-sm">No vehicles registered yet.</p>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -138,12 +138,12 @@ export default function FleetCommand() {
                                 }}
                             >
                                 <div className={`flex items-center gap-3 ${vehicle.verification_status === 'PENDING' ? 'opacity-40 blur-[2px] grayscale-[50%]' : ''}`}>
-                                    <div className="h-12 w-12 bg-gray-100 rounded-xl flex items-center justify-center text-gray-400 group-hover:bg-blue-50 group-hover:text-blue-500 transition-colors">
+                                    <div className="h-12 w-12 bg-gray-100 dark:bg-gray-800 rounded-xl flex items-center justify-center text-gray-400 group-hover:bg-primary-50 group-hover:text-primary-500 transition-colors">
                                         <Car className="h-6 w-6" />
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <h4 className="font-bold text-gray-900 truncate text-sm">{vehicle.name}</h4>
-                                        <div className="flex items-center gap-2 text-xs text-gray-500">
+                                        <h4 className="font-bold text-gray-900 dark:text-white truncate text-sm">{vehicle.name}</h4>
+                                        <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
                                             <span>{(vehicle.properties?.make as string) || 'N/A'} {(vehicle.properties?.model as string) || ''}</span>
                                             <span>•</span>
                                             <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold uppercase ${vehicle.verification_status === 'VERIFIED' ? 'bg-emerald-100 text-emerald-700' : 'bg-yellow-100 text-yellow-700'
@@ -175,16 +175,16 @@ export default function FleetCommand() {
                     </h3>
                     <Link
                         to="/rides/create?mode=business"
-                        className="px-5 py-2 rounded-xl text-xs font-black uppercase tracking-widest bg-blue-600 text-white hover:bg-blue-700 shadow-md shadow-blue-500/20 flex items-center gap-1.5"
+                        className="px-5 py-2 rounded-xl text-xs font-black uppercase tracking-widest bg-primary-600 text-white hover:bg-primary-700 shadow-md shadow-primary-500/20 flex items-center gap-1.5"
                     >
                         <Plus className="h-4 w-4" /> Create Trip
                     </Link>
                 </div>
 
                 {trips.length === 0 ? (
-                    <div className="card p-10 text-center border-dashed border-2 border-gray-200">
+                    <div className="card p-10 text-center border-dashed border-2 border-gray-200 dark:border-gray-700">
                         <Activity className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-                        <p className="text-gray-500 text-sm">No trips created yet. Dispatch your first trip.</p>
+                        <p className="text-gray-500 dark:text-gray-400 text-sm">No trips created yet. Dispatch your first trip.</p>
                     </div>
                 ) : (
                     <div className="space-y-3">
@@ -194,12 +194,12 @@ export default function FleetCommand() {
                                 to={`/rides/${trip.id}`}
                                 className="card p-4 flex items-center gap-4 hover:shadow-lg transition-all group"
                             >
-                                <div className="h-10 w-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                                <div className="h-10 w-10 bg-primary-50 text-primary-600 rounded-xl flex items-center justify-center flex-shrink-0">
                                     <MapPin className="h-5 w-5" />
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <h4 className="font-bold text-gray-900 text-sm truncate">{trip.route_name}</h4>
-                                    <p className="text-xs text-gray-500 truncate">{trip.origin} → {trip.destination}</p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{trip.origin} → {trip.destination}</p>
                                 </div>
                                 <div className="text-right flex-shrink-0">
                                     <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${STATUS_COLORS[trip.status] || 'bg-gray-100 text-gray-600'}`}>

@@ -193,8 +193,8 @@ export default function RideDetailPage() {
       return (
         <div className="card p-8 border-none shadow-2xl bg-white text-center max-w-2xl mx-auto mt-12">
           <Car className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-          <h2 className="text-2xl font-black text-gray-900 mb-2">This ride is no longer available</h2>
-          <p className="text-gray-500 mb-6">The provider may have cancelled or deleted it.</p>
+          <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-2">This ride is no longer available</h2>
+          <p className="text-gray-500 dark:text-gray-400 mb-6">The provider may have cancelled or deleted it.</p>
           
           {fallbackBooking && (
             <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 text-left mb-6">
@@ -203,10 +203,10 @@ export default function RideDetailPage() {
               </h3>
               <p className="text-amber-700 text-sm mb-4">You have a booking associated with this ride. Our escrow protects your payment.</p>
               
-              <div className="bg-white rounded-xl p-4 shadow-sm border border-amber-100 flex justify-between items-center">
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-amber-100 flex justify-between items-center">
                 <div>
                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Booking Status</p>
-                  <p className="font-bold text-gray-900">{fallbackBooking.status || 'Unknown'}</p>
+                  <p className="font-bold text-gray-900 dark:text-white">{fallbackBooking.status || 'Unknown'}</p>
                 </div>
                 <div className="text-right">
                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Receipt</p>
@@ -235,7 +235,7 @@ export default function RideDetailPage() {
 
   if (!ride) {
     return (
-      <div className="card p-8 bg-gray-50 border-gray-100 text-center">
+      <div className="card p-8 bg-gray-50 dark:bg-gray-900 border-gray-100 text-center">
         <p className="text-gray-600 mb-4 font-bold text-lg">Ride not found</p>
         <Link to="/rides" className="btn-secondary inline-flex">
           ← Back to Rides
@@ -289,19 +289,19 @@ export default function RideDetailPage() {
                     <>
                       <button
                         onClick={prevImage}
-                        className="absolute left-6 top-1/2 -translate-y-1/2 p-3 bg-black/40 hover:bg-black/60 backdrop-blur-md rounded-full text-white transition-all opacity-0 group-hover:opacity-100 border border-white/20 hover:scale-110"
+                        className="absolute left-6 top-1/2 -trangray-y-1/2 p-3 bg-gray-900 hover:bg-black rounded-full text-white transition-all opacity-0 group-hover:opacity-100 border border-gray-700 hover:scale-110 shadow-xl"
                       >
                         <ChevronLeft className="h-6 w-6" />
                       </button>
                       <button
                         onClick={nextImage}
-                        className="absolute right-6 top-1/2 -translate-y-1/2 p-3 bg-black/40 hover:bg-black/60 backdrop-blur-md rounded-full text-white transition-all opacity-0 group-hover:opacity-100 border border-white/20 hover:scale-110"
+                        className="absolute right-6 top-1/2 -trangray-y-1/2 p-3 bg-gray-900 hover:bg-black rounded-full text-white transition-all opacity-0 group-hover:opacity-100 border border-gray-700 hover:scale-110 shadow-xl"
                       >
                         <ChevronRight className="h-6 w-6" />
                       </button>
 
                       {/* Image Counter */}
-                      <div className="absolute bottom-6 right-6 px-4 py-1.5 bg-black/60 backdrop-blur-md rounded-full text-white text-xs font-bold border border-white/20 shadow-lg tracking-widest uppercase">
+                      <div className="absolute bottom-6 right-6 px-4 py-1.5 bg-gray-900 rounded-full text-white text-xs font-bold border border-gray-700 shadow-lg tracking-widest uppercase">
                         {currentImageIndex + 1} / {ride.photos.length}
                       </div>
                     </>
@@ -309,7 +309,7 @@ export default function RideDetailPage() {
                 </>
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
-                  <Car className="h-24 w-24 text-gray-700" />
+                  <Car className="h-24 w-24 text-gray-700 dark:text-gray-200" />
                 </div>
               )}
             </div>
@@ -335,15 +335,15 @@ export default function RideDetailPage() {
             <div className="flex items-start justify-between mb-8">
               <div>
                 <p className="text-[10px] font-black  tracking-[0.2em] text-primary-600 mb-2 tracking-widest">Confirmed Ride</p>
-                <h1 className="text-3xl font-black text-gray-900 leading-tight">{ride.route_name}</h1>
+                <h1 className="text-3xl font-black text-gray-900 dark:text-white leading-tight">{ride.route_name}</h1>
               </div>
               {/* Driver Actions */}
               {isDriver && (
                 <div className="flex gap-2">
-                  <Link to={`/rides/${ride.id}/edit`} className="p-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-all text-gray-600">
+                  <Link to={`/rides/${ride.id}/edit`} className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 transition-all text-gray-600 dark:text-gray-300">
                     <Edit className="h-5 w-5" />
                   </Link>
-                  <Link to={`/rides/${ride.id}/bookings`} className="p-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-all text-gray-600">
+                  <Link to={`/rides/${ride.id}/bookings`} className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 transition-all text-gray-600 dark:text-gray-300">
                     <List className="h-5 w-5" />
                   </Link>
                 </div>
@@ -374,24 +374,24 @@ export default function RideDetailPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8 pt-6 border-t border-gray-100">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8 pt-6 border-t border-gray-100 dark:border-gray-800">
               <div className="space-y-1">
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Departure</p>
-                <div className="flex items-center gap-2 text-gray-900">
+                <div className="flex items-center gap-2 text-gray-900 dark:text-white">
                   <Clock className="h-4 w-4 text-primary-600" />
                   <span className="font-bold text-sm">{new Date(ride.departure_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                 </div>
               </div>
               <div className="space-y-1">
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Date</p>
-                <div className="flex items-center gap-2 text-gray-900">
+                <div className="flex items-center gap-2 text-gray-900 dark:text-white">
                   <Calendar className="h-4 w-4 text-primary-600" />
                   <span className="font-bold text-sm">{new Date(ride.departure_time).toLocaleDateString()}</span>
                 </div>
               </div>
               <div className="space-y-1">
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Seats</p>
-                <div className="flex items-center gap-2 text-gray-900">
+                <div className="flex items-center gap-2 text-gray-900 dark:text-white">
                   <Users className="h-4 w-4 text-primary-600" />
                   <span className="font-bold text-sm">{ride.available_seats} / {ride.total_seats}</span>
                 </div>
@@ -399,7 +399,7 @@ export default function RideDetailPage() {
               {ride.cargo_enabled ? (
                 <div className="space-y-1">
                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Cargo (kg)</p>
-                  <div className="flex items-center gap-2 text-gray-900">
+                  <div className="flex items-center gap-2 text-gray-900 dark:text-white">
                     <Package className="h-4 w-4 text-primary-600" />
                     <span className="font-bold text-sm">{ride.available_cargo} / {ride.total_cargo}</span>
                   </div>
@@ -415,7 +415,7 @@ export default function RideDetailPage() {
             {/* Driver/Business Info - Clickable to profile */}
             <Link
               to={`/users/${ride.driver.id}`}
-              className="flex items-center gap-4 p-5 bg-white border border-gray-100/80 rounded-2xl hover:shadow-xl hover:border-primary-100 transition-all duration-300 group mt-8"
+              className="flex items-center gap-4 p-5 bg-white dark:bg-gray-800 border border-gray-100/80 rounded-2xl hover:shadow-xl hover:border-primary-100 transition-all duration-300 group mt-8"
             >
               <div className="relative">
                 <div className="w-16 h-16 rounded-[1.25rem] bg-gradient-to-br from-primary-100/50 to-primary-50/50 flex flex-col items-center justify-center overflow-hidden ring-4 ring-white shadow-sm group-hover:ring-primary-50 transition-all duration-300">
@@ -452,7 +452,7 @@ export default function RideDetailPage() {
                   />
                 </div>
                 <div className="flex items-center gap-3 mt-1.5">
-                  <p className="text-xs font-bold text-gray-500 flex items-center gap-1 bg-gray-50 px-2 py-0.5 rounded-md border border-gray-100/50">
+                  <p className="text-xs font-bold text-gray-500 flex items-center gap-1 bg-gray-50 dark:bg-gray-900 px-2 py-0.5 rounded-md border border-gray-100/50">
                     <Star className="h-3 w-3 text-yellow-500 fill-yellow-500" />
                     {ride.driver.trust_score} Trust
                   </p>
@@ -462,7 +462,7 @@ export default function RideDetailPage() {
                 </div>
               </div>
               <div className="w-10 h-10 rounded-full bg-gray-50 group-hover:bg-primary-50 flex items-center justify-center transition-colors">
-                <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-primary-600 group-hover:translate-x-0.5 transition-all" />
+                <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-primary-600 group-hover:trangray-x-0.5 transition-all" />
               </div>
             </Link>
           </div>
@@ -470,7 +470,7 @@ export default function RideDetailPage() {
           {/* Vehicle Info */}
           <div className="card p-6">
             <h2 className="text-lg font-semibold mb-4">Vehicle</h2>
-            <p className="text-gray-600">
+            <p className="text-gray-600 dark:text-gray-300">
               {ride.vehicle_asset?.name || ride.vehicle_description || 'Vehicle info not available'} · {ride.vehicle_asset?.asset_type || ride.vehicle_color || ''}
             </p>
           </div>
@@ -479,9 +479,9 @@ export default function RideDetailPage() {
         <div className="space-y-6">
           {/* Unified Booking Card */}
           {!isDriver && (
-            <div className="card p-0 sticky top-24 border-none shadow-2xl overflow-hidden bg-white">
+            <div className="card p-0 sticky top-24 border-none shadow-2xl overflow-hidden bg-white dark:bg-gray-800">
               {ride.cargo_enabled && (
-                <div className="flex border-b border-gray-200">
+                <div className="flex border-b border-gray-200 dark:border-gray-700">
                   <button
                     onClick={() => setActiveTab('SEATS')}
                     className={`flex-1 py-4 text-sm font-black uppercase tracking-widest transition-colors ${activeTab === 'SEATS' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
@@ -527,7 +527,7 @@ export default function RideDetailPage() {
                 {activeTab === 'SEATS' ? (
                   ride.ride_type === 'BUSINESS' ? (
                     <div className="space-y-4">
-                      <label className="block text-sm font-bold text-gray-700">Number of Seats to Book</label>
+                      <label className="block text-sm font-bold text-gray-700 dark:text-gray-200">Number of Seats to Book</label>
                       <input
                         type="number"
                         min="1"
@@ -538,16 +538,16 @@ export default function RideDetailPage() {
                         placeholder="e.g. 2"
                       />
                       {businessSeats > 0 && businessSeats <= ride.available_seats && (
-                        <div className="p-5 bg-gray-50 rounded-2xl border border-gray-100 space-y-3">
+                        <div className="p-5 bg-gray-50 dark:bg-gray-900 rounded-2xl border border-gray-100 space-y-3">
                           <div className="flex justify-between items-center text-sm">
-                            <span className="text-gray-500">Subtotal ({businessSeats} Seats)</span>
+                            <span className="text-gray-500 dark:text-gray-400">Subtotal ({businessSeats} Seats)</span>
                             <span className="font-bold"><Price amount={ride.seat_price * businessSeats} /></span>
                           </div>
                           <div className="flex justify-between items-center text-sm">
                             <ServiceFeeTrigger />
                             <span className="font-bold"><Price amount={0} /></span>
                           </div>
-                          <div className="pt-3 border-t border-gray-200 flex justify-between items-center text-lg font-black text-gray-900">
+                          <div className="pt-3 border-t border-gray-200 flex justify-between items-center text-lg font-black text-gray-900 dark:text-white">
                             <span>Total</span>
                             <span className="text-primary-600"><Price amount={ride.seat_price * businessSeats} /></span>
                           </div>
@@ -562,25 +562,25 @@ export default function RideDetailPage() {
                           <p className="text-xs font-black tracking-widest text-gray-400 uppercase">Select Seats</p>
                           <div className="flex gap-2">
                             <div className="flex items-center gap-1 text-[8px] font-bold text-gray-400 uppercase">
-                              <div className="w-2 h-2 bg-white border border-gray-200 rounded-sm" /> Free
+                              <div className="w-2 h-2 bg-white dark:bg-gray-800 border border-gray-200 rounded-sm" /> Free
                             </div>
                             <div className="flex items-center gap-1 text-[8px] font-bold text-gray-400 uppercase">
                               <div className="w-2 h-2 bg-primary-600 rounded-sm" /> Yours
                             </div>
                             <div className="flex items-center gap-1 text-[8px] font-bold text-gray-400 uppercase">
-                              <div className="w-2 h-2 bg-gray-200 rounded-sm" /> Taken
+                              <div className="w-2 h-2 bg-gray-200 dark:bg-gray-700 rounded-sm" /> Taken
                             </div>
                           </div>
                         </div>
 
-                        <div className="relative max-w-[180px] mx-auto bg-gray-50 rounded-[3rem] p-6 border-2 border-gray-100 shadow-inner">
+                        <div className="relative max-w-[180px] mx-auto bg-gray-50 dark:bg-gray-900 rounded-[3rem] p-6 border-2 border-gray-100 shadow-inner">
                           {/* Dashboard / Windshield Area */}
-                          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2/3 h-1 bg-gray-200 rounded-full mt-2" />
+                          <div className="absolute top-0 left-1/2 -trangray-x-1/2 w-2/3 h-1 bg-gray-200 dark:bg-gray-700 rounded-full mt-2" />
 
                           {/* Front Row */}
                           <div className="flex justify-between mb-10">
                             {/* Driver Seat (Placeholder) */}
-                            <div className="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center opacity-50">
+                            <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center opacity-50">
                               <User className="h-5 w-5 text-gray-400" />
                             </div>
 
@@ -628,16 +628,16 @@ export default function RideDetailPage() {
                         </div>
 
                         {selectedSeats.length > 0 && (
-                          <div className="p-5 bg-gray-50 rounded-2xl border border-gray-100 space-y-3 animate-in zoom-in-95 duration-200">
+                          <div className="p-5 bg-gray-50 dark:bg-gray-900 rounded-2xl border border-gray-100 space-y-3 animate-in zoom-in-95 duration-200">
                             <div className="flex justify-between items-center text-sm">
-                              <span className="text-gray-500">Subtotal ({selectedSeats.length} Seats)</span>
+                              <span className="text-gray-500 dark:text-gray-400">Subtotal ({selectedSeats.length} Seats)</span>
                               <span className="font-bold"><Price amount={ride.seat_price * selectedSeats.length} /></span>
                             </div>
                             <div className="flex justify-between items-center text-sm">
                               <ServiceFeeTrigger />
                               <span className="font-bold"><Price amount={0} /></span>
                             </div>
-                            <div className="pt-3 border-t border-gray-200 flex justify-between items-center text-lg font-black text-gray-900">
+                            <div className="pt-3 border-t border-gray-200 flex justify-between items-center text-lg font-black text-gray-900 dark:text-white">
                               <span>Total</span>
                               <span className="text-primary-600"><Price amount={ride.seat_price * selectedSeats.length} /></span>
                             </div>
@@ -648,7 +648,7 @@ export default function RideDetailPage() {
                   )
                 ) : (
                   <div className="space-y-4">
-                    <label className="block text-sm font-bold text-gray-700">Cargo Weight (kg)</label>
+                    <label className="block text-sm font-bold text-gray-700 dark:text-gray-200">Cargo Weight (kg)</label>
                     <input
                       type="number"
                       min="1"
@@ -659,16 +659,16 @@ export default function RideDetailPage() {
                       placeholder="e.g. 5"
                     />
                     {Number(cargoWeight) > 0 && Number(cargoWeight) <= (ride.available_cargo || 0) && (
-                      <div className="p-5 bg-gray-50 rounded-2xl border border-gray-100 space-y-3">
+                      <div className="p-5 bg-gray-50 dark:bg-gray-900 rounded-2xl border border-gray-100 space-y-3">
                         <div className="flex justify-between items-center text-sm">
-                          <span className="text-gray-500">Subtotal ({cargoWeight} kg)</span>
+                          <span className="text-gray-500 dark:text-gray-400">Subtotal ({cargoWeight} kg)</span>
                           <span className="font-bold"><Price amount={(ride.cargo_price || 0) * Number(cargoWeight)} /></span>
                         </div>
                         <div className="flex justify-between items-center text-sm">
                           <ServiceFeeTrigger />
                           <span className="font-bold"><Price amount={0} /></span>
                         </div>
-                        <div className="pt-3 border-t border-gray-200 flex justify-between items-center text-lg font-black text-gray-900">
+                        <div className="pt-3 border-t border-gray-200 flex justify-between items-center text-lg font-black text-gray-900 dark:text-white">
                           <span>Total</span>
                           <span className="text-primary-600"><Price amount={(ride.cargo_price || 0) * Number(cargoWeight)} /></span>
                         </div>
@@ -697,9 +697,9 @@ export default function RideDetailPage() {
                   )}
 
                   <div className="w-full flex items-center gap-3">
-                    <div className="flex-1 h-px bg-gray-100" />
+                    <div className="flex-1 h-px bg-gray-100 dark:bg-gray-800" />
                     <span className="text-[10px] font-bold text-gray-300 uppercase">Or</span>
-                    <div className="flex-1 h-px bg-gray-100" />
+                    <div className="flex-1 h-px bg-gray-100 dark:bg-gray-800" />
                   </div>
 
                   {isAuthenticated && user && (

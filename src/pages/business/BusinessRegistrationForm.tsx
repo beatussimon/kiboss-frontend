@@ -139,7 +139,7 @@ export default function BusinessRegistrationForm({ initialPlan = 'MONTHLY', onCa
             status === 'PENDING' ? <Clock className="h-10 w-10" /> :
               <Building2 className="h-10 w-10" />}
         </div>
-        <h1 className="text-3xl font-black text-gray-900">
+        <h1 className="text-3xl font-black text-gray-900 dark:text-white">
           {status === 'VERIFIED' ? 'Business Already Verified' :
             status === 'PENDING' ? 'Application In Review' :
               'Application Rejected'}
@@ -205,7 +205,7 @@ export default function BusinessRegistrationForm({ initialPlan = 'MONTHLY', onCa
                   <p className="text-gray-500 text-xs md:text-sm font-medium">Accept policies before proceeding.</p>
                 </div>
 
-                <div className="bg-gray-50 p-4 md:p-6 rounded-xl md:rounded-2xl border-2 border-gray-100 h-48 md:h-64 overflow-y-auto text-[11px] md:text-sm text-gray-600 leading-relaxed space-y-3 font-medium custom-scrollbar">
+                <div className="bg-gray-50 dark:bg-gray-900 p-4 md:p-6 rounded-xl md:rounded-2xl border-2 border-gray-100 h-48 md:h-64 overflow-y-auto text-[11px] md:text-sm text-gray-600 leading-relaxed space-y-3 font-medium custom-scrollbar">
                   <p className="font-bold text-gray-900 uppercase">1. Verification Standard</p>
                   <p>{config?.terms}</p>
                   <p className="font-bold text-gray-900 uppercase">2. Service Continuity</p>
@@ -330,7 +330,7 @@ export default function BusinessRegistrationForm({ initialPlan = 'MONTHLY', onCa
                       onChange={handleFileChange}
                     />
                     <label htmlFor="doc-upload" className="cursor-pointer flex flex-col items-center">
-                      <div className="h-12 w-12 md:h-16 md:w-16 bg-white rounded-2xl md:rounded-3xl flex items-center justify-center mb-3 md:mb-4 shadow-sm group-hover:scale-110 transition-transform">
+                      <div className="h-12 w-12 md:h-16 md:w-16 bg-white dark:bg-gray-800 rounded-2xl md:rounded-3xl flex items-center justify-center mb-3 md:mb-4 shadow-sm group-hover:scale-110 transition-transform">
                         <Upload className="h-6 w-6 md:h-8 md:w-8 text-primary-600" />
                       </div>
                       <p className="text-xs md:text-sm font-black text-gray-900 tracking-tight">Browse Files</p>
@@ -342,7 +342,7 @@ export default function BusinessRegistrationForm({ initialPlan = 'MONTHLY', onCa
                     <div className="space-y-2">
                       <p className="text-[9px] md:text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Ready for upload ({documents.length})</p>
                       {documents.map((doc, idx) => (
-                        <div key={idx} className="flex items-center justify-between p-3 md:p-4 bg-white border-2 border-gray-50 rounded-xl md:rounded-2xl">
+                        <div key={idx} className="flex items-center justify-between p-3 md:p-4 bg-white dark:bg-gray-800 border-2 border-gray-50 rounded-xl md:rounded-2xl">
                           <div className="flex items-center gap-2 md:gap-3 overflow-hidden">
                             <FileText className="h-4 w-4 md:h-5 md:w-5 text-primary-600 flex-shrink-0" />
                             <span className="text-[10px] md:text-xs font-bold text-gray-700 truncate">{doc.name}</span>
@@ -387,7 +387,7 @@ export default function BusinessRegistrationForm({ initialPlan = 'MONTHLY', onCa
                         <label className="text-[9px] md:text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 block">Zenopay Transaction Reference</label>
                         <input
                           type="text"
-                          className="w-full bg-white/5 border border-white/10 rounded-xl md:rounded-2xl p-3 md:p-4 text-primary-400 font-black text-base md:text-lg focus:ring-2 focus:ring-primary-500 focus:outline-none placeholder:text-gray-700"
+                          className="w-full bg-white/5 border border-white/10 rounded-xl md:rounded-2xl p-3 md:p-4 text-primary-400 font-black text-base md:text-lg focus:ring-2 focus:ring-primary-500 focus:outline-none placeholder:text-gray-700 dark:text-gray-200"
                           placeholder="e.g. ZNP-882-991-X"
                           value={formData.payment_reference}
                           onChange={(e) => setFormData({ ...formData, payment_reference: e.target.value })}
@@ -402,7 +402,7 @@ export default function BusinessRegistrationForm({ initialPlan = 'MONTHLY', onCa
             <div className="mt-auto pt-8 flex gap-3 flex-col sm:flex-row">
               <button
                 onClick={() => step === 1 ? (onCancel ? onCancel() : navigate('/business')) : setStep(step - 1)}
-                className="order-2 sm:order-1 px-6 py-3 md:py-4 bg-white border-2 border-gray-100 rounded-xl md:rounded-2xl font-black text-gray-400 uppercase tracking-widest hover:bg-gray-50 transition-all flex items-center justify-center gap-2 text-xs"
+                className="order-2 sm:order-1 px-6 py-3 md:py-4 bg-white dark:bg-gray-800 border-2 border-gray-100 rounded-xl md:rounded-2xl font-black text-gray-400 uppercase tracking-widest hover:bg-gray-50 transition-all flex items-center justify-center gap-2 text-xs"
               >
                 <ChevronLeft className="h-3 w-3 md:h-4 md:w-4" /> {step === 1 ? 'Cancel' : 'Back'}
               </button>
@@ -466,7 +466,7 @@ export default function BusinessRegistrationForm({ initialPlan = 'MONTHLY', onCa
             </div>
           </div>
 
-          <div className="card p-8 border-none bg-gray-50 border border-gray-100 space-y-4 rounded-[3rem]">
+          <div className="card p-8 border-none bg-gray-50 dark:bg-gray-900 border border-gray-100 space-y-4 rounded-[3rem]">
             <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Compliance Notice</h4>
             <div className="flex gap-3">
               <Info className="h-5 w-5 text-gray-400 flex-shrink-0" />

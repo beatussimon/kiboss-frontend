@@ -43,7 +43,7 @@ export default function PublicProfilePage() {
     <div className="max-w-4xl mx-auto">
       <div className="card p-4 md:p-8 mb-6 overflow-hidden">
         <div className="flex flex-col md:flex-row gap-6">
-          <div className="w-32 h-32 bg-gray-200 rounded-full overflow-hidden flex-shrink-0">
+          <div className="w-32 h-32 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden flex-shrink-0">
             {user.avatar ? (
               <img src={getMediaUrl(user.avatar)} alt={user.first_name} className="w-full h-full object-cover" />
             ) : (
@@ -94,7 +94,7 @@ export default function PublicProfilePage() {
                 </div>
 
                 <div className="mt-4 pt-4 border-t border-indigo-100 flex items-center gap-2 text-sm text-indigo-800">
-                  <span className="font-semibold text-gray-500">Operated by:</span>
+                  <span className="font-semibold text-gray-500 dark:text-gray-400">Operated by:</span>
                   {user.avatar && <img src={getMediaUrl(user.avatar)} alt="Avatar" className="w-6 h-6 rounded-full inline-block" />}
                   {user.first_name} {user.last_name} (@{user.username || user.email?.split('@')[0]})
                 </div>
@@ -111,7 +111,7 @@ export default function PublicProfilePage() {
                       checkmarkData={user.checkmark_data}
                     />
                   </h1>
-                  <p className="text-gray-500">@{user.username || user.email?.split('@')[0]}</p>
+                  <p className="text-gray-500 dark:text-gray-400">@{user.username || user.email?.split('@')[0]}</p>
                 </div>
                 <div className="flex gap-2">
                   {isOwnProfile ? (
@@ -131,7 +131,7 @@ export default function PublicProfilePage() {
               </div>
             )}
 
-            <div className="flex flex-wrap gap-4 mt-4 text-sm text-gray-600">
+            <div className="flex flex-wrap gap-4 mt-4 text-sm text-gray-600 dark:text-gray-300">
               <div className="flex items-center gap-1">
                 <MapPin className="h-4 w-4" />
                 {user.location || 'Location not set'}
@@ -149,7 +149,7 @@ export default function PublicProfilePage() {
             </div>
 
             {user.bio && (
-              <p className="mt-4 text-gray-700">{user.bio}</p>
+              <p className="mt-4 text-gray-700 dark:text-gray-200">{user.bio}</p>
             )}
 
             {/* Trust Badges */}
@@ -157,7 +157,7 @@ export default function PublicProfilePage() {
               <div className="flex flex-wrap gap-2 mt-4">
                 {user.trust_badges.map((badge) => {
                   const badgeConfig: Record<string, { label: string; color: string }> = {
-                    FIRST_RIDE: { label: '🚗 First Ride', color: 'bg-blue-50 text-blue-700 border-blue-200' },
+                    FIRST_RIDE: { label: '🚗 First Ride', color: 'bg-primary-50 text-primary-700 border-primary-200' },
                     REGULAR: { label: '⭐ Regular', color: 'bg-indigo-50 text-indigo-700 border-indigo-200' },
                     VETERAN: { label: '🏅 Veteran', color: 'bg-purple-50 text-purple-700 border-purple-200' },
                     ELITE: { label: '💎 Elite', color: 'bg-amber-50 text-amber-700 border-amber-200' },
@@ -183,23 +183,23 @@ export default function PublicProfilePage() {
             {/* Instagram-style Stats Row */}
             <div className="flex flex-wrap justify-between md:justify-start gap-4 md:gap-8 mt-5 pt-4 border-t border-gray-100 w-full">
               <div className="text-center min-w-[60px]">
-                <span className="block text-xl md:text-2xl font-black text-gray-900">{user.total_listings || user.listings?.length || 0}</span>
+                <span className="block text-xl md:text-2xl font-black text-gray-900 dark:text-white">{user.total_listings || user.listings?.length || 0}</span>
                 <span className="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide">Listings</span>
               </div>
               <div className="text-center min-w-[60px]">
-                <span className="block text-xl md:text-2xl font-black text-gray-900">{user.total_rides || user.rides?.length || 0}</span>
+                <span className="block text-xl md:text-2xl font-black text-gray-900 dark:text-white">{user.total_rides || user.rides?.length || 0}</span>
                 <span className="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide">Rides</span>
               </div>
               <div className="text-center min-w-[60px]">
-                <span className="block text-xl md:text-2xl font-black text-gray-900">{user.total_reviews || user.review_count || 0}</span>
+                <span className="block text-xl md:text-2xl font-black text-gray-900 dark:text-white">{user.total_reviews || user.review_count || 0}</span>
                 <span className="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide">Reviews</span>
               </div>
               <div className="text-center min-w-[60px]">
-                <span className="block text-xl md:text-2xl font-black text-gray-900">{user.follower_count || 0}</span>
+                <span className="block text-xl md:text-2xl font-black text-gray-900 dark:text-white">{user.follower_count || 0}</span>
                 <span className="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide">Followers</span>
               </div>
               <div className="text-center min-w-[60px]">
-                <span className="block text-xl md:text-2xl font-black text-gray-900">{user.following_count || 0}</span>
+                <span className="block text-xl md:text-2xl font-black text-gray-900 dark:text-white">{user.following_count || 0}</span>
                 <span className="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide">Following</span>
               </div>
             </div>
@@ -209,8 +209,8 @@ export default function PublicProfilePage() {
 
       {/* Own Profile Notice */}
       {isOwnProfile && (
-        <div className="card p-4 mb-6 bg-blue-50 border-blue-200">
-          <p className="text-blue-800">
+        <div className="card p-4 mb-6 bg-primary-50 dark:bg-primary-900/20 border-primary-200 dark:border-primary-800">
+          <p className="text-primary-800 dark:text-primary-300">
             This is your public profile. Others will see this when they view your page.
           </p>
         </div>
@@ -242,7 +242,7 @@ export default function PublicProfilePage() {
                   <Link
                     key={listing.id}
                     to={`/assets/${listing.id}`}
-                    className="card overflow-hidden hover:shadow-md transition-shadow"
+                    className="card overflow-hidden hover:shadow-lg transition-shadow"
                   >
                     <div className="h-40 bg-gray-200 overflow-hidden">
                       {listing.photo_url ? (
@@ -259,7 +259,7 @@ export default function PublicProfilePage() {
                     </div>
                     <div className="p-4">
                       <h3 className="font-semibold">{listing.title}</h3>
-                      <p className="text-sm text-gray-500">{listing.type}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">{listing.type}</p>
                       <p className="text-primary-600 font-bold mt-2"><Price amount={listing.price} />/day</p>
                     </div>
                   </Link>
@@ -277,12 +277,12 @@ export default function PublicProfilePage() {
                   <Link
                     key={ride.id}
                     to={`/rides/${ride.id}`}
-                    className="card p-4 hover:shadow-md transition-shadow block"
+                    className="card p-4 hover:shadow-lg transition-shadow block"
                   >
                     <div className="flex justify-between">
                       <div>
                         <p className="font-medium">{ride.origin} → {ride.destination}</p>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
                           {new Date(ride.departure_time).toLocaleString()}
                         </p>
                       </div>
@@ -311,11 +311,11 @@ export default function PublicProfilePage() {
                           />
                         ))}
                       </div>
-                      <span className="text-sm text-gray-500">
+                      <span className="text-sm text-gray-500 dark:text-gray-400">
                         {review.reviewer.first_name}
                       </span>
                     </div>
-                    <p className="text-gray-700">{review.comment}</p>
+                    <p className="text-gray-700 dark:text-gray-200">{review.comment}</p>
                   </div>
                 ))
               ) : (

@@ -21,7 +21,7 @@ interface Worker {
 }
 
 const ROLE_OPTIONS = [
-    { value: 'DRIVER', label: 'Driver', icon: Car, color: 'text-blue-600 bg-blue-50' },
+    { value: 'DRIVER', label: 'Driver', icon: Car, color: 'text-primary-600 bg-primary-50' },
     { value: 'ACCOUNTANT', label: 'Accountant', icon: Briefcase, color: 'text-emerald-600 bg-emerald-50' },
     { value: 'MANAGER', label: 'Manager', icon: Shield, color: 'text-purple-600 bg-purple-50' },
     { value: 'SUPPORT', label: 'Support', icon: HeadphonesIcon, color: 'text-orange-600 bg-orange-50' },
@@ -137,10 +137,10 @@ export default function WorkerManagement() {
                 {[1, 2, 3].map(i => (
                     <div key={i} className="card p-6 animate-pulse">
                         <div className="flex items-center gap-4">
-                            <div className="h-12 w-12 bg-gray-200 rounded-xl" />
+                            <div className="h-12 w-12 bg-gray-200 dark:bg-gray-700 rounded-xl" />
                             <div className="flex-1 space-y-2">
-                                <div className="h-4 bg-gray-200 rounded w-1/3" />
-                                <div className="h-3 bg-gray-200 rounded w-1/4" />
+                                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3" />
+                                <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/4" />
                             </div>
                         </div>
                     </div>
@@ -158,7 +158,7 @@ export default function WorkerManagement() {
                         <Users className="h-5 w-5 text-gray-400" />
                         Team Management
                     </h2>
-                    <p className="text-sm text-gray-500 mt-1">{workers.length} team members</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{workers.length} team members</p>
                 </div>
                 <button
                     onClick={() => setIsInviteOpen(true)}
@@ -173,8 +173,8 @@ export default function WorkerManagement() {
             {isInviteOpen && (
                 <div className="card p-6 border-2 border-primary-200 bg-primary-50/30 space-y-4">
                     <div className="flex items-center justify-between">
-                        <h3 className="font-bold text-gray-900">Add New Team Member</h3>
-                        <button onClick={() => setIsInviteOpen(false)} className="p-1 hover:bg-gray-100 rounded-lg">
+                        <h3 className="font-bold text-gray-900 dark:text-white">Add New Team Member</h3>
+                        <button onClick={() => setIsInviteOpen(false)} className="p-1 hover:bg-gray-100 dark:bg-gray-800 rounded-lg">
                             <X className="h-4 w-4" />
                         </button>
                     </div>
@@ -220,25 +220,25 @@ export default function WorkerManagement() {
             {/* Credentials Modal */}
             {credentialsModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 animate-in zoom-in-95 duration-200">
+                    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-sm w-full p-6 animate-in zoom-in-95 duration-200">
                         <div className="h-12 w-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <Shield className="h-6 w-6 text-green-600" />
+                            <Shield className="h-6 w-6 text-green-600 dark:text-green-400" />
                         </div>
-                        <h3 className="text-xl font-bold text-center text-gray-900 mb-2">Worker Credentials</h3>
-                        <p className="text-sm text-center text-gray-500 mb-6">
+                        <h3 className="text-xl font-bold text-center text-gray-900 dark:text-white mb-2">Worker Credentials</h3>
+                        <p className="text-sm text-center text-gray-500 dark:text-gray-400 mb-6">
                             Please provide these login details to your team member. They will not be shown again.
                         </p>
 
                         <div className="card p-4 bg-gray-50 space-y-3 mb-6">
                             <div>
                                 <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-1">Email / Username</label>
-                                <div className="font-mono text-sm text-gray-900 break-all select-all bg-white px-3 py-2 border rounded-lg">
+                                <div className="font-mono text-sm text-gray-900 dark:text-white break-all select-all bg-white px-3 py-2 border rounded-lg">
                                     {credentialsModal.email}
                                 </div>
                             </div>
                             <div>
                                 <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-1">Password</label>
-                                <div className="font-mono text-sm text-gray-900 break-all select-all bg-white px-3 py-2 border rounded-lg">
+                                <div className="font-mono text-sm text-gray-900 dark:text-white break-all select-all bg-white px-3 py-2 border rounded-lg">
                                     {credentialsModal.password}
                                 </div>
                             </div>
@@ -256,10 +256,10 @@ export default function WorkerManagement() {
 
             {/* Worker List */}
             {workers.length === 0 ? (
-                <div className="card p-12 text-center border-dashed border-2 border-gray-200">
+                <div className="card p-12 text-center border-dashed border-2 border-gray-200 dark:border-gray-700">
                     <Users className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-bold text-gray-900 mb-2">No team members yet</h3>
-                    <p className="text-gray-500 text-sm">Invite your first team member to start building your workforce.</p>
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">No team members yet</h3>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm">Invite your first team member to start building your workforce.</p>
                 </div>
             ) : (
                 <div className="space-y-3">
@@ -279,7 +279,7 @@ export default function WorkerManagement() {
 
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2">
-                                        <h4 className="font-bold text-gray-900 truncate">{worker.user_name}</h4>
+                                        <h4 className="font-bold text-gray-900 dark:text-white truncate">{worker.user_name}</h4>
                                         <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${worker.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-700' :
                                             worker.status === 'INVITED' ? 'bg-yellow-100 text-yellow-700' :
                                                 'bg-gray-100 text-gray-500'
@@ -287,7 +287,7 @@ export default function WorkerManagement() {
                                             {worker.status_display}
                                         </span>
                                     </div>
-                                    <p className="text-xs text-gray-500 truncate">{worker.email} • {worker.role_display}</p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{worker.email} • {worker.role_display}</p>
                                 </div>
 
                                 <div className="flex items-center gap-2">
@@ -322,7 +322,7 @@ export default function WorkerManagement() {
 
                                     <button
                                         onClick={() => handleResetPassword(worker.id)}
-                                        className="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100"
+                                        className="p-2 rounded-lg bg-primary-50 text-primary-600 hover:bg-primary-100"
                                         title="Reset Password"
                                     >
                                         <Shield className="h-4 w-4" />

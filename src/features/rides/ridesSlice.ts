@@ -31,7 +31,7 @@ const initialState: RidesState = {
 
 export const fetchRides = createAsyncThunk(
   'rides/fetchRides',
-  async (params: { origin?: string; destination?: string; departure_date?: string; available_seats?: number; page?: number } = {}, { rejectWithValue }) => {
+  async (params: { origin?: string; destination?: string; departure_date?: string; available_seats?: number; page?: number; page_size?: number } = {}, { rejectWithValue }) => {
     try {
       const response = await api.get<PaginatedResponse<Ride>>('/rides/trips/', { params });
       return response.data;

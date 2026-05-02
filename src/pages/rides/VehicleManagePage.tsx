@@ -85,7 +85,7 @@ export default function VehicleManagePage() {
     if (!vehicle) {
         return (
             <div className="max-w-4xl mx-auto py-10 text-center">
-                <h1 className="text-2xl font-bold text-gray-900">Vehicle Not Found</h1>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Vehicle Not Found</h1>
                 <Link to="/vehicles" className="text-primary-600 mt-4 inline-block hover:underline">
                     Return to My Vehicles
                 </Link>
@@ -99,18 +99,18 @@ export default function VehicleManagePage() {
         <div className="max-w-4xl mx-auto space-y-8 pb-12">
             <div className="flex items-center gap-4">
                 <Link to="/vehicles/my" className="p-2 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors">
-                    <ChevronLeft className="h-5 w-5 text-gray-500" />
+                    <ChevronLeft className="h-5 w-5 text-gray-500 dark:text-gray-400" />
                 </Link>
                 <div>
                     <h1 className="text-3xl font-black text-gray-900 tracking-tight">Manage Vehicle</h1>
-                    <p className="text-gray-500 text-sm font-medium mt-1">Configure rental and ride availability</p>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm font-medium mt-1">Configure rental and ride availability</p>
                 </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-1 space-y-6">
                     <div className="card p-4 ring-1 ring-gray-100 shadow-xl overflow-hidden rounded-3xl relative">
-                        <div className="aspect-square bg-gray-100 rounded-2xl overflow-hidden mb-4 relative">
+                        <div className="aspect-square bg-gray-100 dark:bg-gray-800 rounded-2xl overflow-hidden mb-4 relative">
                             {vehicle.photos?.[0] ? (
                                 <img src={getMediaUrl(vehicle.photos[0].url)} alt={vehicle.name} className="w-full h-full object-cover" />
                             ) : (
@@ -122,7 +122,7 @@ export default function VehicleManagePage() {
                         </div>
 
                         <div className="text-center">
-                            <h2 className="text-xl font-black tracking-tight text-gray-900">{vehicle.name}</h2>
+                            <h2 className="text-xl font-black tracking-tight text-gray-900 dark:text-white">{vehicle.name}</h2>
                             <p className="text-xs font-bold text-gray-500 tracking-widest uppercase mt-1">
                                 {vehicle.properties?.make as string} {vehicle.properties?.model as string}
                             </p>
@@ -148,14 +148,14 @@ export default function VehicleManagePage() {
 
                         <div className="space-y-6">
                             {/* Rides Toggle */}
-                            <div className="flex items-start justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                            <div className="flex items-start justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800">
                                 <div className="flex gap-4">
-                                    <div className="h-10 w-10 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center shrink-0">
+                                    <div className="h-10 w-10 bg-primary-100 text-primary-600 rounded-xl flex items-center justify-center shrink-0">
                                         <Car className="h-5 w-5" />
                                     </div>
                                     <div>
-                                        <h4 className="font-bold text-gray-900">Available for Rides</h4>
-                                        <p className="text-xs text-gray-500 mt-1 max-w-sm">
+                                        <h4 className="font-bold text-gray-900 dark:text-white">Available for Rides</h4>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-sm">
                                             When active, you can use this vehicle to offer scheduled trips and routes to passengers.
                                         </p>
                                     </div>
@@ -168,12 +168,12 @@ export default function VehicleManagePage() {
                                         onChange={(e) => handleToggleActive(e.target.checked)}
                                         disabled={isSaving || vehicle.verification_status !== 'VERIFIED'}
                                     />
-                                    <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                    <div className="w-11 h-6 bg-gray-200 dark:bg-gray-700 rounded-full peer peer-checked:after:trangray-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
                                 </label>
                             </div>
 
                             {/* Rentals Toggle */}
-                            <div className={`p-4 rounded-2xl border ${!isBusinessTier ? 'bg-orange-50 border-orange-100' : 'bg-gray-50 border-gray-100'}`}>
+                            <div className={`p-4 rounded-2xl border ${!isBusinessTier ? 'bg-orange-50 border-orange-100' : 'bg-gray-50 dark:bg-gray-900 border-gray-100'}`}>
                                 <div className="flex items-start justify-between">
                                     <div className="flex gap-4">
                                         <div className="h-10 w-10 bg-primary-100 text-primary-600 rounded-xl flex items-center justify-center shrink-0">
@@ -212,7 +212,7 @@ export default function VehicleManagePage() {
                                             onChange={(e) => handleToggleListing(e.target.checked)}
                                             disabled={isSaving || vehicle.verification_status !== 'VERIFIED' || !isBusinessTier}
                                         />
-                                        <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
+                                        <div className="w-11 h-6 bg-gray-200 dark:bg-gray-700 rounded-full peer peer-checked:after:trangray-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
                                     </label>
                                 </div>
                             </div>

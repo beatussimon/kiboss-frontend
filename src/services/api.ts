@@ -1,6 +1,5 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { ApiError } from '../types';
-import type { AppDispatch, RootState } from '../app/store';
 import type { store } from '../app/store';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
@@ -8,6 +7,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
 const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 30000,
+  withCredentials: true, // Crucial for sending/receiving HttpOnly cookies
 });
 
 // Helper to get auth state - lazy import to avoid circular dependency
@@ -17,31 +17,30 @@ export const setStore = (s: typeof store) => {
   storeRef = s;
 };
 
-const getAuthState = (): RootState['auth'] => {
-  if (!storeRef) {
-    // Fallback for when store is not yet set
-    return {
-      user: null,
-      accessToken: localStorage.getItem('accessToken'),
-      refreshToken: localStorage.getItem('refreshToken'),
-      isAuthenticated: !!localStorage.getItem('accessToken'),
-      isLoading: false,
-      error: null,
-    } as RootState['auth'];
-  }
-  return storeRef.getState().auth;
+// Request Queueing Mechanism for Token Refresh Race Conditions
+let isRefreshing = false;
+let failedQueue: Array<{
+  resolve: (value?: unknown) => void;
+  reject: (reason?: any) => void;
+}> = [];
+
+const processQueue = (error: any, token: string | null = null) => {
+  failedQueue.forEach(prom => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
 };
 
 // Request interceptor
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    const auth = getAuthState();
-    const accessToken = auth.accessToken;
-
-    if (accessToken) {
-      config.headers.Authorization = `Bearer ${accessToken}`;
-    }
-
+    // We no longer manually attach the Authorization header.
+    // The browser automatically attaches the HttpOnly 'access_token' cookie 
+    // due to `withCredentials: true`.
     return config;
   },
   (error: AxiosError) => {
@@ -55,43 +54,63 @@ api.interceptors.response.use(
   async (error: AxiosError<ApiError>) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
+    // Prevent retry loops for the refresh endpoint itself
+    if (originalRequest.url === '/auth/token/refresh/') {
+      return Promise.reject(error);
+    }
+
     // Handle 401 - Token expired or invalid
     if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-
-      const auth = getAuthState();
-      const refreshToken = auth.refreshToken;
-
-      if (refreshToken) {
-        try {
-          const response = await axios.post(`${API_BASE_URL}/auth/refresh/`, {
-            refresh: refreshToken,
-          });
-
-          const { access } = response.data;
-          storeRef?.dispatch({ type: 'auth/refreshToken/fulfilled', payload: { accessToken: access } });
-
-          originalRequest.headers.Authorization = `Bearer ${access}`;
+      
+      if (isRefreshing) {
+        // If already refreshing, put the request in a queue and wait
+        return new Promise(function(resolve, reject) {
+          failedQueue.push({ resolve, reject });
+        }).then(() => {
           return api(originalRequest);
-        } catch (refreshError) {
-          // Refresh failed - logout user
-          storeRef?.dispatch({ type: 'auth/logout' });
-          window.location.href = '/login?reason=session_expired';
-          return Promise.reject(refreshError);
-        }
-      } else {
-        // No refresh token - logout user
-        storeRef?.dispatch({ type: 'auth/logout' });
+        }).catch(err => {
+          return Promise.reject(err);
+        });
+      }
 
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        // The refresh token is sent automatically via HttpOnly cookie
+        await axios.post(`${API_BASE_URL}/auth/token/refresh/`, {}, {
+          withCredentials: true 
+        });
+
+        isRefreshing = false;
+        processQueue(null, 'success');
+        
+        // Replay original request
+        return api(originalRequest);
+
+      } catch (refreshError) {
+        isRefreshing = false;
+        processQueue(refreshError, null);
+        
+        // Refresh failed - logout user by calling the backend to clear cookies
+        try {
+          await axios.post(`${API_BASE_URL}/auth/logout/`, {}, { withCredentials: true });
+        } catch (e) {
+           // Ignore logout error
+        }
+        
+        storeRef?.dispatch({ type: 'auth/logout' });
+        
         // Only redirect if not already on an auth page
         const currentPath = window.location.pathname;
         if (currentPath !== '/login' && currentPath !== '/register') {
           window.location.href = '/login?reason=session_expired';
         }
+        return Promise.reject(refreshError);
       }
     }
 
-    // Handle other errors
+    // Handle other errors (Formatting)
     let message = 'An unexpected error occurred';
     const data = error.response?.data as any;
 
@@ -99,7 +118,6 @@ api.interceptors.response.use(
       if (typeof data.error === 'string') {
         message = data.error;
       } else if (data.error && typeof data.error === 'object') {
-        // Handle custom exception handler format {error: {message, code, ...}}
         const errorDetail = data.error as any;
         message = errorDetail.message || errorDetail.code || JSON.stringify(errorDetail);
       } else if (data.detail && typeof data.detail === 'string') {
@@ -107,7 +125,6 @@ api.interceptors.response.use(
       } else if (data.message && typeof data.message === 'string') {
         message = data.message;
       } else if (typeof data === 'object' && !Array.isArray(data)) {
-        // Handle field-level errors or nested objects
         const firstKey = Object.keys(data)[0];
         const firstVal = data[firstKey];
         if (Array.isArray(firstVal)) {
@@ -122,29 +139,11 @@ api.interceptors.response.use(
       }
     }
 
-    // Log detailed error information for debugging
-    if (error.response) {
-      console.error('API Error Response:', {
-        status: error.response.status,
-        data: error.response.data,
-        headers: error.response.headers,
-      });
-    } else if (error.request) {
-      console.error('API Error Request:', error.request);
-    } else {
-      console.error('API Error:', error.message);
-    }
-
-    // Additional special case for 401
     if (error.response?.status === 401 && (!message || message === 'An unexpected error occurred')) {
       message = 'Invalid credentials';
     }
 
-    console.error('API Error Final Message:', message);
-
-    // Attach the safe message to the error object so caught exceptions have a standardized .message property
     error.message = message;
-
     return Promise.reject(error);
   }
 );

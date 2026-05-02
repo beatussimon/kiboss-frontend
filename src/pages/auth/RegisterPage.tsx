@@ -63,10 +63,10 @@ export default function RegisterPage() {
 
   return (
     <div>
-      <h3 className="text-lg font-medium text-gray-900 mb-6">Create your account</h3>
+      <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-6">Create your account</h3>
       
       {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+        <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-600 dark:text-red-400 text-sm">
           {error}
         </div>
       )}
@@ -74,7 +74,7 @@ export default function RegisterPage() {
       <form onSubmit={handleSubmit} className="space-y-5">
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label htmlFor="first_name" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="first_name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               First name *
             </label>
             <div className="relative">
@@ -94,7 +94,7 @@ export default function RegisterPage() {
             </div>
           </div>
           <div>
-            <label htmlFor="last_name" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="last_name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Last name *
             </label>
             <input
@@ -111,7 +111,7 @@ export default function RegisterPage() {
         </div>
 
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Email address *
           </label>
           <div className="relative">
@@ -133,7 +133,7 @@ export default function RegisterPage() {
         </div>
 
         <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Password *
           </label>
           <div className="relative">
@@ -157,17 +157,17 @@ export default function RegisterPage() {
               className="absolute inset-y-0 right-0 pr-3 flex items-center"
             >
               {showPassword ? (
-                <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600 dark:text-gray-300" />
               ) : (
-                <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600 dark:text-gray-300" />
               )}
             </button>
           </div>
-          <p className="mt-1 text-xs text-gray-500">Must be at least 8 characters</p>
+          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Must be at least 8 characters</p>
         </div>
 
         <div>
-          <label htmlFor="password_confirm" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="password_confirm" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Confirm password *
           </label>
           <div className="relative">
@@ -194,9 +194,9 @@ export default function RegisterPage() {
             name="terms"
             type="checkbox"
             required
-            className="h-4 w-4 mt-0.5 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+            className="h-4 w-4 mt-0.5 text-primary-600 focus:ring-primary-500 border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded"
           />
-          <label htmlFor="terms" className="ml-2 block text-sm text-gray-600">
+          <label htmlFor="terms" className="ml-2 block text-sm text-gray-600 dark:text-gray-400">
             I agree to the{' '}
             <Link to="/terms" className="text-primary-600 hover:text-primary-500">
               Terms of Service
@@ -227,7 +227,7 @@ export default function RegisterPage() {
         </button>
       </form>
 
-      <p className="mt-6 text-center text-sm text-gray-600">
+      <p className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
         Already have an account?{' '}
         <Link to="/login" className="font-medium text-primary-600 hover:text-primary-500">
           Sign in

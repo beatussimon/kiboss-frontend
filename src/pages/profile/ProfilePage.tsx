@@ -168,7 +168,7 @@ export function ProfilePage() {
     <div className="max-w-2xl mx-auto w-full px-4 md:px-0">
       <div className="card p-8">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Profile</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Profile</h1>
           <div className="flex gap-2">
             {isEditing ? (
               <>
@@ -187,7 +187,7 @@ export function ProfilePage() {
 
         <div className="flex items-center gap-6 mb-8">
           <div className="relative">
-            <div className="w-24 h-24 bg-gray-200 rounded-full overflow-hidden">
+            <div className="w-24 h-24 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
               {avatarPreview ? (
                 <img src={avatarPreview} alt={user?.first_name} className="w-full h-full object-cover" />
               ) : (
@@ -212,7 +212,7 @@ export function ProfilePage() {
           </div>
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <h2 className="text-xl font-semibold text-gray-900">{user?.first_name} {user?.last_name}</h2>
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{user?.first_name} {user?.last_name}</h2>
               <VerificationBadge 
                 tier={user?.verification_badge?.tier} 
                 color={user?.verification_badge?.color} 
@@ -220,7 +220,7 @@ export function ProfilePage() {
                 checkmarkData={user?.checkmark_data}
               />
             </div>
-            <p className="text-gray-500">@{user?.email?.split('@')[0]}</p>
+            <p className="text-gray-500 dark:text-gray-400">@{user?.email?.split('@')[0]}</p>
             <div className="flex items-center gap-2 mt-2">
               <span className={`badge ${user?.is_email_verified ? 'badge-success' : 'badge-warning'}`}>
                 {user?.is_email_verified ? 'Email Verified' : 'Email Unverified'}
@@ -233,33 +233,33 @@ export function ProfilePage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          <div className="p-4 bg-gray-50 rounded-lg flex flex-col justify-center">
+          <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg flex flex-col justify-center">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Award className="h-5 w-5 text-primary-600" />
-                <span className="font-medium text-gray-900">Trust Score</span>
+                <span className="font-medium text-gray-900 dark:text-white">Trust Score</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-2xl font-bold text-primary-600">{user?.trust_score || '50.00'}</span>
-                <span className="text-sm text-gray-500">({user?.total_reviews || 0} reviews)</span>
+                <span className="text-sm text-gray-500 dark:text-gray-400">({user?.total_reviews || 0} reviews)</span>
               </div>
             </div>
           </div>
-          <div className="p-4 bg-gray-50 rounded-lg flex flex-wrap justify-between md:justify-around items-center gap-4 w-full">
+          <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg flex flex-wrap justify-between md:justify-around items-center gap-4 w-full">
             <div className="text-center min-w-[60px]">
-              <span className="block text-xl md:text-2xl font-black text-gray-900">{user?.total_listings || 0}</span>
+              <span className="block text-xl md:text-2xl font-black text-gray-900 dark:text-white">{user?.total_listings || 0}</span>
               <span className="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide">Assets</span>
             </div>
             <div className="text-center min-w-[60px]">
-              <span className="block text-xl md:text-2xl font-black text-gray-900">{user?.total_rides || 0}</span>
+              <span className="block text-xl md:text-2xl font-black text-gray-900 dark:text-white">{user?.total_rides || 0}</span>
               <span className="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide">Rides</span>
             </div>
             <div className="text-center min-w-[60px]">
-              <span className="block text-xl md:text-2xl font-black text-gray-900">{user?.followers_count || 0}</span>
+              <span className="block text-xl md:text-2xl font-black text-gray-900 dark:text-white">{user?.followers_count || 0}</span>
               <span className="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide">Followers</span>
             </div>
             <div className="text-center min-w-[60px]">
-              <span className="block text-xl md:text-2xl font-black text-gray-900">{user?.following_count || 0}</span>
+              <span className="block text-xl md:text-2xl font-black text-gray-900 dark:text-white">{user?.following_count || 0}</span>
               <span className="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide">Following</span>
             </div>
           </div>
@@ -268,50 +268,50 @@ export function ProfilePage() {
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">First Name</label>
               <div className="relative">
-                <User className="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <User className="h-5 w-5 absolute left-3 top-1/2 -trangray-y-1/2 text-gray-400" />
                 <input type="text" name="first_name" value={formData.first_name} onChange={handleInputChange} disabled={!isEditing} className="input pl-10" />
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Last Name</label>
               <div className="relative">
-                <User className="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <User className="h-5 w-5 absolute left-3 top-1/2 -trangray-y-1/2 text-gray-400" />
                 <input type="text" name="last_name" value={formData.last_name} onChange={handleInputChange} disabled={!isEditing} className="input pl-10" />
               </div>
             </div>
           </div>
 
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Email</label>
             <div className="relative">
-              <Mail className="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-              <input type="email" value={user?.email || ''} disabled className="input pl-10 bg-gray-50" />
+              <Mail className="h-5 w-5 absolute left-3 top-1/2 -trangray-y-1/2 text-gray-400" />
+              <input type="email" value={user?.email || ''} disabled className="input pl-10 bg-gray-50 dark:bg-gray-900" />
             </div>
-            <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Email cannot be changed</p>
           </div>
 
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Phone</label>
             <div className="relative">
-              <Phone className="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <Phone className="h-5 w-5 absolute left-3 top-1/2 -trangray-y-1/2 text-gray-400" />
               <input type="tel" name="phone" value={formData.phone} onChange={handleInputChange} disabled={!isEditing} className="input pl-10" placeholder="+254 7XX XXX XXX" />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">City</label>
               <div className="relative">
-                <MapPin className="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <MapPin className="h-5 w-5 absolute left-3 top-1/2 -trangray-y-1/2 text-gray-400" />
                 <input type="text" name="city" value={formData.city} onChange={handleInputChange} disabled={!isEditing} className="input pl-10" placeholder="Nairobi" />
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Country</label>
               <div className="relative">
-                <MapPin className="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 z-10" />
+                <MapPin className="h-5 w-5 absolute left-3 top-1/2 -trangray-y-1/2 text-gray-400 z-10" />
                 <CountrySelect
                   name="country"
                   value={formData.country}
@@ -323,7 +323,7 @@ export function ProfilePage() {
           </div>
 
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Bio</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Bio</label>
             <div className="relative">
               <FileText className="h-5 w-5 absolute left-3 top-3 text-gray-400" />
               <textarea name="bio" value={formData.bio} onChange={handleInputChange} disabled={!isEditing} className="input pl-10 min-h-[100px]" placeholder="Tell us about yourself..." />
@@ -333,34 +333,34 @@ export function ProfilePage() {
       </div>
 
       <div className="card p-6 mt-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Verification</h2>
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Verification</h2>
         <div className="space-y-4">
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+          <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
             <div className="flex items-center gap-3">
               <Mail className={`h-5 w-5 ${user?.is_email_verified ? 'text-green-500' : 'text-gray-400'}`} />
               <div>
                 <p className="font-medium">Email Verification</p>
-                <p className="text-sm text-gray-500">{user?.email}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{user?.email}</p>
               </div>
             </div>
             <span className={`badge ${user?.is_email_verified ? 'badge-success' : 'badge-warning'}`}>{user?.is_email_verified ? 'Verified' : 'Pending'}</span>
           </div>
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+          <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
             <div className="flex items-center gap-3">
               <Phone className={`h-5 w-5 ${user?.is_phone_verified ? 'text-green-500' : 'text-gray-400'}`} />
               <div>
                 <p className="font-medium">Phone Verification</p>
-                <p className="text-sm text-gray-500">{user?.profile?.phone || 'Not provided'}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{user?.profile?.phone || 'Not provided'}</p>
               </div>
             </div>
             <span className={`badge ${user?.is_phone_verified ? 'badge-success' : 'badge-warning'}`}>{user?.is_phone_verified ? 'Verified' : 'Pending'}</span>
           </div>
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+          <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
             <div className="flex items-center gap-3">
               <Shield className={`h-5 w-5 ${user?.is_identity_verified ? 'text-green-500' : 'text-gray-400'}`} />
               <div>
                 <p className="font-medium">Identity Verification</p>
-                <p className="text-sm text-gray-500">Government ID verification</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Government ID verification</p>
               </div>
             </div>
             <span className={`badge ${user?.is_identity_verified ? 'badge-success' : 'badge-warning'}`}>{user?.is_identity_verified ? 'Verified' : 'Pending'}</span>
@@ -371,23 +371,23 @@ export function ProfilePage() {
       <div id="wishlist-section" className="card p-6 mt-6">
         <div className="flex items-center gap-2 mb-6">
           <Heart className="h-6 w-6 text-red-500 fill-current" />
-          <h2 className="text-xl font-bold text-gray-900">Your Wishlist</h2>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Your Wishlist</h2>
         </div>
         {wishlistItems.length === 0 ? (
-          <div className="text-center py-12 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+          <div className="text-center py-12 bg-gray-50 dark:bg-gray-900 rounded-xl border border-dashed border-gray-200 dark:border-gray-700">
             <Heart className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-            <p className="text-gray-500">Your wishlist is empty.</p>
+            <p className="text-gray-500 dark:text-gray-400">Your wishlist is empty.</p>
             <Link to="/assets" className="text-primary-600 font-bold hover:underline mt-2 inline-block">Browse listings to save your favorites</Link>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {wishlistItems.map((item) => (
-              <div key={item.id} className="flex gap-4 p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors border border-transparent hover:border-gray-200 group">
+              <div key={item.id} className="flex gap-4 p-3 bg-gray-50 dark:bg-gray-900 rounded-xl hover:bg-gray-100 transition-colors border border-transparent hover:border-gray-200 group">
                 <div className="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
                   <img src={item.photos?.[0] ? getMediaUrl(item.photos[0].url) : ""} alt={item.name} className="w-full h-full object-cover" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-bold text-gray-900 truncate">{item.name}</h3>
+                  <h3 className="font-bold text-gray-900 dark:text-white truncate">{item.name}</h3>
                   <p className="text-xs text-gray-500 flex items-center mb-2"><MapPin className="h-3 w-3 mr-1" /> {item.city}, {item.country}</p>
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-bold text-primary-600"><Price amount={item.pricing_rules?.[0]?.price || '0'} /></span>

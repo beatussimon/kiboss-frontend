@@ -32,12 +32,15 @@ export interface User {
   total_reviews?: number;
   checkmark_data?: string | null;
   avatar?: string;
+  banner_image?: string;
+  banner_image_url?: string;
 }
 
 export interface UserProfile {
   id: string;
   phone: string;
   avatar: string;
+  banner_image: string;
   bio: string;
   city: string;
   country: string;
@@ -468,6 +471,7 @@ export interface PublicUser {
   last_name: string;
   email: string;
   avatar: string | null;
+  banner_image: string | null;
   bio: string;
   location: string;
   date_joined: string;

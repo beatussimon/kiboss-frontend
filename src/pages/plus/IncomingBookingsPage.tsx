@@ -58,13 +58,13 @@ export default function IncomingBookingsPage() {
                 <div className="h-20 w-20 bg-purple-100 text-purple-600 rounded-3xl flex items-center justify-center mx-auto">
                     <Sparkles className="h-10 w-10" />
                 </div>
-                <h1 className="text-3xl font-black text-gray-900">Plus Plan Required</h1>
+                <h1 className="text-3xl font-black text-gray-900 dark:text-white">Plus Plan Required</h1>
                 <p className="text-gray-500 max-w-md mx-auto">
                     Upgrade to the Plus plan to manage incoming bookings and get powerful renter insights.
                 </p>
                 <Link
                     to="/upgrade"
-                    className="inline-flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold rounded-xl shadow-lg hover:from-blue-700 hover:to-purple-700 transition-all"
+                    className="inline-flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-primary-600 to-purple-600 text-white font-bold rounded-xl shadow-lg hover:from-primary-700 hover:to-purple-700 transition-all"
                 >
                     <Sparkles className="h-5 w-5" />
                     Upgrade Now
@@ -81,7 +81,7 @@ export default function IncomingBookingsPage() {
                 label: 'Pending',
             },
             CONFIRMED: {
-                class: 'bg-blue-50 text-blue-700 border border-blue-200',
+                class: 'bg-primary-50 text-primary-700 border border-primary-200',
                 icon: <CheckCircle className="h-3 w-3" />,
                 label: 'Confirmed',
             },
@@ -119,7 +119,7 @@ export default function IncomingBookingsPage() {
                             <Sparkles className="h-3 w-3" /> Plus Feature
                         </span>
                     </h1>
-                    <p className="text-gray-500 mt-2">Manage requests for your listings and review renter insights.</p>
+                    <p className="text-gray-500 dark:text-gray-400 mt-2">Manage requests for your listings and review renter insights.</p>
                 </div>
             </div>
 
@@ -130,8 +130,8 @@ export default function IncomingBookingsPage() {
             ) : bookings.length === 0 ? (
                 <div className="card p-12 text-center border-dashed border-2 bg-gray-50/50">
                     <Calendar className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">No incoming bookings yet</h3>
-                    <p className="text-gray-500 mb-6 max-w-sm mx-auto">When someone books one of your assets, it will appear here along with their profile insights.</p>
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">No incoming bookings yet</h3>
+                    <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-sm mx-auto">When someone books one of your assets, it will appear here along with their profile insights.</p>
                     <Link to="/assets/create" className="btn-primary">
                         List an Asset
                     </Link>
@@ -150,7 +150,7 @@ export default function IncomingBookingsPage() {
                                     <div className="p-6 md:w-2/3 border-b md:border-b-0 md:border-r border-gray-100 flex flex-col justify-between">
                                         <div className="flex items-start justify-between mb-4">
                                             <div className="flex items-center gap-4">
-                                                <div className="h-16 w-16 bg-gray-100 rounded-xl overflow-hidden shrink-0">
+                                                <div className="h-16 w-16 bg-gray-100 dark:bg-gray-800 rounded-xl overflow-hidden shrink-0">
                                                     {booking.booking_type === 'RIDE' ? (
                                                         booking.ride_details?.photos?.[0] ? (
                                                             <img src={getMediaUrl(booking.ride_details.photos[0].url)} alt="Ride Details" className="h-full w-full object-cover" />
@@ -162,13 +162,13 @@ export default function IncomingBookingsPage() {
                                                     ) : booking.asset?.photos?.[0] ? (
                                                         <img src={getMediaUrl(booking.asset.photos[0].url)} alt="Asset" className="h-full w-full object-cover" />
                                                     ) : (
-                                                        <div className="h-full w-full flex items-center justify-center bg-blue-50">
-                                                            <Briefcase className="h-8 w-8 text-blue-400" />
+                                                        <div className="h-full w-full flex items-center justify-center bg-primary-50 dark:bg-primary-900/20">
+                                                            <Briefcase className="h-8 w-8 text-primary-400" />
                                                         </div>
                                                     )}
                                                 </div>
                                                 <div>
-                                                    <h3 className="text-lg font-bold text-gray-900">
+                                                    <h3 className="text-lg font-bold text-gray-900 dark:text-white">
                                                         {booking.booking_type === 'RIDE' 
                                                             ? (booking.ride_details?.origin ? `${booking.ride_details.origin} to ${booking.ride_details.destination}` : 'Ride Booking') 
                                                             : (booking.asset?.name || 'Asset Booking')}
@@ -195,7 +195,7 @@ export default function IncomingBookingsPage() {
                                         </div>
 
                                         <div className="grid grid-cols-2 gap-4 mt-6">
-                                            <div className="bg-gray-50 p-4 rounded-xl">
+                                            <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-xl">
                                                 <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Duration / Date</p>
                                                 <p className="text-sm font-semibold text-gray-900 mt-1">
                                                     {booking.start_time ? new Date(booking.start_time).toLocaleDateString() : (
@@ -204,7 +204,7 @@ export default function IncomingBookingsPage() {
                                                     {booking.booking_type !== 'RIDE' && booking.end_time && <><ArrowRight className="h-3 w-3 inline mx-1 text-gray-400" /> {new Date(booking.end_time).toLocaleDateString()}</>}
                                                 </p>
                                             </div>
-                                            <div className="bg-gray-50 p-4 rounded-xl text-right">
+                                            <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-xl text-right">
                                                 <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Total Earnings</p>
                                                 <p className="text-lg font-black text-green-600 mt-0.5">
                                                     <Price amount={booking.total_price || booking.price || 0} />
@@ -217,7 +217,7 @@ export default function IncomingBookingsPage() {
                                     <div className="p-6 md:w-1/3 bg-gradient-to-br from-indigo-50/50 to-purple-50/50">
                                         <div className="flex items-center gap-2 mb-4">
                                             <UserCheck className="h-5 w-5 text-indigo-500" />
-                                            <h4 className="font-bold text-gray-900">Renter Profile</h4>
+                                            <h4 className="font-bold text-gray-900 dark:text-white">Renter Profile</h4>
                                         </div>
 
                                         <div className="space-y-4">
@@ -226,8 +226,8 @@ export default function IncomingBookingsPage() {
                                                     {booking.renter?.first_name?.[0]}{booking.renter?.last_name?.[0]}
                                                 </div>
                                                 <div>
-                                                    <p className="font-bold text-gray-900">{booking.renter?.first_name} {booking.renter?.last_name}</p>
-                                                    <p className="text-xs text-gray-500">Joined {stats?.member_since ? new Date(stats.member_since).getFullYear() : 'Recently'}</p>
+                                                    <p className="font-bold text-gray-900 dark:text-white">{booking.renter?.first_name} {booking.renter?.last_name}</p>
+                                                    <p className="text-xs text-gray-500 dark:text-gray-400">Joined {stats?.member_since ? new Date(stats.member_since).getFullYear() : 'Recently'}</p>
                                                 </div>
                                             </div>
 
@@ -239,11 +239,11 @@ export default function IncomingBookingsPage() {
                                                     </div>
                                                     <div className="grid grid-cols-2 gap-2">
                                                         <div className="bg-white/60 p-2.5 rounded-lg border border-indigo-50/50 text-center">
-                                                            <p className="text-xs text-gray-500 mb-1">Completed</p>
-                                                            <p className="font-black text-green-600">{stats.completed_bookings}</p>
+                                                            <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Completed</p>
+                                                            <p className="font-black text-green-600 dark:text-green-400">{stats.completed_bookings}</p>
                                                         </div>
                                                         <div className="bg-white/60 p-2.5 rounded-lg border border-indigo-50/50 text-center">
-                                                            <p className="text-xs text-gray-500 mb-1">Cancelled</p>
+                                                            <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Cancelled</p>
                                                             <p className={`font-black ${stats.cancelled_bookings > 0 ? 'text-red-500' : 'text-gray-900'}`}>{stats.cancelled_bookings}</p>
                                                         </div>
                                                     </div>
@@ -260,14 +260,14 @@ export default function IncomingBookingsPage() {
                                                             Highly reliable renter.
                                                         </div>
                                                     ) : (
-                                                        <div className="bg-blue-50 border border-blue-100 text-blue-700 p-3 rounded-lg flex gap-2 text-xs font-semibold items-center">
+                                                        <div className="bg-primary-50 dark:bg-primary-900/20 border border-primary-100 text-primary-700 p-3 rounded-lg flex gap-2 text-xs font-semibold items-center">
                                                             <Activity className="h-4 w-4 shrink-0" />
                                                             Standard renter profile.
                                                         </div>
                                                     )}
                                                 </div>
                                             ) : (
-                                                <div className="text-center py-6 text-gray-500 text-sm">
+                                                <div className="text-center py-6 text-gray-500 dark:text-gray-400 text-sm">
                                                     Insights unavailable
                                                 </div>
                                             )}
@@ -281,7 +281,7 @@ export default function IncomingBookingsPage() {
                                                     to={booking.booking_type === 'RIDE' 
                                                         ? `/rides/${booking.ride || booking.ride_details?.id}` 
                                                         : `/bookings/${booking.id}`} 
-                                                    className="block w-full py-2.5 bg-white border-2 border-indigo-100 hover:border-indigo-300 text-indigo-700 font-bold text-sm text-center rounded-xl transition-all shadow-sm"
+                                                    className="block w-full py-2.5 bg-white dark:bg-gray-800 border-2 border-indigo-100 hover:border-indigo-300 text-indigo-700 font-bold text-sm text-center rounded-xl transition-all shadow-sm"
                                                 >
                                                     Review Details
                                                 </Link>

@@ -88,7 +88,7 @@ export default function MyVehiclesPage() {
         );
       default:
         return (
-          <span className="flex items-center gap-1 px-2 py-1 bg-gray-50 text-gray-700 rounded-full text-[10px] font-black  tracking-widest border border-gray-100">
+          <span className="flex items-center gap-1 px-2 py-1 bg-gray-50 text-gray-700 rounded-full text-[10px] font-black  tracking-widest border border-gray-100 dark:border-gray-800">
             <Shield className="h-3 w-3" /> Unverified
           </span>
         );
@@ -117,12 +117,12 @@ export default function MyVehiclesPage() {
       </div>
 
       {!vehicles || vehicles.length === 0 ? (
-        <div className="card p-16 text-center bg-gray-50 border-dashed">
+        <div className="card p-16 text-center bg-gray-50 dark:bg-gray-900 border-dashed">
           {/* ... existing empty state ... */}
-          <div className="h-24 w-24 bg-white rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-xl">
+          <div className="h-24 w-24 bg-white dark:bg-gray-800 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-xl">
             <Car className="h-12 w-12 text-gray-300" />
           </div>
-          <h2 className="text-2xl font-black text-gray-900 mb-2 tracking-tight ">No vehicles registered</h2>
+          <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-2 tracking-tight ">No vehicles registered</h2>
           <p className="text-gray-500 max-w-sm mx-auto font-medium mb-8">
             You haven't registered any vehicles yet. Register a vehicle to start offering rides on KIBOSS.
           </p>
@@ -147,7 +147,7 @@ export default function MyVehiclesPage() {
             </div>
 
             {rides.length === 0 ? (
-              <div className="card p-10 text-center bg-white border-2 border-dashed border-gray-100 rounded-[2.5rem]">
+              <div className="card p-10 text-center bg-white dark:bg-gray-800 border-2 border-dashed border-gray-100 rounded-[2.5rem]">
                 <p className="text-sm font-bold text-gray-400  tracking-widest">No trips scheduled</p>
                 <p className="text-xs text-gray-400 mt-1">Start by offering a ride with one of your verified vehicles.</p>
               </div>
@@ -161,7 +161,7 @@ export default function MyVehiclesPage() {
                           <Car className="h-5 w-5" />
                         </div>
                         <div>
-                          <h3 className="text-lg font-black text-gray-900 leading-tight">{ride.route_name}</h3>
+                          <h3 className="text-lg font-black text-gray-900 dark:text-white leading-tight">{ride.route_name}</h3>
                           <p className="text-[10px] font-black text-primary-600  tracking-widest">{new Date(ride.departure_time).toLocaleDateString()} · {new Date(ride.departure_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                         </div>
                       </div>
@@ -171,7 +171,7 @@ export default function MyVehiclesPage() {
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-4 mb-6 p-3 bg-gray-50 rounded-2xl border border-gray-100">
+                    <div className="flex items-center gap-4 mb-6 p-3 bg-gray-50 dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800">
                       <div className="flex-1">
                         <p className="text-[8px] font-black text-gray-400  tracking-widest mb-1">Origin</p>
                         <p className="text-xs font-bold text-gray-700 truncate">{ride.origin}</p>
@@ -187,9 +187,9 @@ export default function MyVehiclesPage() {
                       <div className="flex items-center gap-4">
                         <div>
                           <p className="text-[8px] font-black text-gray-400  tracking-widest">Booked</p>
-                          <p className="text-sm font-black text-gray-900">{ride.total_seats - ride.available_seats} / {ride.total_seats}</p>
+                          <p className="text-sm font-black text-gray-900 dark:text-white">{ride.total_seats - ride.available_seats} / {ride.total_seats}</p>
                         </div>
-                        <div className="h-8 w-px bg-gray-100" />
+                        <div className="h-8 w-px bg-gray-100 dark:bg-gray-800" />
                         <div>
                           <p className="text-[8px] font-black text-gray-400  tracking-widest">Revenue</p>
                           <p className="text-sm font-black text-emerald-600"><Price amount={ride.seat_price * (ride.total_seats - ride.available_seats)} /></p>
@@ -213,7 +213,7 @@ export default function MyVehiclesPage() {
             )}
           </div>
 
-          <div className="h-px bg-gray-100" />
+          <div className="h-px bg-gray-100 dark:bg-gray-800" />
 
           {/* Vehicles Section */}
           <div className="space-y-6">
@@ -255,7 +255,7 @@ export default function MyVehiclesPage() {
                       </div>
 
                       <div className="mt-4 flex items-center gap-4">
-                        <div className="px-2 py-1 bg-gray-100 rounded text-[10px] font-black text-gray-600 ">
+                        <div className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-[10px] font-black text-gray-600 ">
                           {vehicle.properties?.license_plate as string}
                         </div>
                         <div className="flex items-center gap-1 text-[10px] font-bold text-gray-400 ">
@@ -291,7 +291,7 @@ export default function MyVehiclesPage() {
 
                   {vehicle.verification_status === 'PENDING' && (
                     <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none bg-white/10">
-                      <div className="bg-orange-500/90 backdrop-blur-md text-white px-6 py-2 rounded-2xl font-black tracking-widest text-lg shadow-2xl uppercase transform -rotate-6 border border-orange-400">
+                      <div className="bg-orange-600 text-white px-6 py-2 rounded-2xl font-black tracking-widest text-lg shadow-2xl uppercase transform -rotate-6 border border-orange-500">
                         Pending Review
                       </div>
                     </div>

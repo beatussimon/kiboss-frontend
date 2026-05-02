@@ -133,7 +133,7 @@ export default function PaymentMethods() {
               <CreditCard className="h-6 w-6 text-indigo-500" />
               My Payment Methods
             </h2>
-            <p className="text-gray-500 mt-1 max-w-xl text-sm">
+            <p className="text-gray-500 dark:text-gray-400 mt-1 max-w-xl text-sm">
               Add your Lipa Namba, mobile money, or bank account details. Customers booking your assets will use these details to pay you directly.
             </p>
           </div>
@@ -146,15 +146,15 @@ export default function PaymentMethods() {
 
         {/* Form */}
         {(isAdding || isEditing) && (
-          <form onSubmit={handleSave} className="bg-white p-6 rounded-2xl shadow-sm border border-indigo-100 mb-8 max-w-2xl">
+          <form onSubmit={handleSave} className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-indigo-100 mb-8 max-w-2xl">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-gray-900">{isEditing ? 'Edit Method' : 'Add Payment Method'}</h3>
-              <button type="button" onClick={cancelForm} className="p-1 hover:bg-gray-100 rounded-lg"><X className="h-4 w-4 text-gray-400" /></button>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white">{isEditing ? 'Edit Method' : 'Add Payment Method'}</h3>
+              <button type="button" onClick={cancelForm} className="p-1 hover:bg-gray-100 dark:bg-gray-800 rounded-lg"><X className="h-4 w-4 text-gray-400" /></button>
             </div>
             <div className="space-y-4">
               {/* Provider Type */}
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1">Payment Provider *</label>
+                <label className="block text-sm font-bold text-gray-700 dark:text-gray-200 mb-1">Payment Provider *</label>
                 <select
                   required
                   value={formData.payment_type}
@@ -169,7 +169,7 @@ export default function PaymentMethods() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1">Lipa Namba / Account No. *</label>
+                  <label className="block text-sm font-bold text-gray-700 dark:text-gray-200 mb-1">Lipa Namba / Account No. *</label>
                   <div className="relative">
                     <Phone className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
                     <input
@@ -183,7 +183,7 @@ export default function PaymentMethods() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1">Account Name *</label>
+                  <label className="block text-sm font-bold text-gray-700 dark:text-gray-200 mb-1">Account Name *</label>
                   <div className="relative">
                     <User className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
                     <input
@@ -199,7 +199,7 @@ export default function PaymentMethods() {
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1">Payment Instructions</label>
+                <label className="block text-sm font-bold text-gray-700 dark:text-gray-200 mb-1">Payment Instructions</label>
                 <textarea
                   rows={2}
                   placeholder="e.g. Dial *150*00# → Lipa → Namba..."
@@ -210,7 +210,7 @@ export default function PaymentMethods() {
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1 flex items-center gap-1">
+                <label className="block text-sm font-bold text-gray-700 dark:text-gray-200 mb-1 flex items-center gap-1">
                   <QrCode className="h-4 w-4" /> QR Code Image (Optional)
                 </label>
                 <input
@@ -224,15 +224,15 @@ export default function PaymentMethods() {
               <div className="flex items-center gap-4 mt-2">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" checked={formData.is_active} onChange={e => setFormData({ ...formData, is_active: e.target.checked })} className="h-4 w-4 text-primary-600 rounded border-gray-300" />
-                  <span className="text-sm font-bold text-gray-700">Active</span>
+                  <span className="text-sm font-bold text-gray-700 dark:text-gray-200">Active</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" checked={formData.is_default} onChange={e => setFormData({ ...formData, is_default: e.target.checked })} className="h-4 w-4 text-primary-600 rounded border-gray-300" />
-                  <span className="text-sm font-bold text-gray-700">Set as Default</span>
+                  <span className="text-sm font-bold text-gray-700 dark:text-gray-200">Set as Default</span>
                 </label>
               </div>
 
-              <div className="flex gap-3 pt-4 border-t border-gray-100">
+              <div className="flex gap-3 pt-4 border-t border-gray-100 dark:border-gray-800">
                 <button type="button" onClick={cancelForm} className="btn-secondary py-2 flex-1">Cancel</button>
                 <button type="submit" className="btn-primary py-2 flex-[2] flex items-center justify-center gap-2">
                   <Save className="h-4 w-4" /> Save Method
@@ -248,7 +248,7 @@ export default function PaymentMethods() {
             <div className="text-center py-6 text-gray-400">Loading...</div>
           ) : methods.length > 0 ? (
             methods.map(method => (
-              <div key={method.id} className={`bg-white p-5 rounded-xl border-2 flex flex-col md:flex-row justify-between gap-4 group hover:border-indigo-300 transition-colors ${method.is_default ? 'border-indigo-400' : 'border-indigo-100'}`}>
+              <div key={method.id} className={`bg-white dark:bg-gray-800 p-5 rounded-xl border-2 flex flex-col md:flex-row justify-between gap-4 group hover:border-indigo-300 transition-colors ${method.is_default ? 'border-indigo-400' : 'border-indigo-100'}`}>
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     <h4 className="font-black text-gray-900 text-lg">{getTypeLabel(method.payment_type)}</h4>
@@ -260,13 +260,13 @@ export default function PaymentMethods() {
                     )}
                   </div>
                   <div className="flex items-center gap-4 text-sm mt-2 flex-wrap">
-                    <div className="font-mono bg-gray-50 px-2 py-1 rounded text-primary-700 font-bold border border-gray-100">
+                    <div className="font-mono bg-gray-50 dark:bg-gray-900 px-2 py-1 rounded text-primary-700 font-bold border border-gray-100 dark:border-gray-800">
                       {method.account_number}
                     </div>
                     <span className="text-gray-500 font-medium">Name: <span className="text-gray-900 font-bold">{method.account_name}</span></span>
                   </div>
                   {method.qr_code && (
-                    <img src={getMediaUrl(method.qr_code)} alt="QR Code" className="mt-2 h-20 w-20 object-contain rounded-lg border border-gray-100" />
+                    <img src={getMediaUrl(method.qr_code)} alt="QR Code" className="mt-2 h-20 w-20 object-contain rounded-lg border border-gray-100 dark:border-gray-800" />
                   )}
                 </div>
                 <div className="flex items-center gap-2">
@@ -285,7 +285,7 @@ export default function PaymentMethods() {
               </div>
             ))
           ) : (
-            <div className="bg-white border-2 border-dashed border-indigo-200 rounded-xl p-8 text-center">
+            <div className="bg-white dark:bg-gray-800 border-2 border-dashed border-indigo-200 rounded-xl p-8 text-center">
               <CreditCard className="h-12 w-12 text-indigo-300 mx-auto mb-3" />
               <p className="text-gray-500 font-medium max-w-sm mx-auto">
                 You haven't added any payment methods yet. Add your M-Pesa, Tigo Pesa, or bank account so customers can pay you directly.
@@ -295,7 +295,7 @@ export default function PaymentMethods() {
         </div>
       </div>
 
-      <div className="bg-gray-50 rounded-xl p-6 border border-gray-200 flex items-start gap-3">
+      <div className="bg-gray-50 dark:bg-gray-900 rounded-xl p-6 border border-gray-200 flex items-start gap-3">
         <Info className="h-5 w-5 text-gray-400 shrink-0 mt-0.5" />
         <p className="text-sm text-gray-600 font-medium leading-relaxed">
           Your Lipa Namba and payment details will be shown to customers when they checkout a booking for your assets or rides. Setting up your own payment methods ensures <strong>100% direct payment</strong> straight to your mobile wallet or bank account.

@@ -12,9 +12,9 @@ export function ServiceFeeModal({ isOpen, onClose }: ServiceFeeModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden relative animate-in zoom-in-95 duration-300">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md overflow-hidden relative animate-in zoom-in-95 duration-300">
         <div className="flex items-center justify-between p-5 border-b border-gray-100 bg-gray-50/50">
-          <div className="flex items-center gap-2 text-gray-900">
+          <div className="flex items-center gap-2 text-gray-900 dark:text-white">
             <ShieldCheck className="h-5 w-5 text-primary-600" />
             <h3 className="font-bold text-lg">Service Fee Details</h3>
           </div>
@@ -31,7 +31,7 @@ export function ServiceFeeModal({ isOpen, onClose }: ServiceFeeModalProps) {
             The service fee is for incase someone boorrows then causes damage or issues with a rental and is refundable when giving back a rental.
           </p>
           
-          <div className="bg-blue-50 text-blue-800 p-4 rounded-xl text-sm font-medium border border-blue-100 mb-6">
+          <div className="bg-primary-50 text-primary-800 p-4 rounded-xl text-sm font-medium border border-primary-100 mb-6">
             This fee helps us maintain a secure platform and provide reliable support for both owners and renters.
           </div>
           

@@ -7,13 +7,15 @@ import { fetchNotifications } from '../../features/notifications/notificationsSl
 import {
   MessageCircle, Bell, User, LogOut, Menu, X,
   Home, Car, Briefcase, Plus, Search, Settings,
-  Calendar, Shield, CreditCard, Globe, Facebook, Twitter, Instagram, Linkedin, CheckCircle, Heart, Building2, ChevronRight, Sparkles, Crown, MoreHorizontal
+  Calendar, Shield, CreditCard, Globe, Facebook, Twitter, Instagram, Linkedin, CheckCircle, Heart, Building2, ChevronRight, Sparkles, Crown, MoreHorizontal, Sun, Moon, Laptop
 } from 'lucide-react';
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { motion } from 'framer-motion';
 import VerificationBadge from '../ui/VerificationBadge';
 import { getMediaUrl } from '../../utils/media';
 import NotificationDropdown from '../notifications/NotificationDropdown';
 import { useCurrency, CurrencyCode } from '../../context/CurrencyContext';
+import { useTheme } from '../../context/ThemeContext';
 import { useNotificationWebSocket } from '../../features/notifications/useNotificationWebSocket';
 import Footer from './Footer';
 import Breadcrumbs from '../common/Breadcrumbs';
@@ -24,6 +26,7 @@ export default function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
   const { currency, setCurrency, availableCurrencies } = useCurrency();
+  const { theme, setTheme, isDark } = useTheme();
 
   // Start notification WebSocket
   useNotificationWebSocket();
@@ -35,6 +38,7 @@ export default function Layout() {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isCreateMenuOpen, setIsCreateMenuOpen] = useState(false);
+  const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
   const [isMobileMoreDrawerOpen, setIsMobileMoreDrawerOpen] = useState(false);
 
   // Scroll direction tracking for breadcrumbs and bottom navbar
@@ -67,6 +71,7 @@ export default function Layout() {
   const userMenuRef = useRef<HTMLDivElement>(null);
   const notificationRef = useRef<HTMLDivElement>(null);
   const createMenuRef = useRef<HTMLDivElement>(null);
+  const themeMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -81,11 +86,14 @@ export default function Layout() {
       if (isCreateMenuOpen && createMenuRef.current && !createMenuRef.current.contains(target)) {
         setIsCreateMenuOpen(false);
       }
+      if (isThemeMenuOpen && themeMenuRef.current && !themeMenuRef.current.contains(target)) {
+        setIsThemeMenuOpen(false);
+      }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isUserMenuOpen, isNotificationOpen, isCreateMenuOpen]);
+  }, [isUserMenuOpen, isNotificationOpen, isCreateMenuOpen, isThemeMenuOpen]);
 
   // Dynamic staff check
   const isStaff = !!(user?.is_staff || user?.is_superuser || (user?.roles && Array.isArray(user.roles) && user.roles.length > 0));
@@ -156,19 +164,39 @@ export default function Layout() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0a] text-gray-900 dark:text-gray-100 transition-colors duration-200 pb-20 md:pb-0">
       {/* Header */}
-      <header className="bg-white shadow-sm sticky top-0 z-50">
+      <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-50 transition-colors duration-200">
         <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
+          <div className="flex justify-between h-16 relative">
             {/* Left side - Logo and Primary Nav */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 w-full md:w-auto justify-center md:justify-start">
               {/* Logo */}
-              <Link to="/" className="flex-shrink-0 flex items-center">
-                <div className="h-8 w-8 bg-primary-600 rounded-lg flex items-center justify-center">
+              <Link to="/" className="flex-shrink-0 flex items-center relative z-10">
+                <div className="hidden md:flex h-8 w-8 bg-primary-600 rounded-lg items-center justify-center transition-all duration-300">
                   <span className="text-white font-bold text-lg">K</span>
                 </div>
-                <span className="ml-2 text-xl font-bold text-gray-900 hidden md:block">KIBOSS</span>
+                <div className="flex md:ml-2 items-center">
+                  {"KIBOSS".split("").map((char, index) => (
+                    <motion.span
+                      key={index}
+                      className="inline-block text-4xl md:text-2xl font-black font-heading text-gray-900 dark:text-white tracking-tighter origin-bottom"
+                      animate={{ 
+                        y: [0, -6, 0],
+                        rotate: [0, 12, -12, 0],
+                        scale: [1, 1.15, 1]
+                      }}
+                      transition={{ 
+                        duration: 3, 
+                        repeat: Infinity,
+                        delay: index * 0.2,
+                        ease: [0.45, 0, 0.55, 1]
+                      }}
+                    >
+                      {char}
+                    </motion.span>
+                  ))}
+                </div>
               </Link>
 
               {/* Desktop Primary Navigation */}
@@ -177,9 +205,9 @@ export default function Layout() {
                   <Link
                     key={item.name}
                     to={item.href}
-                    className={`inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive(item.href)
-                      ? 'bg-primary-50 text-primary-700'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    className={`inline-flex items-center px-3 py-2 rounded-lg text-sm font-bold transition-colors ${isActive(item.href)
+                      ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400'
+                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
                       }`}
                   >
                     <item.icon className="h-4 w-4 mr-1.5" />
@@ -195,7 +223,7 @@ export default function Layout() {
                 <div className="relative">
                   <button
                     onClick={() => setIsCreateMenuOpen(!isCreateMenuOpen)}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-black bg-gray-900 text-white hover:bg-black transition-all shadow-lg shadow-gray-200"
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-black bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-black dark:hover:bg-gray-100 transition-all shadow-md"
                   >
                     <Plus className="h-4 w-4" />
                     Create
@@ -203,13 +231,13 @@ export default function Layout() {
                   </button>
 
                   {isCreateMenuOpen && (
-                    <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-2xl shadow-2xl py-2 z-50 ring-1 ring-gray-100 animate-in fade-in zoom-in-95 duration-200">
+                    <div className="absolute top-full left-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-2xl shadow-xl py-2 z-50 border border-gray-100 dark:border-gray-700 animate-in fade-in zoom-in-95 duration-200">
                       {createActions.map((action) => (
                         <Link
                           key={action.name}
                           to={action.href}
                           onClick={() => setIsCreateMenuOpen(false)}
-                          className="flex items-center px-4 py-2.5 text-sm font-bold text-gray-700 hover:bg-primary-50 hover:text-primary-700"
+                          className="flex items-center px-4 py-2.5 text-sm font-bold text-gray-700 dark:text-gray-200 hover:bg-primary-50 dark:hover:bg-primary-900/30 hover:text-primary-700 dark:hover:text-primary-400"
                         >
                           <action.icon className="h-4 w-4 mr-2" />
                           {action.name}
@@ -221,8 +249,20 @@ export default function Layout() {
               )}
             </div>
 
-            {/* Right side - Secondary Nav and User Menu */}
+            {/* Right side - Secondary Nav, Theme Toggle, and User Menu */}
             <div className="flex items-center space-x-2">
+              {/* Theme Toggle */}
+              <div className="relative" ref={themeMenuRef}>
+                <button
+                  onClick={() => setTheme(isDark ? 'light' : 'dark')}
+                  className="relative inline-flex items-center p-2 rounded-lg transition-colors text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white"
+                  title="Toggle Theme"
+                >
+                  {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+                </button>
+
+              </div>
+
               {/* Desktop Secondary Navigation */}
               <div className="hidden md:flex items-center space-x-1">
                 {secondaryNav.map((item) => (
@@ -231,14 +271,14 @@ export default function Layout() {
                       <button
                         onClick={() => setIsNotificationOpen(!isNotificationOpen)}
                         className={`relative inline-flex items-center p-2 rounded-lg transition-colors ${isActive(item.href) || isNotificationOpen
-                          ? 'bg-primary-50 text-primary-700'
-                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                          ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400'
+                          : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
                           }`}
                         title={item.name}
                       >
                         <item.icon className="h-5 w-5" />
                         {item.badge !== undefined && item.badge > 0 && (
-                          <span className="absolute -top-1 -right-1 px-1.5 py-0.5 text-xs font-medium bg-red-500 text-white rounded-full min-w-[18px] text-center">
+                          <span className="absolute -top-1 -right-1 px-1.5 py-0.5 text-xs font-bold bg-red-500 text-white rounded-full min-w-[18px] text-center">
                             {item.badge > 99 ? '99+' : item.badge}
                           </span>
                         )}
@@ -253,14 +293,14 @@ export default function Layout() {
                       key={item.name}
                       to={item.href}
                       className={`relative inline-flex items-center p-2 rounded-lg transition-colors ${isActive(item.href)
-                        ? 'bg-primary-50 text-primary-700'
-                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                        ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400'
+                        : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
                         }`}
                       title={item.name}
                     >
                       <item.icon className="h-5 w-5" />
                       {item.badge !== undefined && item.badge > 0 && (
-                        <span className="absolute -top-1 -right-1 px-1.5 py-0.5 text-xs font-medium bg-red-500 text-white rounded-full min-w-[18px] text-center">
+                        <span className="absolute -top-1 -right-1 px-1.5 py-0.5 text-xs font-bold bg-red-500 text-white rounded-full min-w-[18px] text-center">
                           {item.badge > 99 ? '99+' : item.badge}
                         </span>
                       )}
@@ -271,28 +311,28 @@ export default function Layout() {
 
               {/* User menu */}
               {isAuthenticated && user ? (
-                <div className="relative" ref={userMenuRef}>
+                <div className="hidden md:block relative" ref={userMenuRef}>
                   <button
                     onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                     data-testid="user-menu-button"
-                    className="flex items-center space-x-2 p-1.5 rounded-lg hover:bg-gray-50 transition-colors"
+                    className="flex items-center space-x-2 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                   >
                     {user.profile?.avatar ? (
                       <img
                         src={getMediaUrl(user.profile.avatar)}
                         alt={user.first_name}
-                        className="h-8 w-8 rounded-full object-cover"
+                        className="h-8 w-8 rounded-full object-cover ring-2 ring-transparent hover:ring-primary-500 transition-all"
                       />
                     ) : (
-                      <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
-                        <User className="h-5 w-5 text-gray-500" />
+                      <div className="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                        <User className="h-5 w-5 text-gray-500 dark:text-gray-400" />
                       </div>
                     )}
                     <div className="hidden md:block text-left">
                       <div className="flex items-center gap-1">
-                        <p className="text-sm font-black text-gray-900">{user.first_name}</p>
+                        <p className="text-sm font-bold text-gray-900 dark:text-white">{user.first_name}</p>
                         {isStaff && (
-                          <span className="bg-primary-600 text-white text-[8px] font-black px-1 rounded-sm  tracking-tighter">Staff</span>
+                          <span className="bg-primary-600 text-white text-[8px] font-black px-1 rounded-sm uppercase">Staff</span>
                         )}
                         <VerificationBadge
                           tier={user.verification_badge?.tier}
@@ -306,112 +346,117 @@ export default function Layout() {
 
                   {/* User dropdown */}
                   {isUserMenuOpen && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-50">
+                    <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-xl shadow-xl py-2 z-50 border border-gray-100 dark:border-gray-700">
+                      <div className="px-4 py-2 border-b border-gray-100 dark:border-gray-700 mb-2">
+                        <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{user.email}</p>
+                      </div>
+                      
                       <Link
                         to="/profile"
                         onClick={() => setIsUserMenuOpen(false)}
-                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                        className="flex items-center px-4 py-2 text-sm font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
                       >
-                        <User className="h-4 w-4 mr-2" />
-                        Profile
+                        <User className="h-4 w-4 mr-3 text-gray-400" /> Profile
                       </Link>
-                      <Link to="/my-listings" onClick={() => setIsUserMenuOpen(false)} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
-                        <Briefcase className="h-4 w-4" />
-                        My Listings
+                      <Link to="/my-listings" onClick={() => setIsUserMenuOpen(false)} className="flex items-center px-4 py-2 text-sm font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700">
+                        <Briefcase className="h-4 w-4 mr-3 text-gray-400" /> My Listings
                       </Link>
+                      
                       {/* Tier-Conditional Section */}
                       {effectiveTier === 'FREE' && (
-                        <Link
-                          to="/upgrade"
-                          onClick={() => setIsUserMenuOpen(false)}
-                          className="flex items-center px-4 py-2 text-sm font-bold text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 mx-2 my-1 rounded-lg"
-                        >
-                          <Sparkles className="h-4 w-4 mr-2" />
-                          Upgrade Plan
-                        </Link>
+                        <div className="px-2 my-2">
+                          <Link
+                            to="/upgrade"
+                            onClick={() => setIsUserMenuOpen(false)}
+                            className="flex items-center justify-center px-4 py-2 text-sm font-bold text-white bg-gradient-to-r from-primary-600 to-purple-600 hover:from-primary-700 hover:to-purple-700 rounded-lg shadow-sm"
+                          >
+                            <Sparkles className="h-4 w-4 mr-2" /> Upgrade Plan
+                          </Link>
+                        </div>
                       )}
                       {effectiveTier === 'PLUS' && (
-                        <Link
-                          to="/plus"
-                          onClick={() => setIsUserMenuOpen(false)}
-                          className="flex items-center px-4 py-2 text-sm font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 mx-2 my-1 rounded-lg"
-                        >
-                          <Crown className="h-3.5 w-3.5 mr-2" />
-                          Plus Dashboard
-                        </Link>
+                        <div className="px-2 my-2">
+                          <Link
+                            to="/plus"
+                            onClick={() => setIsUserMenuOpen(false)}
+                            className="flex items-center justify-center px-4 py-2 text-sm font-bold text-purple-700 bg-purple-50 dark:bg-purple-900/30 dark:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-900/50 rounded-lg"
+                          >
+                            <Crown className="h-4 w-4 mr-2" /> Plus Dashboard
+                          </Link>
+                        </div>
                       )}
                       {effectiveTier === 'BUSINESS' && (
-                        <Link
-                          to="/business"
-                          onClick={() => setIsUserMenuOpen(false)}
-                          className="flex items-center px-4 py-2 text-sm text-gray-700 font-bold bg-gray-50 hover:bg-gray-100"
-                        >
-                          <Building2 className="h-4 w-4 mr-2 text-primary-600" />
-                          {isCorporateVerified
-                            ? 'Business'
-                            : 'Verification Pending'}
-                        </Link>
+                        <div className="px-2 my-2">
+                          <Link
+                            to="/business"
+                            onClick={() => setIsUserMenuOpen(false)}
+                            className="flex items-center justify-center px-4 py-2 text-sm font-bold text-primary-700 bg-primary-50 dark:bg-primary-900/30 dark:text-primary-400 hover:bg-primary-100 dark:hover:bg-primary-900/50 rounded-lg"
+                          >
+                            <Building2 className="h-4 w-4 mr-2" /> 
+                            {isCorporateVerified ? 'Business Panel' : 'Pending Review'}
+                          </Link>
+                        </div>
                       )}
                       {isStaff && (
-                        <Link
-                          to="/staff/tasks"
-                          onClick={() => setIsUserMenuOpen(false)}
-                          className="flex items-center px-4 py-2 text-sm text-primary-700 font-black bg-primary-50 hover:bg-primary-100 border-y border-primary-100"
-                        >
-                          <Shield className="h-4 w-4 mr-2" />
-                          Staff Dashboard
-                        </Link>
+                        <div className="px-2 my-2">
+                          <Link
+                            to="/staff/tasks"
+                            onClick={() => setIsUserMenuOpen(false)}
+                            className="flex items-center justify-center px-4 py-2 text-sm font-black text-red-700 bg-red-50 dark:bg-red-900/30 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-lg"
+                          >
+                            <Shield className="h-4 w-4 mr-2" /> Staff Dashboard
+                          </Link>
+                        </div>
                       )}
-                      <Link
-                        to="/profile"
-                        onClick={() => {
-                          setIsUserMenuOpen(false);
-                          setTimeout(() => {
-                            const wishlist = document.getElementById('wishlist-section');
-                            wishlist?.scrollIntoView({ behavior: 'smooth' });
-                          }, 100);
-                        }}
-                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                      >
-                        <Heart className="h-4 w-4 mr-2 text-red-500" />
-                        My Wishlist
-                      </Link>
-                      <Link
-                        to="/payments"
-                        onClick={() => setIsUserMenuOpen(false)}
-                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                      >
-                        <CreditCard className="h-4 w-4 mr-2" />
-                        Payments & Wallet
-                      </Link>
-                      <Link
-                        to="/bookings"
-                        onClick={() => setIsUserMenuOpen(false)}
-                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                      >
-                        <Calendar className="h-4 w-4 mr-2" />
-                        Bookings Dashboard
-                      </Link>
-                      <Link
-                        to="/settings"
-                        onClick={() => setIsUserMenuOpen(false)}
-                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                      >
-                        <Settings className="h-4 w-4 mr-2" />
-                        Settings
-                      </Link>
-                      <hr className="my-1" />
-                      <button
-                        onClick={() => {
-                          setIsUserMenuOpen(false);
-                          handleLogout();
-                        }}
-                        title="Logout"
-                        className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
-                      >
-                        <LogOut className="h-4 w-4 mr-2" />
-                        Logout
-                      </button>
+
+                      <div className="border-t border-gray-100 dark:border-gray-700 mt-2 pt-2">
+                        <Link
+                          to="/profile"
+                          onClick={() => {
+                            setIsUserMenuOpen(false);
+                            setTimeout(() => {
+                              const wishlist = document.getElementById('wishlist-section');
+                              wishlist?.scrollIntoView({ behavior: 'smooth' });
+                            }, 100);
+                          }}
+                          className="flex items-center px-4 py-2 text-sm font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
+                        >
+                          <Heart className="h-4 w-4 mr-3 text-red-500" /> My Wishlist
+                        </Link>
+                        <Link
+                          to="/payments"
+                          onClick={() => setIsUserMenuOpen(false)}
+                          className="flex items-center px-4 py-2 text-sm font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
+                        >
+                          <CreditCard className="h-4 w-4 mr-3 text-gray-400" /> Payments & Wallet
+                        </Link>
+                        <Link
+                          to="/bookings"
+                          onClick={() => setIsUserMenuOpen(false)}
+                          className="flex items-center px-4 py-2 text-sm font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
+                        >
+                          <Calendar className="h-4 w-4 mr-3 text-gray-400" /> Bookings
+                        </Link>
+                        <Link
+                          to="/settings"
+                          onClick={() => setIsUserMenuOpen(false)}
+                          className="flex items-center px-4 py-2 text-sm font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
+                        >
+                          <Settings className="h-4 w-4 mr-3 text-gray-400" /> Settings
+                        </Link>
+                        
+                        <div className="border-t border-gray-100 dark:border-gray-700 mt-2 pt-2">
+                          <button
+                            onClick={() => {
+                              setIsUserMenuOpen(false);
+                              handleLogout();
+                            }}
+                            className="flex items-center w-full px-4 py-2 text-sm font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+                          >
+                            <LogOut className="h-4 w-4 mr-3" /> Logout
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -419,13 +464,13 @@ export default function Layout() {
                 <div className="hidden md:flex items-center space-x-2">
                   <Link
                     to="/login"
-                    className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900"
+                    className="px-4 py-2 text-sm font-bold text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
                   >
                     Login
                   </Link>
                   <Link
                     to="/register"
-                    className="px-4 py-2 text-sm font-medium bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+                    className="px-4 py-2 text-sm font-bold bg-primary-600 hover:bg-primary-700 text-white rounded-xl shadow-md transition-all"
                   >
                     Sign Up
                   </Link>
@@ -437,16 +482,18 @@ export default function Layout() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${location.pathname === '/' ? 'pb-8' : 'py-8'}`}>
         {/* Breadcrumbs */}
-        <div className="mb-4 flex items-center">
-          <div className="md:hidden mr-2">
-            <SmartBackButton />
+        {location.pathname !== '/' && (
+          <div className="mb-4 flex items-center">
+            <div className="md:hidden mr-2">
+              <SmartBackButton />
+            </div>
+            <div className="flex-1 min-w-0">
+              <Breadcrumbs />
+            </div>
           </div>
-          <div className="flex-1 min-w-0">
-            <Breadcrumbs />
-          </div>
-        </div>
+        )}
         <Outlet />
       </main>
 
@@ -454,23 +501,23 @@ export default function Layout() {
       {!isMessagingPage && <Footer />}
 
       {/* Mobile Bottom Navbar */}
-      <nav className={`md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 transition-transform duration-300 ${showNavBars ? 'translate-y-0' : 'translate-y-full pb-safe'}`}>
+      <nav className={`md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 z-50 transition-transform duration-300 ${showNavBars ? 'trangray-y-0' : 'trangray-y-full pb-safe'}`}>
         <div className="flex justify-around items-center h-16 px-2 pb-safe">
-          <Link to="/" className={`flex flex-col items-center justify-center w-full h-full ${isActive('/') ? 'text-primary-600' : 'text-gray-500'}`}>
+          <Link to="/" className={`flex flex-col items-center justify-center w-full h-full ${isActive('/') ? 'text-primary-600 dark:text-primary-400' : 'text-gray-500 dark:text-gray-400'}`}>
             <Home className="h-5 w-5 mb-1" />
-            <span className="text-[10px] font-medium">Home</span>
+            <span className="text-[10px] font-bold">Home</span>
           </Link>
-          <Link to="/assets" className={`flex flex-col items-center justify-center w-full h-full ${isActive('/assets') ? 'text-primary-600' : 'text-gray-500'}`}>
+          <Link to="/search" className={`flex flex-col items-center justify-center w-full h-full ${isActive('/search') ? 'text-primary-600 dark:text-primary-400' : 'text-gray-500 dark:text-gray-400'}`}>
             <Search className="h-5 w-5 mb-1" />
-            <span className="text-[10px] font-medium">Explore</span>
+            <span className="text-[10px] font-bold">Search</span>
           </Link>
-          <Link to="/bookings" className={`flex flex-col items-center justify-center w-full h-full ${isActive('/bookings') ? 'text-primary-600' : 'text-gray-500'}`}>
+          <Link to="/bookings" className={`flex flex-col items-center justify-center w-full h-full ${isActive('/bookings') ? 'text-primary-600 dark:text-primary-400' : 'text-gray-500 dark:text-gray-400'}`}>
             <Calendar className="h-5 w-5 mb-1" />
-            <span className="text-[10px] font-medium">Bookings</span>
+            <span className="text-[10px] font-bold">Bookings</span>
           </Link>
-          <Link to="/messages" className={`relative flex flex-col items-center justify-center w-full h-full ${isActive('/messages') ? 'text-primary-600' : 'text-gray-500'}`}>
+          <Link to="/messages" className={`relative flex flex-col items-center justify-center w-full h-full ${isActive('/messages') ? 'text-primary-600 dark:text-primary-400' : 'text-gray-500 dark:text-gray-400'}`}>
             <MessageCircle className="h-5 w-5 mb-1" />
-            <span className="text-[10px] font-medium">Inbox</span>
+            <span className="text-[10px] font-bold">Inbox</span>
             {messageUnreadCount > 0 && (
                <span className="absolute top-1 right-3 px-1 py-0.5 text-[8px] font-bold bg-red-500 text-white rounded-full min-w-[14px] text-center">
                  {messageUnreadCount > 99 ? '99+' : messageUnreadCount}
@@ -479,89 +526,89 @@ export default function Layout() {
           </Link>
           <button 
             onClick={() => setIsMobileMoreDrawerOpen(true)}
-            className="flex flex-col items-center justify-center w-full h-full text-gray-500"
+            className="flex flex-col items-center justify-center w-full h-full text-gray-500 dark:text-gray-400"
           >
             <MoreHorizontal className="h-5 w-5 mb-1" />
-            <span className="text-[10px] font-medium">More</span>
+            <span className="text-[10px] font-bold">More</span>
           </button>
         </div>
       </nav>
 
       {/* Mobile More Drawer */}
       {isMobileMoreDrawerOpen && (
-        <div className="md:hidden fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm transition-opacity" onClick={() => setIsMobileMoreDrawerOpen(false)}>
+        <div className="md:hidden fixed inset-0 z-[60] bg-black/60 transition-opacity" onClick={() => setIsMobileMoreDrawerOpen(false)}>
           <div 
-            className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl p-6 shadow-2xl animate-in slide-in-from-bottom duration-300 pb-safe"
+            className="absolute bottom-0 left-0 right-0 bg-white dark:bg-gray-900 rounded-t-3xl p-6 shadow-2xl animate-in slide-in-from-bottom duration-300 pb-safe"
             onClick={e => e.stopPropagation()}
           >
-            <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6" />
+            <div className="w-12 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full mx-auto mb-6" />
             
             {isAuthenticated ? (
               <>
-                <div className="flex items-center gap-3 mb-6 pb-6 border-b border-gray-100">
+                <div className="flex items-center gap-3 mb-6 pb-6 border-b border-gray-100 dark:border-gray-800">
                    {user?.profile?.avatar ? (
                       <img src={getMediaUrl(user.profile.avatar)} alt={user.first_name} className="h-12 w-12 rounded-full object-cover" />
                     ) : (
-                      <div className="h-12 w-12 rounded-full bg-gray-100 flex items-center justify-center">
-                        <User className="h-6 w-6 text-gray-500" />
+                      <div className="h-12 w-12 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                        <User className="h-6 w-6 text-gray-500 dark:text-gray-400" />
                       </div>
                     )}
                     <div>
-                       <p className="font-bold text-gray-900 text-lg">{user?.first_name} {user?.last_name}</p>
-                       <Link to="/profile" onClick={() => setIsMobileMoreDrawerOpen(false)} className="text-sm text-primary-600 font-medium">View Profile</Link>
+                       <p className="font-bold font-heading text-gray-900 dark:text-white text-lg">{user?.first_name} {user?.last_name}</p>
+                       <Link to="/profile" onClick={() => setIsMobileMoreDrawerOpen(false)} className="text-sm text-primary-600 dark:text-primary-400 font-bold">View Profile</Link>
                     </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 mb-6">
                   {createActions.map(action => (
-                    <Link key={action.name} to={action.href} onClick={() => setIsMobileMoreDrawerOpen(false)} className="flex flex-col items-center p-4 bg-gray-50 rounded-2xl hover:bg-primary-50 hover:text-primary-600 transition-colors">
-                       <action.icon className="h-6 w-6 mb-2 text-gray-700" />
-                       <span className="text-sm font-medium">{action.name}</span>
+                    <Link key={action.name} to={action.href} onClick={() => setIsMobileMoreDrawerOpen(false)} className="flex flex-col items-center p-4 bg-gray-50 dark:bg-gray-800 rounded-2xl hover:bg-primary-50 dark:hover:bg-primary-900/30 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
+                       <action.icon className="h-6 w-6 mb-2 text-gray-700 dark:text-gray-300" />
+                       <span className="text-sm font-bold">{action.name}</span>
                     </Link>
                   ))}
                 </div>
 
-                <div className="space-y-1 mb-6">
-                   <Link to="/my-listings" onClick={() => setIsMobileMoreDrawerOpen(false)} className="flex items-center px-4 py-3 text-gray-700 font-medium hover:bg-gray-50 rounded-xl">
-                      <Briefcase className="h-5 w-5 mr-3 text-gray-400" /> My Listings
+                <div className="space-y-2 mb-6">
+                   <Link to="/my-listings" onClick={() => setIsMobileMoreDrawerOpen(false)} className="flex items-center px-4 py-3 text-gray-700 dark:text-gray-200 font-bold hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl">
+                      <Briefcase className="h-5 w-5 mr-3 text-gray-400 dark:text-gray-500" /> My Listings
                    </Link>
                    {effectiveTier === 'FREE' && (
-                     <Link to="/upgrade" onClick={() => setIsMobileMoreDrawerOpen(false)} className="flex items-center px-4 py-3 font-bold text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl">
+                     <Link to="/upgrade" onClick={() => setIsMobileMoreDrawerOpen(false)} className="flex items-center px-4 py-3 font-bold text-white bg-gradient-to-r from-primary-600 to-purple-600 rounded-xl shadow-sm">
                         <Sparkles className="h-5 w-5 mr-3" /> Upgrade Plan
                      </Link>
                    )}
                    {effectiveTier === 'PLUS' && (
-                     <Link to="/plus" onClick={() => setIsMobileMoreDrawerOpen(false)} className="flex items-center px-4 py-3 font-bold text-purple-700 bg-purple-50 rounded-xl">
+                     <Link to="/plus" onClick={() => setIsMobileMoreDrawerOpen(false)} className="flex items-center px-4 py-3 font-bold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-900/30 rounded-xl">
                         <Crown className="h-5 w-5 mr-3" /> Plus Dashboard
                      </Link>
                    )}
                    {effectiveTier === 'BUSINESS' && (
-                     <Link to="/business" onClick={() => setIsMobileMoreDrawerOpen(false)} className="flex items-center px-4 py-3 font-bold text-primary-700 bg-primary-50 rounded-xl">
+                     <Link to="/business" onClick={() => setIsMobileMoreDrawerOpen(false)} className="flex items-center px-4 py-3 font-bold text-primary-700 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/30 rounded-xl">
                         <Building2 className="h-5 w-5 mr-3" /> Business Dashboard
                      </Link>
                    )}
                    {isStaff && (
-                     <Link to="/staff/tasks" onClick={() => setIsMobileMoreDrawerOpen(false)} className="flex items-center px-4 py-3 font-bold text-red-700 bg-red-50 rounded-xl">
+                     <Link to="/staff/tasks" onClick={() => setIsMobileMoreDrawerOpen(false)} className="flex items-center px-4 py-3 font-black text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/30 rounded-xl">
                         <Shield className="h-5 w-5 mr-3" /> Staff Dashboard
                      </Link>
                    )}
-                   <Link to="/payments" onClick={() => setIsMobileMoreDrawerOpen(false)} className="flex items-center px-4 py-3 text-gray-700 font-medium hover:bg-gray-50 rounded-xl">
-                      <CreditCard className="h-5 w-5 mr-3 text-gray-400" /> Payments & Wallet
+                   <Link to="/payments" onClick={() => setIsMobileMoreDrawerOpen(false)} className="flex items-center px-4 py-3 text-gray-700 dark:text-gray-200 font-bold hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl">
+                      <CreditCard className="h-5 w-5 mr-3 text-gray-400 dark:text-gray-500" /> Payments & Wallet
                    </Link>
-                   <Link to="/settings" onClick={() => setIsMobileMoreDrawerOpen(false)} className="flex items-center px-4 py-3 text-gray-700 font-medium hover:bg-gray-50 rounded-xl">
-                      <Settings className="h-5 w-5 mr-3 text-gray-400" /> Settings
+                   <Link to="/settings" onClick={() => setIsMobileMoreDrawerOpen(false)} className="flex items-center px-4 py-3 text-gray-700 dark:text-gray-200 font-bold hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl">
+                      <Settings className="h-5 w-5 mr-3 text-gray-400 dark:text-gray-500" /> Settings
                    </Link>
                 </div>
                 
-                <button onClick={() => { setIsMobileMoreDrawerOpen(false); handleLogout(); }} className="w-full flex items-center justify-center px-4 py-4 text-red-600 font-bold bg-red-50 rounded-xl">
+                <button onClick={() => { setIsMobileMoreDrawerOpen(false); handleLogout(); }} className="w-full flex items-center justify-center px-4 py-4 text-red-600 dark:text-red-400 font-bold bg-red-50 dark:bg-red-900/20 rounded-xl">
                    <LogOut className="h-5 w-5 mr-2" /> Logout
                 </button>
               </>
             ) : (
               <div className="space-y-4">
-                 <h3 className="text-xl font-bold text-gray-900 text-center mb-6">Join Kiboss Today</h3>
-                 <Link to="/login" onClick={() => setIsMobileMoreDrawerOpen(false)} className="block w-full py-4 text-center text-primary-600 font-bold bg-primary-50 rounded-xl">Log In</Link>
-                 <Link to="/register" onClick={() => setIsMobileMoreDrawerOpen(false)} className="block w-full py-4 text-center text-white font-bold bg-primary-600 rounded-xl">Sign Up</Link>
+                 <h3 className="text-xl font-bold font-heading text-gray-900 dark:text-white text-center mb-6">Join Kiboss Today</h3>
+                 <Link to="/login" onClick={() => setIsMobileMoreDrawerOpen(false)} className="block w-full py-4 text-center text-primary-600 dark:text-primary-400 font-bold bg-primary-50 dark:bg-primary-900/30 rounded-xl">Log In</Link>
+                 <Link to="/register" onClick={() => setIsMobileMoreDrawerOpen(false)} className="block w-full py-4 text-center text-white font-bold bg-primary-600 rounded-xl shadow-md">Sign Up</Link>
               </div>
             )}
           </div>

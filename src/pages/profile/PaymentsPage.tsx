@@ -32,13 +32,13 @@ export default function PaymentsPage() {
   return (
     <div className="max-w-6xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Payments & Wallet</h1>
-        <p className="text-gray-500 mt-1">Manage your transactions, escrow funds, and payout history.</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Payments & Wallet</h1>
+        <p className="text-gray-500 dark:text-gray-400 mt-1">Manage your transactions, escrow funds, and payout history.</p>
       </div>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800">
           <div className="flex items-center justify-between mb-4">
             <div className="p-2 bg-primary-50 rounded-lg">
               <CreditCard className="h-6 w-6 text-primary-600" />
@@ -46,25 +46,25 @@ export default function PaymentsPage() {
             <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Total Paid</span>
           </div>
           <div className="flex flex-col">
-            <span className="text-2xl font-bold text-gray-900">{formatCurrency(summary.total_paid)}</span>
+            <span className="text-2xl font-bold text-gray-900 dark:text-white">{formatCurrency(summary.total_paid)}</span>
             <span className="text-xs text-gray-400 mt-1">Lifetime spending</span>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800">
           <div className="flex items-center justify-between mb-4">
             <div className="p-2 bg-green-50 rounded-lg">
-              <ArrowUpRight className="h-6 w-6 text-green-600" />
+              <ArrowUpRight className="h-6 w-6 text-green-600 dark:text-green-400" />
             </div>
             <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Total Received</span>
           </div>
           <div className="flex flex-col">
-            <span className="text-2xl font-bold text-gray-900">{formatCurrency(summary.total_received)}</span>
+            <span className="text-2xl font-bold text-gray-900 dark:text-white">{formatCurrency(summary.total_received)}</span>
             <span className="text-xs text-gray-400 mt-1">Earnings available for payout</span>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800">
           <div className="flex items-center justify-between mb-4">
             <div className="p-2 bg-warning-50 rounded-lg">
               <Shield className="h-6 w-6 text-warning-600" />
@@ -72,16 +72,16 @@ export default function PaymentsPage() {
             <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">In Escrow</span>
           </div>
           <div className="flex flex-col">
-            <span className="text-2xl font-bold text-gray-900">{formatCurrency(summary.in_escrow)}</span>
+            <span className="text-2xl font-bold text-gray-900 dark:text-white">{formatCurrency(summary.in_escrow)}</span>
             <span className="text-xs text-gray-400 mt-1">Held securely during rentals</span>
           </div>
         </div>
       </div>
 
       {/* Transactions List */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
-          <h2 className="text-lg font-bold text-gray-900">Transaction History</h2>
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white">Transaction History</h2>
           <button className="text-sm font-medium text-primary-600 hover:text-primary-700">Download CSV</button>
         </div>
 
@@ -98,7 +98,7 @@ export default function PaymentsPage() {
             <div className="bg-gray-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
               <CreditCard className="h-8 w-8 text-gray-300" />
             </div>
-            <p className="text-gray-500">No transactions yet.</p>
+            <p className="text-gray-500 dark:text-gray-400">No transactions yet.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -117,10 +117,10 @@ export default function PaymentsPage() {
                 {payments.map((payment) => (
                   <tr key={payment.id} className="hover:bg-gray-50/50 transition-colors">
                     <td className="px-6 py-4">
-                      <span className="text-xs font-mono text-gray-500">{payment.id.split('-')[0]}...</span>
+                      <span className="text-xs font-mono text-gray-500 dark:text-gray-400">{payment.id.split('-')[0]}...</span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-gray-600">{new Date(payment.escrow_held_at || '').toLocaleDateString()}</span>
+                      <span className="text-sm text-gray-600 dark:text-gray-300">{new Date(payment.escrow_held_at || '').toLocaleDateString()}</span>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex flex-col">

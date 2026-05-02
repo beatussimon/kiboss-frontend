@@ -62,11 +62,11 @@ export default function AssetDetailPage() {
   if (isLoading || !asset) {
     return (
       <div className="animate-pulse">
-        <div className="h-96 bg-gray-200 rounded-xl" />
+        <div className="h-96 bg-gray-200 dark:bg-gray-700 rounded-xl" />
         <div className="mt-6 space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-3/4" />
-          <div className="h-4 bg-gray-200 rounded w-1/2" />
-          <div className="h-32 bg-gray-200 rounded" />
+          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-3/4" />
+          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2" />
+          <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded" />
         </div>
       </div>
     );
@@ -92,7 +92,7 @@ export default function AssetDetailPage() {
         </Link>
         <button
           onClick={debouncedToggleWishlist}
-          className={`flex items-center gap-2 px-6 py-2.5 rounded-full transition-all border font-bold shadow-sm ${isWishlisted ? 'bg-red-50 text-red-600 border-red-100 hover:bg-red-100' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+          className={`flex items-center gap-2 px-6 py-2.5 rounded-full transition-all border font-bold shadow-sm ${isWishlisted ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border-red-100 dark:border-red-800 hover:bg-red-100 dark:hover:bg-red-900/40' : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
             }`}
         >
           <Heart className={`h-5 w-5 ${isWishlisted ? 'fill-current' : ''}`} />
@@ -121,19 +121,19 @@ export default function AssetDetailPage() {
                 <>
                   <button
                     onClick={prevImage}
-                    className="absolute left-6 top-1/2 -translate-y-1/2 p-3 bg-black/40 hover:bg-black/60 backdrop-blur-md rounded-full text-white transition-all opacity-0 group-hover:opacity-100 border border-white/20 hover:scale-110"
+                    className="absolute left-6 top-1/2 -trangray-y-1/2 p-3 bg-gray-900 hover:bg-black rounded-full text-white transition-all opacity-0 group-hover:opacity-100 border border-gray-700 hover:scale-110 shadow-xl"
                   >
                     <ChevronLeft className="h-6 w-6" />
                   </button>
                   <button
                     onClick={nextImage}
-                    className="absolute right-6 top-1/2 -translate-y-1/2 p-3 bg-black/40 hover:bg-black/60 backdrop-blur-md rounded-full text-white transition-all opacity-0 group-hover:opacity-100 border border-white/20 hover:scale-110"
+                    className="absolute right-6 top-1/2 -trangray-y-1/2 p-3 bg-gray-900 hover:bg-black rounded-full text-white transition-all opacity-0 group-hover:opacity-100 border border-gray-700 hover:scale-110 shadow-xl"
                   >
                     <ChevronRight className="h-6 w-6" />
                   </button>
 
                   {/* Image Counter */}
-                  <div className="absolute bottom-6 right-6 px-4 py-1.5 bg-black/60 backdrop-blur-md rounded-full text-white text-xs font-bold border border-white/20 shadow-lg  tracking-widest uppercase">
+                  <div className="absolute bottom-6 right-6 px-4 py-1.5 bg-gray-900 rounded-full text-white text-xs font-bold border border-gray-700 shadow-lg tracking-widest uppercase">
                     {currentImageIndex + 1} / {asset.photos.length}
                   </div>
                 </>
@@ -141,7 +141,7 @@ export default function AssetDetailPage() {
             </>
           ) : (
             <div className="w-full h-full flex items-center justify-center">
-              <Home className="h-24 w-24 text-gray-700" />
+              <Home className="h-24 w-24 text-gray-700 dark:text-gray-200" />
             </div>
           )}
         </div>
@@ -167,7 +167,7 @@ export default function AssetDetailPage() {
       <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6 w-full">
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-2 mb-2">
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 break-words">{asset.name}</h1>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white break-words">{asset.name}</h1>
             {asset.is_verified && (
               <span className="badge-success">
                 <Shield className="h-3 w-3 mr-1" />
@@ -175,7 +175,7 @@ export default function AssetDetailPage() {
               </span>
             )}
           </div>
-          <div className="flex items-center text-gray-500">
+          <div className="flex items-center text-gray-500 dark:text-gray-400">
             <MapPin className="h-4 w-4 mr-1" />
             {asset.address}, {asset.city}, {asset.country}
           </div>
@@ -228,7 +228,7 @@ export default function AssetDetailPage() {
 
       {/* Room Features (for Hotels/Rooms) */}
       {asset.asset_type === 'ROOM' && (
-        <div className="flex flex-wrap gap-6 py-6 border-y border-gray-100 mb-6 text-gray-600">
+        <div className="flex flex-wrap gap-6 py-6 border-y border-gray-100 dark:border-gray-800 mb-6 text-gray-600 dark:text-gray-300">
           <div className="flex items-center gap-2">
             <User className="h-5 w-5 text-gray-400" />
             <span className="text-sm font-medium">{(asset.properties as any)?.guests || 2} guests</span>
@@ -253,17 +253,17 @@ export default function AssetDetailPage() {
         <div className="flex items-center">
           <Star className="h-5 w-5 text-yellow-400 fill-yellow-400" />
           <span className="ml-1 font-semibold">{asset.average_rating || 'N/A'}</span>
-          <span className="ml-1 text-gray-500">({asset.total_reviews || 0} reviews)</span>
+          <span className="ml-1 text-gray-500 dark:text-gray-400">({asset.total_reviews || 0} reviews)</span>
         </div>
       </div>
 
       {/* Host / Owner Info - Clickable to profile */}
       <Link
         to={`/users/${asset.owner.id}`}
-        className="flex items-center gap-4 p-5 bg-white border border-gray-100/80 rounded-2xl hover:shadow-xl hover:border-primary-100 transition-all duration-300 group mb-6"
+        className="flex items-center gap-4 p-5 bg-white dark:bg-gray-800 border border-gray-100/80 dark:border-gray-700 rounded-2xl hover:shadow-xl hover:border-primary-100 dark:hover:border-primary-800 transition-all duration-300 group mb-6"
       >
         <div className="relative">
-          <div className="w-16 h-16 rounded-[1.25rem] bg-gradient-to-br from-primary-100/50 to-primary-50/50 flex flex-col items-center justify-center overflow-hidden ring-4 ring-white shadow-sm group-hover:ring-primary-50 transition-all duration-300">
+          <div className="w-16 h-16 rounded-[1.25rem] bg-gradient-to-br from-primary-100/50 to-primary-50/50 dark:from-primary-900/30 dark:to-primary-800/20 flex flex-col items-center justify-center overflow-hidden ring-4 ring-white dark:ring-gray-700 shadow-sm group-hover:ring-primary-50 dark:group-hover:ring-primary-900 transition-all duration-300">
             {asset.owner.profile?.avatar ? (
               <img
                 src={getMediaUrl(asset.owner.profile.avatar)}
@@ -278,9 +278,9 @@ export default function AssetDetailPage() {
           </div>
         </div>
         <div className="flex-1">
-          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Hosted By</p>
+          <p className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-0.5">Hosted By</p>
           <div className="flex items-center gap-2">
-            <p className="font-bold text-lg text-gray-900 group-hover:text-primary-600 transition-colors leading-tight">
+            <p className="font-bold text-lg text-gray-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors leading-tight">
               {asset.owner.first_name || 'Kiboss User'} {asset.owner.last_name || ''}
             </p>
             <VerificationBadge
@@ -291,21 +291,21 @@ export default function AssetDetailPage() {
             />
           </div>
           <div className="flex items-center gap-3 mt-1.5">
-            <p className="text-xs font-bold text-gray-500 flex items-center gap-1 bg-gray-50 px-2 py-0.5 rounded-md border border-gray-100/50">
+            <p className="text-xs font-bold text-gray-500 flex items-center gap-1 bg-gray-50 dark:bg-gray-900 px-2 py-0.5 rounded-md border border-gray-100/50">
               <Star className="h-3 w-3 text-yellow-500 fill-yellow-500" />
               {(asset.owner as any).trust_score || 'N/A'} Trust
             </p>
           </div>
         </div>
-        <div className="w-10 h-10 rounded-full bg-gray-50 group-hover:bg-primary-50 flex items-center justify-center transition-colors">
-          <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-primary-600 group-hover:translate-x-0.5 transition-all" />
+        <div className="w-10 h-10 rounded-full bg-gray-50 dark:bg-gray-700 group-hover:bg-primary-50 dark:group-hover:bg-primary-900/30 flex items-center justify-center transition-colors">
+          <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-primary-600 group-hover:trangray-x-0.5 transition-all" />
         </div>
       </Link>
 
       {/* Description */}
       <div className="card p-6 mb-6">
         <h2 className="text-xl font-semibold mb-4">Description</h2>
-        <p className="text-gray-600 whitespace-pre-wrap">{asset.description}</p>
+        <p className="text-gray-600 dark:text-gray-300 whitespace-pre-wrap">{asset.description}</p>
       </div>
 
       {/* Pricing */}
@@ -313,7 +313,7 @@ export default function AssetDetailPage() {
         <h2 className="text-xl font-semibold mb-4">Pricing</h2>
         <div className="space-y-3">
           {asset.pricing_rules?.map((rule) => (
-            <div key={rule.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            <div key={rule.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
               <span>{rule.name}</span>
               <span className="font-semibold"><Price amount={rule.price} /> / {rule.unit_type.toLowerCase()}</span>
             </div>
@@ -326,10 +326,10 @@ export default function AssetDetailPage() {
         <div className="card p-6 border-l-4 border-l-primary-500 mb-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div>
-              <span className="text-2xl font-bold text-gray-900">
+              <span className="text-2xl font-bold text-gray-900 dark:text-white">
                 <Price amount={asset.pricing_rules?.[0]?.price || '0'} />
               </span>
-              <span className="text-gray-500"> / {asset.pricing_rules?.[0]?.unit_type?.toLowerCase() || 'hour'}</span>
+              <span className="text-gray-500 dark:text-gray-400"> / {asset.pricing_rules?.[0]?.unit_type?.toLowerCase() || 'hour'}</span>
             </div>
             <div className="flex gap-2 w-full md:w-auto">
               {isAuthenticated && user && asset?.owner?.id && (
@@ -356,27 +356,27 @@ export default function AssetDetailPage() {
 
       {/* Hotel-style Booking Section (if ROOM) */}
       {!isOwner && asset.asset_type === 'ROOM' && (
-        <div className="card p-8 border-t-4 border-t-primary-600 shadow-xl mb-12 bg-white">
+        <div className="card p-8 border-t-4 border-t-primary-600 shadow-xl mb-12 bg-white dark:bg-gray-800">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="space-y-2">
               <label className="text-[10px] font-bold  text-gray-400 tracking-widest">Check-in</label>
-              <div className="flex items-center p-3 bg-gray-50 rounded-xl border border-gray-100">
+              <div className="flex items-center p-3 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800">
                 <Calendar className="h-4 w-4 text-primary-600 mr-2" />
-                <span className="text-sm font-bold text-gray-700">Add Date</span>
+                <span className="text-sm font-bold text-gray-700 dark:text-gray-200">Add Date</span>
               </div>
             </div>
             <div className="space-y-2">
               <label className="text-[10px] font-bold  text-gray-400 tracking-widest">Check-out</label>
-              <div className="flex items-center p-3 bg-gray-50 rounded-xl border border-gray-100">
+              <div className="flex items-center p-3 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800">
                 <Calendar className="h-4 w-4 text-primary-600 mr-2" />
-                <span className="text-sm font-bold text-gray-700">Add Date</span>
+                <span className="text-sm font-bold text-gray-700 dark:text-gray-200">Add Date</span>
               </div>
             </div>
             <div className="space-y-2">
               <label className="text-[10px] font-bold  text-gray-400 tracking-widest">Guests</label>
-              <div className="flex items-center p-3 bg-gray-50 rounded-xl border border-gray-100">
+              <div className="flex items-center p-3 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800">
                 <User className="h-4 w-4 text-primary-600 mr-2" />
-                <span className="text-sm font-bold text-gray-700">1 Guest</span>
+                <span className="text-sm font-bold text-gray-700 dark:text-gray-200">1 Guest</span>
               </div>
             </div>
             <div className="flex flex-col justify-end">
@@ -393,11 +393,11 @@ export default function AssetDetailPage() {
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-1">
                 <Shield className="h-4 w-4 text-green-500" />
-                <span className="text-xs font-bold text-gray-500">Free Cancellation</span>
+                <span className="text-xs font-bold text-gray-500 dark:text-gray-400">Free Cancellation</span>
               </div>
               <div className="flex items-center gap-1">
-                <CreditCard className="h-4 w-4 text-blue-500" />
-                <span className="text-xs font-bold text-gray-500">Secure Payment</span>
+                <CreditCard className="h-4 w-4 text-primary-500" />
+                <span className="text-xs font-bold text-gray-500 dark:text-gray-400">Secure Payment</span>
               </div>
             </div>
             <div className="text-right">
@@ -410,9 +410,9 @@ export default function AssetDetailPage() {
 
       {/* Owner Info Card */}
       {isOwner && (
-        <div className="card p-6 bg-blue-50 border-blue-200">
-          <h3 className="text-lg font-semibold text-blue-800 mb-2">This is your listing</h3>
-          <p className="text-blue-600 mb-4">You can edit this listing or view its bookings from the buttons above.</p>
+        <div className="card p-6 bg-primary-50 dark:bg-primary-900/20 border-primary-200 dark:border-primary-800">
+          <h3 className="text-lg font-semibold text-primary-800 mb-2">This is your listing</h3>
+          <p className="text-primary-600 mb-4">You can edit this listing or view its bookings from the buttons above.</p>
           <div className="flex gap-4">
             <Link to={`/assets/${asset.id}/edit`} className="btn-primary">
               <Edit className="h-4 w-4 mr-2" />
