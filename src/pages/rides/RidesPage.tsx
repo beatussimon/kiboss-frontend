@@ -120,7 +120,7 @@ export default function RidesPage() {
         <form onSubmit={handleSearch}>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="relative">
-              <MapPin className="h-5 w-5 absolute left-3 top-1/2 -trangray-y-1/2 text-gray-400" />
+              <MapPin className="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
                 placeholder="From"
@@ -130,7 +130,7 @@ export default function RidesPage() {
               />
             </div>
             <div className="relative">
-              <MapPin className="h-5 w-5 absolute left-3 top-1/2 -trangray-y-1/2 text-gray-400" />
+              <MapPin className="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
                 placeholder="To"

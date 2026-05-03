@@ -103,7 +103,7 @@ export default function UpgradePage() {
     ];
 
     const handleUpgradeSelect = (planId: string) => {
-        if (hasPendingSubscription) {
+        if (hasPendingSubscription && planId === currentTier) {
             toast('You already have a pending upgrade request. Please wait for verification.', { icon: '⏳' });
             return;
         }
@@ -208,7 +208,7 @@ export default function UpgradePage() {
                     return (
                         <div key={plan.id} className={`relative flex flex-col rounded-3xl border-2 p-8 transition-all duration-300 ${isCurrentPlan ? `bg-gradient-to-b ${plan.bg} ring-4 ring-primary-500/20 scale-105 shadow-xl` : `bg-white hover:border-${plan.accent.split('-')[1]}-300 hover:shadow-2xl`}`}> 
                             {isCurrentPlan && (
-                                <div className="absolute -top-4 left-1/2 -trangray-x-1/2 bg-gray-900 text-white text-xs font-black uppercase tracking-widest px-4 py-1.5 rounded-full shadow-lg">
+                                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs font-black uppercase tracking-widest px-4 py-1.5 rounded-full shadow-lg">
                                     Current Plan
                                 </div>
                             )}

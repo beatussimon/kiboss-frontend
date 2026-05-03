@@ -10,6 +10,7 @@ import AuthLayout from './components/layout/AuthLayout';
 
 // Error Boundary
 import ErrorBoundary from './components/ErrorBoundary';
+import { UpgradeRequiredModal } from './components/ui/UpgradeRequiredModal';
 
 // Lazy load all pages for Code Splitting
 const LoginPage = React.lazy(() => import('./pages/auth/LoginPage'));
@@ -43,6 +44,7 @@ const RideManifestPage = React.lazy(() => import('./pages/rides/RideManifestPage
 const RideEditPage = React.lazy(() => import('./pages/rides/RideEditPage'));
 const BusinessDashboard = React.lazy(() => import('./pages/business/BusinessDashboard'));
 const UpgradePage = React.lazy(() => import('./pages/business/UpgradePage'));
+const SubscriptionPage = React.lazy(() => import('./pages/subscription/SubscriptionPage'));
 const PlusDashboard = React.lazy(() => import('./pages/plus/PlusDashboard'));
 const BusinessRegistrationForm = React.lazy(() => import('./pages/business/BusinessRegistrationForm'));
 const MyListingsPage = React.lazy(() => import('./pages/plus/MyListingsPage'));
@@ -101,51 +103,53 @@ function App() {
       <Suspense fallback={<PageLoader />}>
         <Routes>
           {/* Auth Routes */}
-          <Route element={<AuthLayout />}>
-            <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
-            <Route path="/register" element={<PublicRoute><RegisterPage /></PublicRoute>} />
+          <Route element={<ErrorBoundary><AuthLayout /></ErrorBoundary>}>
+            <Route path="/login" element={<ErrorBoundary><PublicRoute><LoginPage /></PublicRoute></ErrorBoundary>} />
+            <Route path="/register" element={<ErrorBoundary><PublicRoute><RegisterPage /></PublicRoute></ErrorBoundary>} />
           </Route>
 
           {/* Protected Routes */}
-          <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/assets" element={<AssetsPage />} />
-            <Route path="/assets/:id" element={<AssetDetailPage />} />
-            <Route path="/assets/create" element={<CreateAssetPage />} />
-            <Route path="/bookings" element={<UnifiedBookingsPage />} />
-            <Route path="/bookings/new" element={<CreateBookingPage />} />
-            <Route path="/bookings/:id" element={<BookingDetailPage />} />
-            <Route path="/contracts/:id" element={<ContractDetailPage />} />
-            <Route path="/rides" element={<RidesPage />} />
-            <Route path="/rides/create" element={<CreateRidePage />} />
-            <Route path="/rides/:id" element={<RideDetailPage />} />
-            <Route path="/rides/:id/edit" element={<RideEditPage />} />
-            <Route path="/rides/:id/manifest" element={<RideManifestPage />} />
-            <Route path="/rides/bookings/:id" element={<RideBookingDetailPage />} />
-            <Route path="/messages" element={<MessagesPage />} />
-            <Route path="/messages/:threadId" element={<ThreadPage />} />
-            <Route path="/notifications" element={<NotificationsPage />} />
-            <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/vehicles" element={<MyVehiclesPage />} />
-            <Route path="/vehicles/register" element={<RegisterVehiclePage />} />
-            <Route path="/vehicles/:id/manage" element={<VehicleManagePage />} />
-            <Route path="/business" element={<BusinessDashboard />} />
-            <Route path="/business/register" element={<BusinessRegistrationForm />} />
-            <Route path="/upgrade" element={<UpgradePage />} />
-            <Route path="/plus" element={<PlusDashboard />} />
-            <Route path="/staff/tasks" element={<TaskDashboard />} />
-            <Route path="/payments" element={<PaymentsPage />} />
-            <Route path="/settings" element={<SettingsPage />} />
-            <Route path="/users/:userId" element={<PublicProfilePage />} />
-            <Route path="/search" element={<SearchPage />} />
-            <Route path="/faq" element={<FAQPage />} />
-            <Route path="/my-listings" element={<MyListingsPage />} />
+          <Route element={<ErrorBoundary><ProtectedRoute><Layout /></ProtectedRoute></ErrorBoundary>}>
+            <Route path="/" element={<ErrorBoundary><HomePage /></ErrorBoundary>} />
+            <Route path="/assets" element={<ErrorBoundary><AssetsPage /></ErrorBoundary>} />
+            <Route path="/assets/:id" element={<ErrorBoundary><AssetDetailPage /></ErrorBoundary>} />
+            <Route path="/assets/create" element={<ErrorBoundary><CreateAssetPage /></ErrorBoundary>} />
+            <Route path="/bookings" element={<ErrorBoundary><UnifiedBookingsPage /></ErrorBoundary>} />
+            <Route path="/bookings/new" element={<ErrorBoundary><CreateBookingPage /></ErrorBoundary>} />
+            <Route path="/bookings/:id" element={<ErrorBoundary><BookingDetailPage /></ErrorBoundary>} />
+            <Route path="/contracts/:id" element={<ErrorBoundary><ContractDetailPage /></ErrorBoundary>} />
+            <Route path="/rides" element={<ErrorBoundary><RidesPage /></ErrorBoundary>} />
+            <Route path="/rides/create" element={<ErrorBoundary><CreateRidePage /></ErrorBoundary>} />
+            <Route path="/rides/:id" element={<ErrorBoundary><RideDetailPage /></ErrorBoundary>} />
+            <Route path="/rides/:id/edit" element={<ErrorBoundary><RideEditPage /></ErrorBoundary>} />
+            <Route path="/rides/:id/manifest" element={<ErrorBoundary><RideManifestPage /></ErrorBoundary>} />
+            <Route path="/rides/bookings/:id" element={<ErrorBoundary><RideBookingDetailPage /></ErrorBoundary>} />
+            <Route path="/messages" element={<ErrorBoundary><MessagesPage /></ErrorBoundary>} />
+            <Route path="/messages/:threadId" element={<ErrorBoundary><ThreadPage /></ErrorBoundary>} />
+            <Route path="/notifications" element={<ErrorBoundary><NotificationsPage /></ErrorBoundary>} />
+            <Route path="/profile" element={<ErrorBoundary><ProfilePage /></ErrorBoundary>} />
+            <Route path="/vehicles" element={<ErrorBoundary><MyVehiclesPage /></ErrorBoundary>} />
+            <Route path="/vehicles/register" element={<ErrorBoundary><RegisterVehiclePage /></ErrorBoundary>} />
+            <Route path="/vehicles/:id/manage" element={<ErrorBoundary><VehicleManagePage /></ErrorBoundary>} />
+            <Route path="/business" element={<ErrorBoundary><BusinessDashboard /></ErrorBoundary>} />
+            <Route path="/business/register" element={<ErrorBoundary><BusinessRegistrationForm /></ErrorBoundary>} />
+            <Route path="/upgrade" element={<ErrorBoundary><UpgradePage /></ErrorBoundary>} />
+            <Route path="/subscription" element={<ErrorBoundary><SubscriptionPage /></ErrorBoundary>} />
+            <Route path="/plus" element={<ErrorBoundary><PlusDashboard /></ErrorBoundary>} />
+            <Route path="/staff/tasks" element={<ErrorBoundary><TaskDashboard /></ErrorBoundary>} />
+            <Route path="/payments" element={<ErrorBoundary><PaymentsPage /></ErrorBoundary>} />
+            <Route path="/settings" element={<ErrorBoundary><SettingsPage /></ErrorBoundary>} />
+            <Route path="/users/:userId" element={<ErrorBoundary><PublicProfilePage /></ErrorBoundary>} />
+            <Route path="/search" element={<ErrorBoundary><SearchPage /></ErrorBoundary>} />
+            <Route path="/faq" element={<ErrorBoundary><FAQPage /></ErrorBoundary>} />
+            <Route path="/my-listings" element={<ErrorBoundary><MyListingsPage /></ErrorBoundary>} />
           </Route>
 
           {/* Catch all - redirect to home */}
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<ErrorBoundary><Navigate to="/" replace /></ErrorBoundary>} />
         </Routes>
       </Suspense>
+      <UpgradeRequiredModal />
     </ErrorBoundary>
   );
 }

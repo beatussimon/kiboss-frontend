@@ -19,6 +19,7 @@ import api from '../../services/api';
 import { getMediaUrl } from '../../utils/media';
 import { Price } from '../../context/CurrencyContext';
 import AnalyticsPanel from '../../features/staff/AnalyticsPanel';
+import { ConfirmModal } from '../../components/ui/ConfirmModal';
 
 export default function TaskDashboard() {
   const navigate = useNavigate();
@@ -61,6 +62,8 @@ export default function TaskDashboard() {
   const [activeFilter, setActiveFilter] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTasks, setSelectedTasks] = useState<string[]>([]);
+  const [confirmModal, setConfirmModal] = useState<{isOpen: boolean, title: string, message: string, onConfirm: () => void}>({isOpen: false, title: '', message: '', onConfirm: () => {}});
+  const [taskStatuses, setTaskStatuses] = useState<Record<string, 'pending' | 'success' | 'error'>>({});
 
   const handleExportCSV = () => {
     const csvContent = [
@@ -78,10 +81,8 @@ export default function TaskDashboard() {
     document.body.removeChild(link);
   };
 
-  const handleBatchApprove = async () => {
-    if (selectedTasks.length === 0) return;
-    if (!window.confirm(`Are you sure you want to approve ${selectedTasks.length} tasks simultaneously?`)) return;
-    
+  const executeBatchApprove = async () => {
+    setConfirmModal(prev => ({ ...prev, isOpen: false }));
     setIsProcessing(true);
     let successCount = 0;
     
@@ -89,18 +90,44 @@ export default function TaskDashboard() {
     const chunkSize = 5;
     for (let i = 0; i < selectedTasks.length; i += chunkSize) {
       const chunk = selectedTasks.slice(i, i + chunkSize);
+      
+      setTaskStatuses(prev => {
+        const next = { ...prev };
+        chunk.forEach(taskId => { next[taskId] = 'pending'; });
+        return next;
+      });
+
       const promises = chunk.map(taskId => 
         api.post(`/tasks/${taskId}/process/`, { action: 'APPROVE', notes: 'Batch Approved' })
-          .then(() => { successCount++; })
-          .catch(e => { console.error(`Failed to approve ${taskId}`, e); })
+          .then(() => { 
+            successCount++; 
+            setTaskStatuses(prev => ({ ...prev, [taskId]: 'success' }));
+          })
+          .catch(e => { 
+            console.error(`Failed to approve ${taskId}`, e); 
+            setTaskStatuses(prev => ({ ...prev, [taskId]: 'error' }));
+          })
       );
       await Promise.all(promises);
     }
     
     toast.success(`Successfully approved ${successCount}/${selectedTasks.length} tasks`);
-    setSelectedTasks([]);
-    fetchData();
-    setIsProcessing(false);
+    setTimeout(() => {
+      setSelectedTasks([]);
+      setTaskStatuses({});
+      fetchData();
+      setIsProcessing(false);
+    }, 1500);
+  };
+
+  const handleBatchApprove = () => {
+    if (selectedTasks.length === 0) return;
+    setConfirmModal({
+      isOpen: true,
+      title: 'Batch Approve Tasks',
+      message: `Are you sure you want to approve ${selectedTasks.length} tasks simultaneously?`,
+      onConfirm: executeBatchApprove
+    });
   };
 
   // Dynamic Tabs based on roles/permissions
@@ -139,7 +166,20 @@ export default function TaskDashboard() {
       setIsLoading(true);
       const currentTab = tab || activeTab;
       let url = '/tasks/';
-      if (currentTab === 'support') url = '/tasks/?task_type=SUPPORT_TICKET,DISPUTE_RESOLUTION';
+      
+      if (currentTab === 'support') {
+        url = '/tasks/?task_type=SUPPORT_TICKET,DISPUTE_RESOLUTION';
+      } else if (currentTab === 'tasks') {
+        const getRoleFilter = () => {
+          if (userRoles.includes('VERIFIER')) return '?task_type=IDENTITY_VERIFICATION,DOCUMENT_VERIFICATION';
+          if (userRoles.includes('CAR_VERIFIER')) return '?task_type=VEHICLE_VERIFICATION';
+          if (userRoles.includes('SUPPORT')) return '?task_type=SUPPORT_TICKET,DISPUTE_RESOLUTION';
+          if (userRoles.includes('OPS')) return '?task_type=OPERATIONAL';
+          return ''; // Super admin sees all
+        };
+        url = `/tasks/${getRoleFilter()}`;
+      }
+      
       const [tasksRes, summaryRes] = await Promise.all([
         api.get(url),
         api.get('/tasks/dashboard_summary/')
@@ -221,8 +261,8 @@ export default function TaskDashboard() {
     }
   };
 
-  const handleDeleteTask = async () => {
-    if (!selectedTask || !window.confirm('Are you sure you want to delete this task? This action cannot be undone.')) return;
+  const executeDeleteTask = async () => {
+    setConfirmModal(prev => ({ ...prev, isOpen: false }));
     setIsProcessing(true);
     try {
       await api.delete(`/tasks/${selectedTask.id}/`);
@@ -235,6 +275,16 @@ export default function TaskDashboard() {
     } finally {
       setIsProcessing(false);
     }
+  };
+
+  const handleDeleteTask = () => {
+    if (!selectedTask) return;
+    setConfirmModal({
+      isOpen: true,
+      title: 'Delete Task',
+      message: 'Are you sure you want to delete this task? This action cannot be undone.',
+      onConfirm: executeDeleteTask
+    });
   };
 
   const handleCreateCustomTask = async (e: React.FormEvent) => {
@@ -448,7 +498,7 @@ export default function TaskDashboard() {
                     <div className="flex items-center gap-2 px-4 py-3 bg-primary-50 rounded-xl text-sm font-bold text-primary-800 border border-primary-100"><AlertCircle className="h-5 w-5 text-primary-500 flex-shrink-0" />Feedback form submitted — please reach out via email.</div>
                   ) : (
                     <div className="flex items-center justify-end mt-4">
-                      <button onClick={() => navigate(`/messages/${detail.id}`)} className="btn-primary w-full sm:w-auto px-6 py-2.5 rounded-xl shadow-md shadow-primary-500/20 flex items-center justify-center gap-2 hover:trangray-y-[-1px] transition-all">
+                      <button onClick={() => navigate(`/messages/${detail.id}`)} className="btn-primary w-full sm:w-auto px-6 py-2.5 rounded-xl shadow-md shadow-primary-500/20 flex items-center justify-center gap-2 hover:translate-y-[-1px] transition-all">
                         <MessageSquare className="h-4 w-4" /> Enter Live Chat
                       </button>
                     </div>
@@ -490,11 +540,11 @@ export default function TaskDashboard() {
                   <div><h3 className="text-base font-black text-gray-900 tracking-tight">Corporate Entity Profile</h3><p className="text-[10px] font-black text-indigo-500 uppercase tracking-widest mt-0.5">Registration & Tax Details</p></div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="bg-white/60 rounded-2xl p-5 border border-white hover:bg-white hover:shadow-lg hover:-trangray-y-0.5 transition-all duration-300"><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 drop-shadow-sm">Registered Company Name</p><p className="text-sm font-black text-gray-900 tracking-tight">{detail.company_name || 'N/A'}</p></div>
-                  <div className="bg-white/60 rounded-2xl p-5 border border-white hover:bg-white hover:shadow-lg hover:-trangray-y-0.5 transition-all duration-300"><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 drop-shadow-sm">Business Category</p><div className="inline-flex items-center px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg text-xs font-black uppercase ring-1 ring-indigo-100">{detail.business_category || 'N/A'}</div></div>
-                  <div className="bg-white/60 rounded-2xl p-5 border border-white hover:bg-white hover:shadow-lg hover:-trangray-y-0.5 transition-all duration-300"><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 drop-shadow-sm">Registration Number</p><p className="text-sm font-bold text-gray-700 font-mono tracking-tight bg-gray-50/50 inline-block px-2 py-0.5 rounded border border-gray-100 dark:border-gray-800">{detail.registration_number || 'N/A'}</p></div>
-                  <div className="bg-white/60 rounded-2xl p-5 border border-white hover:bg-white hover:shadow-lg hover:-trangray-y-0.5 transition-all duration-300"><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 drop-shadow-sm">Tax Identification (TIN)</p><p className="text-sm font-bold text-gray-700 font-mono tracking-tight bg-gray-50/50 inline-block px-2 py-0.5 rounded border border-gray-100 dark:border-gray-800">{detail.tax_id || 'N/A'}</p></div>
-                  <div className="bg-white/60 rounded-2xl p-5 border border-white hover:bg-white hover:shadow-lg hover:-trangray-y-0.5 transition-all duration-300 md:col-span-2 flex items-center justify-between group/contact">
+                  <div className="bg-white/60 rounded-2xl p-5 border border-white hover:bg-white hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 drop-shadow-sm">Registered Company Name</p><p className="text-sm font-black text-gray-900 tracking-tight">{detail.company_name || 'N/A'}</p></div>
+                  <div className="bg-white/60 rounded-2xl p-5 border border-white hover:bg-white hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 drop-shadow-sm">Business Category</p><div className="inline-flex items-center px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg text-xs font-black uppercase ring-1 ring-indigo-100">{detail.business_category || 'N/A'}</div></div>
+                  <div className="bg-white/60 rounded-2xl p-5 border border-white hover:bg-white hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 drop-shadow-sm">Registration Number</p><p className="text-sm font-bold text-gray-700 font-mono tracking-tight bg-gray-50/50 inline-block px-2 py-0.5 rounded border border-gray-100 dark:border-gray-800">{detail.registration_number || 'N/A'}</p></div>
+                  <div className="bg-white/60 rounded-2xl p-5 border border-white hover:bg-white hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 drop-shadow-sm">Tax Identification (TIN)</p><p className="text-sm font-bold text-gray-700 font-mono tracking-tight bg-gray-50/50 inline-block px-2 py-0.5 rounded border border-gray-100 dark:border-gray-800">{detail.tax_id || 'N/A'}</p></div>
+                  <div className="bg-white/60 rounded-2xl p-5 border border-white hover:bg-white hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 md:col-span-2 flex items-center justify-between group/contact">
                     <div><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 drop-shadow-sm">Primary Contact Email</p><p className="text-sm font-black text-gray-900 dark:text-white">{detail.user_email || 'N/A'}</p></div>
                     {detail.user_email && (<a href={`mailto:${detail.user_email}`} className="h-10 w-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center group-hover/contact:bg-indigo-600 group-hover/contact:text-white transition-all shadow-sm ring-1 ring-indigo-100 group-hover/contact:ring-indigo-600"><ExternalLink className="h-4 w-4" /></a>)}
                   </div>
@@ -512,7 +562,7 @@ export default function TaskDashboard() {
               {detail.verification_documents && detail.verification_documents.length > 0 ? (
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                   {detail.verification_documents.map((doc: any, idx: number) => (
-                    <a key={doc.id} href={getMediaUrl(doc.file)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 p-4 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 hover:border-indigo-300 hover:shadow-xl hover:shadow-indigo-500/10 hover:-trangray-y-1 transition-all duration-300 group">
+                    <a key={doc.id} href={getMediaUrl(doc.file)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 p-4 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 hover:border-indigo-300 hover:shadow-xl hover:shadow-indigo-500/10 hover:-translate-y-1 transition-all duration-300 group">
                       <div className="h-12 w-12 rounded-xl bg-gray-50 flex items-center justify-center group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors border border-gray-100 dark:border-gray-800"><FileText className="h-5 w-5 text-gray-400 group-hover:text-indigo-500 transition-colors" /></div>
                       <div className="flex-1 min-w-0"><p className="text-sm font-black text-gray-900 dark:text-white truncate group-hover:text-indigo-900 transition-colors">{doc.name || `Document ${idx + 1}`}</p><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mt-1">{doc.document_type || 'Corporate File'}</p></div>
                       <div className="h-8 w-8 rounded-full bg-gray-50 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-sm border border-gray-100 group-hover:border-indigo-600"><ExternalLink className="h-3 w-3 text-gray-400 group-hover:text-white transition-colors" /></div>
@@ -705,8 +755,11 @@ export default function TaskDashboard() {
       {/* CONTENT */}
       {activeTab === 'analytics' ? <AnalyticsPanel analytics={analytics} /> : isReviewMode && selectedTask ? (
         /* REVIEW MODE — full width */
-        <div className="animate-in slide-in-from-bottom-4 duration-500">
-          <button onClick={() => setIsReviewMode(false)} className="flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-primary-600 transition-colors mb-6"><ArrowLeft className="h-4 w-4" /> Back to Queue</button>
+        <div className="animate-in slide-in-from-bottom-4 duration-500 fixed inset-x-0 bottom-0 z-50 bg-white dark:bg-gray-800 rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.1)] max-h-[85vh] overflow-y-auto md:relative md:shadow-none md:rounded-none md:bg-transparent p-4 md:p-0">
+          <div className="flex items-center justify-between mb-6">
+            <button onClick={() => setIsReviewMode(false)} className="flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-primary-600 transition-colors"><ArrowLeft className="h-4 w-4" /> <span className="hidden md:inline">Back to Queue</span><span className="md:inline md:hidden">Back</span></button>
+            <button onClick={() => setIsReviewMode(false)} className="md:hidden p-2 text-gray-500 hover:bg-gray-100 rounded-full"><X className="h-5 w-5" /></button>
+          </div>
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
             <div className="xl:col-span-2 space-y-6">
               <div className="card p-6">
@@ -768,10 +821,15 @@ export default function TaskDashboard() {
         <div className="space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center gap-4">
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -trangray-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <input type="text" placeholder="Search tasks..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 focus:border-primary-300 focus:ring-2 focus:ring-primary-100 focus:outline-none text-sm" />
             </div>
             <div className="flex items-center gap-2 overflow-x-auto scrollbar-none">
+              {selectedTasks.length > 0 && (
+                <button onClick={handleBatchApprove} disabled={isProcessing} className="px-3.5 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-all border bg-primary-600 text-white border-primary-600 hover:bg-primary-700 flex items-center gap-2">
+                  <CheckSquare className="h-4 w-4" /> Approve ({selectedTasks.length})
+                </button>
+              )}
               {filterOptions.map(opt => (
                 <button key={opt.id} onClick={() => setActiveFilter(opt.id)} className={`px-3.5 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-all border ${activeFilter === opt.id ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-500 border-gray-200 hover:border-gray-300'}`}>{opt.label}</button>
               ))}
@@ -798,14 +856,18 @@ export default function TaskDashboard() {
                       const done = ['COMPLETED', 'REJECTED'].includes(task.status);
                       const isUrgentUnread = task.priority === 'URGENT' && task.status === 'PENDING';
                       return (
-                        <div key={task.id} className={`relative text-left card p-5 transition-all group hover:shadow-lg hover:-trangray-y-0.5 ${selectedTask?.id === task.id ? 'ring-2 ring-primary-500 border-primary-200' : ''} ${isUrgentUnread ? 'border-2 border-red-500' : ''} ${done ? 'opacity-60' : ''}`}>
+                        <div key={task.id} className={`relative text-left card p-5 transition-all group hover:shadow-lg hover:-translate-y-0.5 ${selectedTask?.id === task.id ? 'ring-2 ring-primary-500 border-primary-200' : ''} ${isUrgentUnread ? 'border-2 border-red-500' : ''} ${done ? 'opacity-60' : ''}`}>
                           {!done && (
                             <button onClick={(e) => {
                               e.stopPropagation();
+                              if (taskStatuses[task.id]) return; // disable toggle during processing
                               setSelectedTasks(prev => prev.includes(task.id) ? prev.filter(id => id !== task.id) : [...prev, task.id]);
                             }} className="absolute top-4 right-4 z-10 p-1">
-                              <div className={`h-5 w-5 rounded flex items-center justify-center transition-colors ${selectedTasks.includes(task.id) ? 'bg-primary-600 border border-primary-600' : 'bg-white dark:bg-gray-800 border border-gray-300 group-hover:border-primary-400'}`}>
-                                 {selectedTasks.includes(task.id) && <CheckSquare className="h-4 w-4 text-white" />}
+                              <div className={`h-5 w-5 rounded flex items-center justify-center transition-colors ${selectedTasks.includes(task.id) || taskStatuses[task.id] ? 'bg-primary-600 border border-primary-600' : 'bg-white dark:bg-gray-800 border border-gray-300 group-hover:border-primary-400'}`}>
+                                 {taskStatuses[task.id] === 'pending' ? <RotateCcw className="h-3 w-3 text-white animate-spin" /> : 
+                                  taskStatuses[task.id] === 'success' ? <CheckCircle className="h-4 w-4 text-white" /> :
+                                  taskStatuses[task.id] === 'error' ? <XCircle className="h-4 w-4 text-white" /> :
+                                  selectedTasks.includes(task.id) && <CheckSquare className="h-4 w-4 text-white" />}
                               </div>
                             </button>
                           )}

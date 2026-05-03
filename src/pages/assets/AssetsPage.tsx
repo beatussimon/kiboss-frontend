@@ -92,7 +92,7 @@ export default function AssetsPage() {
       <div className="card p-4 mb-6">
         <div className="flex flex-wrap gap-4">
           <div className="relative flex-1 min-w-[220px]">
-            <Search className="absolute left-3 top-1/2 -trangray-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
             <input
               type="text"
               placeholder="Search by name, description, city..."

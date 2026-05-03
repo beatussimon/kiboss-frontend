@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../app/store';
 import { createAsset } from '../../features/assets/assetsSlice';
 import toast from 'react-hot-toast';
 import { Asset, AssetType } from '../../types';
 import ImageUpload from '../../components/upload/ImageUpload';
+import { DynamicAssetFields } from '../../components/assets/DynamicAssetFields';
 import { Upload, Loader2, Building2, MapPin, Info, AlertCircle } from 'lucide-react';
 import api from '../../services/api';
 import { CountrySelect } from '../../components/common/CountrySelect';
@@ -21,7 +22,15 @@ export default function CreateAssetPage() {
   const mode = queryParams.get('mode'); // 'business' (parent) or 'service' (child)
   const typeParam = queryParams.get('type');
 
-  const isBusinessTier = user?.verification_tier === 'business';
+  const isBusinessTier = user?.account_tier === 'BUSINESS';
+  const maxPhotos = user?.account_tier === 'BUSINESS' ? 999 : user?.account_tier === 'PLUS' ? 20 : 5;
+
+  const handlePropertyChange = (key: string, value: any) => {
+    setFormData(prev => ({
+      ...prev,
+      properties: { ...prev.properties, [key]: value }
+    }));
+  };
 
   const [isLoading, setIsLoading] = useState(false);
   const [images, setImages] = useState<File[]>([]);
@@ -169,13 +178,20 @@ export default function CreateAssetPage() {
               <Upload className="w-5 h-5" />
               Images
             </h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-              Add up to 5 images. The first image will be used as the primary image.
-            </p>
+            <div className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+              Add up to {maxPhotos === 999 ? 'unlimited' : maxPhotos} images. The first image will be used as the primary image.
+              <p className="text-xs text-gray-500 mt-1">{images.length}/{maxPhotos === 999 ? '∞' : maxPhotos} photos</p>
+              {images.length >= maxPhotos && (
+                <p className="text-amber-600 text-xs font-bold mt-1">
+                  Photo limit reached for your {user?.account_tier || 'FREE'} plan.
+                  {user?.account_tier !== 'BUSINESS' && <Link to="/settings/billing" className="ml-1 text-primary-600 underline">Upgrade for more</Link>}
+                </p>
+              )}
+            </div>
             <ImageUpload
               images={images}
               onChange={setImages}
-              maxImages={5}
+              maxImages={maxPhotos}
               maxSizeMB={5}
             />
           </div>
@@ -425,7 +441,7 @@ export default function CreateAssetPage() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Price</label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -trangray-y-1/2 text-gray-500 font-bold">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-bold">
                       {(formData as any).currency === 'KES' ? 'KSh' : 'TSh'}
                     </span>
                     <input

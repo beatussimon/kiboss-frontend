@@ -1,4 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import toast from 'react-hot-toast';
 import { Asset, AssetFilters, PaginatedResponse } from '../../types';
 import api from '../../services/api';
 
@@ -10,7 +11,10 @@ interface AssetsState {
   count: number;
   next: string | null;
   previous: string | null;
-  currentPage: number; 
+  currentPage: number;
+  showUpgradeModal: boolean;
+  upgradeModalMessage: string;
+  upgradeRequiredTier: string;
 }
 
 const initialState: AssetsState = {
@@ -22,6 +26,9 @@ const initialState: AssetsState = {
   next: null,
   previous: null,
   currentPage: 1,
+  showUpgradeModal: false,
+  upgradeModalMessage: '',
+  upgradeRequiredTier: 'PLUS',
 };
 
 export const fetchAssets = createAsyncThunk(
@@ -54,17 +61,25 @@ export const fetchAsset = createAsyncThunk(
 
 export const createAsset = createAsyncThunk(
   'assets/createAsset',
-  async (data: Partial<Asset>, { rejectWithValue }) => {
+  async (data: Partial<Asset>, { dispatch, rejectWithValue }) => {
     try {
       const response = await api.post<Asset>('/assets/', data);
       return response.data;
     } catch (error: unknown) {
-      const axiosError = error as { response?: { data?: { message?: string; details?: Record<string, string[]> } } };
+      const axiosError = error as { response?: { data?: { message?: string; error?: string; detail?: string; details?: Record<string, string[]> } } };
       const details = axiosError.response?.data?.details;
-      let message = axiosError.response?.data?.message || 'Failed to create asset';
+      let message = axiosError.response?.data?.message || axiosError.response?.data?.error || axiosError.response?.data?.detail || 'Failed to create asset';
       if (details) {
         message = Object.entries(details).map(([field, errors]) => `${field}: ${errors.join(', ')}`).join('; ');
       }
+      
+      const errorMsgLower = message.toLowerCase();
+      if (errorMsgLower.includes('limit') || errorMsgLower.includes('tier')) {
+        dispatch(assetsSlice.actions.setShowUpgradeModal({ message, requiredTier: 'PLUS' }));
+      } else {
+        toast.error(message);
+      }
+      
       return rejectWithValue(message);
     }
   }
@@ -108,6 +123,14 @@ const assetsSlice = createSlice({
     clearError: (state) => {
       state.error = null;
     },
+    setShowUpgradeModal: (state, action: PayloadAction<{ message: string; requiredTier: string }>) => {
+      state.showUpgradeModal = true;
+      state.upgradeModalMessage = action.payload.message;
+      state.upgradeRequiredTier = action.payload.requiredTier;
+    },
+    closeUpgradeModal: (state) => {
+      state.showUpgradeModal = false;
+    }
   },
   extraReducers: (builder) => {
     builder
@@ -176,5 +199,5 @@ const assetsSlice = createSlice({
   },
 });
 
-export const { clearCurrentAsset, clearError } = assetsSlice.actions;
+export const { clearCurrentAsset, clearError, setShowUpgradeModal, closeUpgradeModal } = assetsSlice.actions;
 export default assetsSlice.reducer;

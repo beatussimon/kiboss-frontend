@@ -35,7 +35,12 @@ export default function CheckoutPayment({
   const [step, setStep] = useState<1 | 2>(1);
   const [options, setOptions] = useState<PaymentOption[]>([]);
   const [selectedOption, setSelectedOption] = useState<PaymentOption | null>(null);
-  const [timeLeft, setTimeLeft] = useState(15 * 60);
+  const getInitialTime = (source: string) => {
+    if (source === 'cash') return null;
+    if (source === 'system') return 30 * 60;
+    return 60 * 60;
+  };
+  const [timeLeft, setTimeLeft] = useState<number | null>(null);
   const [senderPhone, setSenderPhone] = useState('');
   const [txnRef, setTxnRef] = useState('');
   const [receiptImage, setReceiptImage] = useState<File | null>(null);
@@ -99,8 +104,8 @@ export default function CheckoutPayment({
   }, [ownerId]);
 
   useEffect(() => {
-    if (step === 2 && timeLeft > 0) {
-      const timer = setInterval(() => setTimeLeft(prev => prev - 1), 1000);
+    if (step === 2 && timeLeft !== null && timeLeft > 0) {
+      const timer = setInterval(() => setTimeLeft(prev => prev !== null ? prev - 1 : null), 1000);
       return () => clearInterval(timer);
     }
   }, [step, timeLeft]);
@@ -186,7 +191,7 @@ export default function CheckoutPayment({
       {/* Steps indicator */}
       <div className="bg-gray-50 dark:bg-gray-900 border-b border-gray-100 p-4">
         <div className="flex items-center justify-between relative px-8">
-          <div className="absolute left-8 right-8 top-1/2 h-0.5 bg-gray-200 -z-10 -trangray-y-1/2" />
+          <div className="absolute left-8 right-8 top-1/2 h-0.5 bg-gray-200 -z-10 -translate-y-1/2" />
           {[1, 2].map((num) => (
             <div key={num} className={`h-8 w-8 rounded-full flex items-center justify-center font-bold text-sm border-2 bg-white ${step >= num ? 'border-primary-600 text-primary-600' : 'border-gray-200 text-gray-400'}`}>
               {step > num ? <CheckCircle className="h-5 w-5 fill-current text-white bg-primary-600 rounded-full border-none" /> : num}
@@ -257,8 +262,8 @@ export default function CheckoutPayment({
                    {selectedOption.source !== 'cash' && <span className="font-bold text-gray-900 dark:text-white"><Price amount={amount} /></span>}
                 </p>
               </div>
-              <p className={`font-mono font-bold text-lg ${timeLeft < 300 ? 'text-red-500 animate-pulse' : 'text-gray-900'}`}>
-                <Timer className="h-4 w-4 inline mr-1 text-gray-400" />{formatTime(timeLeft)}
+              <p className={`font-mono font-bold text-lg ${timeLeft !== null && timeLeft < 300 ? 'text-red-500 animate-pulse' : 'text-gray-900'}`}>
+                <Timer className="h-4 w-4 inline mr-1 text-gray-400" />{timeLeft !== null ? formatTime(timeLeft) : '00:00'}
               </p>
             </div>
 

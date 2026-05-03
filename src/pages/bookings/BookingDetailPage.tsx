@@ -8,6 +8,7 @@ import { Calendar, MapPin, Star, FileText, CheckCircle } from 'lucide-react';
 import { getMediaUrl } from '../../utils/media';
 import { createRating } from '../../features/ratings/ratingsSlice';
 import CheckoutPayment from '../../components/checkout/CheckoutPayment';
+import { PaymentStatusPanel } from '../../components/payments/PaymentStatusPanel';
 import { Price } from '../../context/CurrencyContext';
 import toast from 'react-hot-toast';
 import { ServiceFeeTrigger } from '../../components/common/ServiceFeeModal';
@@ -312,6 +313,10 @@ export default function BookingDetailPage() {
                   </a>
                 </div>
               )}
+            </div>
+            
+            <div className="mt-6 border-t border-gray-100 dark:border-gray-800 pt-6">
+              <PaymentStatusPanel bookingId={booking.id} bookingType="ASSET" />
             </div>
           </div>
 

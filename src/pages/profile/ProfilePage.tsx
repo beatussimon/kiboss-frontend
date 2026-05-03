@@ -4,10 +4,11 @@ import { Link } from 'react-router-dom';
 import { AppDispatch, RootState } from '../../app/store';
 import { fetchCurrentUser, updateProfile, updateUser } from '../../features/auth/authSlice';
 import { getMediaUrl } from '../../utils/media';
-import { User, Mail, Phone, Camera, Save, X, Shield, Award, MapPin, FileText, Heart } from 'lucide-react';
+import { User, Mail, Phone, Camera, Save, X, Shield, Award, MapPin, FileText, Heart, Crown, Building2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../services/api';
 import VerificationBadge from '../../components/ui/VerificationBadge';
+import { UserReviewsSection } from '../../components/profile/UserReviewsSection';
 import { Price } from '../../context/CurrencyContext';
 import { CountrySelect } from '../../components/common/CountrySelect';
 
@@ -213,6 +214,16 @@ export function ProfilePage() {
           <div>
             <div className="flex items-center gap-2 mb-1">
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{user?.first_name} {user?.last_name}</h2>
+              {user?.account_tier && user.account_tier !== 'FREE' && (
+                <span className={`inline-flex items-center gap-1 text-xs font-black px-3 py-1 rounded-full ${
+                  user.account_tier === 'PLUS' 
+                    ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300' 
+                    : 'bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300'
+                }`}>
+                  {user.account_tier === 'PLUS' ? <Crown className="h-3 w-3" /> : <Building2 className="h-3 w-3" />}
+                  {user.account_tier === 'PLUS' ? 'Plus Member' : 'Business'}
+                </span>
+              )}
               <VerificationBadge 
                 tier={user?.verification_badge?.tier} 
                 color={user?.verification_badge?.color} 
@@ -270,14 +281,14 @@ export function ProfilePage() {
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">First Name</label>
               <div className="relative">
-                <User className="h-5 w-5 absolute left-3 top-1/2 -trangray-y-1/2 text-gray-400" />
+                <User className="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input type="text" name="first_name" value={formData.first_name} onChange={handleInputChange} disabled={!isEditing} className="input pl-10" />
               </div>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Last Name</label>
               <div className="relative">
-                <User className="h-5 w-5 absolute left-3 top-1/2 -trangray-y-1/2 text-gray-400" />
+                <User className="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input type="text" name="last_name" value={formData.last_name} onChange={handleInputChange} disabled={!isEditing} className="input pl-10" />
               </div>
             </div>
@@ -286,7 +297,7 @@ export function ProfilePage() {
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Email</label>
             <div className="relative">
-              <Mail className="h-5 w-5 absolute left-3 top-1/2 -trangray-y-1/2 text-gray-400" />
+              <Mail className="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               <input type="email" value={user?.email || ''} disabled className="input pl-10 bg-gray-50 dark:bg-gray-900" />
             </div>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Email cannot be changed</p>
@@ -295,7 +306,7 @@ export function ProfilePage() {
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Phone</label>
             <div className="relative">
-              <Phone className="h-5 w-5 absolute left-3 top-1/2 -trangray-y-1/2 text-gray-400" />
+              <Phone className="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               <input type="tel" name="phone" value={formData.phone} onChange={handleInputChange} disabled={!isEditing} className="input pl-10" placeholder="+254 7XX XXX XXX" />
             </div>
           </div>
@@ -304,14 +315,14 @@ export function ProfilePage() {
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">City</label>
               <div className="relative">
-                <MapPin className="h-5 w-5 absolute left-3 top-1/2 -trangray-y-1/2 text-gray-400" />
+                <MapPin className="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input type="text" name="city" value={formData.city} onChange={handleInputChange} disabled={!isEditing} className="input pl-10" placeholder="Nairobi" />
               </div>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Country</label>
               <div className="relative">
-                <MapPin className="h-5 w-5 absolute left-3 top-1/2 -trangray-y-1/2 text-gray-400 z-10" />
+                <MapPin className="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 z-10" />
                 <CountrySelect
                   name="country"
                   value={formData.country}
@@ -399,6 +410,8 @@ export function ProfilePage() {
           </div>
         )}
       </div>
+
+      {user && <UserReviewsSection userId={user.id} />}
     </div>
   );
 }

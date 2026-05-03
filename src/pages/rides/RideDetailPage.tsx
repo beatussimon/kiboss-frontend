@@ -11,6 +11,7 @@ import VerificationBadge from '../../components/ui/VerificationBadge';
 import ContactButton from '../../components/messaging/ContactButton';
 import ImageModal from '../../components/ui/ImageModal';
 import { ServiceFeeTrigger } from '../../components/common/ServiceFeeModal';
+import { DriverReviewsSection } from '../../components/rides/DriverReviewsSection';
 
 export default function RideDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -136,7 +137,7 @@ export default function RideDetailPage() {
               rideId: rideId,
               data: {
                 seat_number: seatNumber,
-                payment_method: 'card'
+                payment_method: 'CASH'
               }
             })).unwrap()
           );
@@ -201,7 +202,7 @@ export default function RideDetailPage() {
               <h3 className="text-amber-800 font-bold mb-2 flex items-center gap-2">
                 <Shield className="h-5 w-5" /> Booking Protection
               </h3>
-              <p className="text-amber-700 text-sm mb-4">You have a booking associated with this ride. Our escrow protects your payment.</p>
+              <p className="text-amber-700 text-sm mb-4">You have a booking associated with this ride. Contact the driver or support if you need assistance.</p>
               
               <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-amber-100 flex justify-between items-center">
                 <div>
@@ -289,13 +290,13 @@ export default function RideDetailPage() {
                     <>
                       <button
                         onClick={prevImage}
-                        className="absolute left-6 top-1/2 -trangray-y-1/2 p-3 bg-gray-900 hover:bg-black rounded-full text-white transition-all opacity-0 group-hover:opacity-100 border border-gray-700 hover:scale-110 shadow-xl"
+                        className="absolute left-6 top-1/2 -translate-y-1/2 p-3 bg-gray-900 hover:bg-black rounded-full text-white transition-all opacity-0 group-hover:opacity-100 border border-gray-700 hover:scale-110 shadow-xl"
                       >
                         <ChevronLeft className="h-6 w-6" />
                       </button>
                       <button
                         onClick={nextImage}
-                        className="absolute right-6 top-1/2 -trangray-y-1/2 p-3 bg-gray-900 hover:bg-black rounded-full text-white transition-all opacity-0 group-hover:opacity-100 border border-gray-700 hover:scale-110 shadow-xl"
+                        className="absolute right-6 top-1/2 -translate-y-1/2 p-3 bg-gray-900 hover:bg-black rounded-full text-white transition-all opacity-0 group-hover:opacity-100 border border-gray-700 hover:scale-110 shadow-xl"
                       >
                         <ChevronRight className="h-6 w-6" />
                       </button>
@@ -462,7 +463,7 @@ export default function RideDetailPage() {
                 </div>
               </div>
               <div className="w-10 h-10 rounded-full bg-gray-50 group-hover:bg-primary-50 flex items-center justify-center transition-colors">
-                <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-primary-600 group-hover:trangray-x-0.5 transition-all" />
+                <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-primary-600 group-hover:translate-x-0.5 transition-all" />
               </div>
             </Link>
           </div>
@@ -474,6 +475,8 @@ export default function RideDetailPage() {
               {ride.vehicle_asset?.name || ride.vehicle_description || 'Vehicle info not available'} · {ride.vehicle_asset?.asset_type || ride.vehicle_color || ''}
             </p>
           </div>
+
+          <DriverReviewsSection driverId={ride.driver.id} averageRating={Number(ride.driver.trust_score) || 0} />
         </div>
 
         <div className="space-y-6">
@@ -575,7 +578,7 @@ export default function RideDetailPage() {
 
                         <div className="relative max-w-[180px] mx-auto bg-gray-50 dark:bg-gray-900 rounded-[3rem] p-6 border-2 border-gray-100 shadow-inner">
                           {/* Dashboard / Windshield Area */}
-                          <div className="absolute top-0 left-1/2 -trangray-x-1/2 w-2/3 h-1 bg-gray-200 dark:bg-gray-700 rounded-full mt-2" />
+                          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2/3 h-1 bg-gray-200 dark:bg-gray-700 rounded-full mt-2" />
 
                           {/* Front Row */}
                           <div className="flex justify-between mb-10">
@@ -605,8 +608,11 @@ export default function RideDetailPage() {
                           </div>
 
                           {/* Back Rows (Dynamic generation based on total_seats) */}
-                          <div className="grid grid-cols-3 gap-3">
-                            {[2, 3, 4, 5, 6, 7, 8, 9].filter(n => n <= ride.total_seats).map((num) => {
+                          <div className={ride.total_seats <= 9 ? "grid grid-cols-3 gap-3" : "grid grid-cols-4 gap-2 mt-4 w-full max-w-sm mx-auto"}>
+                            {(ride.total_seats <= 9 
+                              ? [2, 3, 4, 5, 6, 7, 8, 9].filter(n => n <= ride.total_seats)
+                              : Array.from({ length: ride.total_seats - 1 }, (_, i) => i + 2)
+                            ).map((num) => {
                               const seat = seatAvailability.seats.find(s => s.seat_number === num);
                               const isSelected = selectedSeats.includes(num);
                               const isBooked = seat?.status === 'BOOKED' || seat?.status === 'BLOCKED';
@@ -717,7 +723,7 @@ export default function RideDetailPage() {
                 </div>
 
                 <p className="text-[9px] text-gray-400 font-bold uppercase tracking-tighter text-center px-4">
-                  Escrow Protection Active. Payment released 24h after trip completion.
+                  Payment is confirmed directly by the driver. All trips are logged for dispute resolution.
                 </p>
               </div>
             </div>

@@ -129,7 +129,7 @@ export default function PlusDashboard() {
                     }`}
                 >
                     <Star className="h-4 w-4" />
-                    Payment Settings
+                    Receiving Methods
                 </button>
             </div>
 
@@ -463,7 +463,10 @@ export default function PlusDashboard() {
 
             {/* TAB CONTENT: PAYMENTS */}
             {activeTab === 'PAYMENTS' && (
-                <PaymentMethods />
+                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <p className="text-sm text-gray-500 mb-4">These are the payment methods renters will use to pay you. Add M-Pesa, bank details, or other methods below.</p>
+                    <PaymentMethods />
+                </div>
             )}
 
             {/* Upgrade to Business CTA */}

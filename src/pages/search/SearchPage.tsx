@@ -6,6 +6,7 @@ import { fetchRides } from '../../features/rides/ridesSlice';
 import { fetchAssets } from '../../features/assets/assetsSlice';
 import { Search, MapPin, Home, Car, User, Filter, X, DollarSign, Calendar, Sliders } from 'lucide-react';
 import { getMediaUrl } from '../../utils/media';
+import RideCard from '../../components/rides/RideCard';
 
 interface SearchResult {
   type: 'asset' | 'ride' | 'user';
@@ -33,7 +34,7 @@ export default function SearchPage() {
   const dispatch = useDispatch<AppDispatch>();
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'all' | 'assets' | 'rides' | 'users'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'assets' | 'rides' | 'users'>('assets');
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState<SearchFilters>({
     minPrice: '',
@@ -63,8 +64,8 @@ export default function SearchPage() {
     
     // Build search params for rides
     const rideParams: Record<string, string | undefined> = {
-      origin: query,
-      destination: query,
+      origin: activeTab === 'rides' ? filters.location : query,
+      destination: activeTab === 'rides' ? query : query,
       date_from: filters.dateFrom || undefined,
       date_to: filters.dateTo || undefined,
     };
@@ -182,33 +183,52 @@ export default function SearchPage() {
     <div className="max-w-4xl mx-auto">
       {/* Search Header */}
       <div className="mb-6">
-        <form onSubmit={handleSearchSubmit} className="flex gap-2">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -trangray-y-1/2 h-5 w-5 text-gray-400" />
-            <input
-              type="text"
-              name="search"
-              defaultValue={query}
-              placeholder="Search assets, rides, or users..."
-              className="input pl-10 w-full"
-            />
-          </div>
-          <button type="submit" className="btn-primary">
-            Search
-          </button>
-          <button
-            type="button"
-            onClick={() => setShowFilters(!showFilters)}
-            className={`btn-secondary flex items-center gap-2 ${hasActiveFilters ? 'ring-2 ring-primary-500' : ''}`}
-          >
-            <Sliders className="h-4 w-4" />
-            Filters
-            {hasActiveFilters && (
-              <span className="bg-primary-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                {Object.values(filters).filter(v => v !== '').length}
-              </span>
-            )}
-          </button>
+        <div className="flex border-b mb-6">
+          <button onClick={() => setActiveTab('assets')} className={`px-4 py-2 text-sm font-medium capitalize ${activeTab === 'assets' ? 'border-b-2 border-primary-600 text-primary-600' : 'text-gray-500 hover:text-gray-700'}`}>Assets</button>
+          <button onClick={() => setActiveTab('rides')} className={`px-4 py-2 text-sm font-medium capitalize ${activeTab === 'rides' ? 'border-b-2 border-primary-600 text-primary-600' : 'text-gray-500 hover:text-gray-700'}`}>Rides</button>
+        </div>
+        <form onSubmit={handleSearchSubmit} className="flex flex-col gap-2">
+          {activeTab === 'rides' ? (
+            <div className="flex gap-2">
+              <div className="flex-1 relative">
+                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <input type="text" name="origin" placeholder="Origin (e.g. Dar es Salaam)" className="input pl-10 w-full" onChange={(e) => handleFilterChange('location', e.target.value)} />
+              </div>
+              <div className="flex-1 relative">
+                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <input type="text" name="search" placeholder="Destination (e.g. Mwanza)" className="input pl-10 w-full" defaultValue={query} />
+              </div>
+              <div className="flex-1 relative">
+                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <input type="date" name="departure_date" className="input pl-10 w-full" onChange={(e) => handleFilterChange('dateFrom', e.target.value)} />
+              </div>
+              <button type="submit" className="btn-primary flex-shrink-0">Search Rides</button>
+            </div>
+          ) : (
+            <div className="flex gap-2">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <input
+                  type="text"
+                  name="search"
+                  defaultValue={query}
+                  placeholder="Search assets..."
+                  className="input pl-10 w-full"
+                />
+              </div>
+              <button type="submit" className="btn-primary">
+                Search
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowFilters(!showFilters)}
+                className={`btn-secondary flex items-center gap-2 ${hasActiveFilters ? 'ring-2 ring-primary-500' : ''}`}
+              >
+                <Sliders className="h-4 w-4" />
+                Filters
+              </button>
+            </div>
+          )}
         </form>
       </div>
 
@@ -326,38 +346,16 @@ export default function SearchPage() {
         </div>
       )}
 
-      {/* Search Tabs */}
-      <div className="flex border-b mb-6">
-        {['all', 'assets', 'rides', 'users'].map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab as typeof activeTab)}
-            className={`px-4 py-2 text-sm font-medium capitalize ${
-              activeTab === tab
-                ? 'border-b-2 border-primary-600 text-primary-600'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            {tab}
-            {tab === 'all' && results.length > 0 && (
-              <span className="ml-1 text-xs">({results.length})</span>
-            )}
-            {tab === 'assets' && assets.length > 0 && (
-              <span className="ml-1 text-xs">({assets.length})</span>
-            )}
-            {tab === 'rides' && rides.length > 0 && (
-              <span className="ml-1 text-xs">({rides.length})</span>
-            )}
-          </button>
-        ))}
-      </div>
-
       {/* Results */}
       {isLoading ? (
         <div className="animate-pulse space-y-4">
           {[1, 2, 3].map((i) => (
             <div key={i} className="card p-4 h-20" />
           ))}
+        </div>
+      ) : activeTab === 'rides' && rides.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {rides.map(ride => <RideCard key={ride.id} ride={ride} />)}
         </div>
       ) : results.length > 0 ? (
         <div className="space-y-4">

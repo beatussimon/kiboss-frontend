@@ -16,6 +16,8 @@ import {
   Edit, Trash2, List, Heart, ChevronLeft, ChevronRight, Zap, CreditCard
 } from 'lucide-react';
 import VerificationBadge from '../../components/ui/VerificationBadge';
+import { AssetPropertiesPanel } from '../../components/assets/AssetPropertiesPanel';
+import { ReviewsSection } from '../../components/assets/ReviewsSection';
 
 export default function AssetDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -29,6 +31,17 @@ export default function AssetDetailPage() {
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+
+  const [checkInDate, setCheckInDate] = useState('');
+  const [checkOutDate, setCheckOutDate] = useState('');
+  const [guestCount, setGuestCount] = useState(1);
+
+  const today = new Date().toISOString().split('T')[0];
+  const minCheckOut = checkInDate
+    ? new Date(new Date(checkInDate).getTime() + 86400000).toISOString().split('T')[0]
+    : today;
+
+  const UNIT_TYPE_LABELS: Record<string, string> = { HOUR: 'per hour', DAY: 'per day', WEEK: 'per week', MONTH: 'per month', SEAT: 'per seat', FIXED: 'flat rate', UNIT: 'per item', KM: 'per km', MILE: 'per mile' };
 
   const handleThreadCreated = (threadId: string) => {
     // Navigate to the thread page instead of showing inline
@@ -121,13 +134,13 @@ export default function AssetDetailPage() {
                 <>
                   <button
                     onClick={prevImage}
-                    className="absolute left-6 top-1/2 -trangray-y-1/2 p-3 bg-gray-900 hover:bg-black rounded-full text-white transition-all opacity-0 group-hover:opacity-100 border border-gray-700 hover:scale-110 shadow-xl"
+                    className="absolute left-6 top-1/2 -translate-y-1/2 p-3 bg-gray-900 hover:bg-black rounded-full text-white transition-all opacity-0 group-hover:opacity-100 border border-gray-700 hover:scale-110 shadow-xl"
                   >
                     <ChevronLeft className="h-6 w-6" />
                   </button>
                   <button
                     onClick={nextImage}
-                    className="absolute right-6 top-1/2 -trangray-y-1/2 p-3 bg-gray-900 hover:bg-black rounded-full text-white transition-all opacity-0 group-hover:opacity-100 border border-gray-700 hover:scale-110 shadow-xl"
+                    className="absolute right-6 top-1/2 -translate-y-1/2 p-3 bg-gray-900 hover:bg-black rounded-full text-white transition-all opacity-0 group-hover:opacity-100 border border-gray-700 hover:scale-110 shadow-xl"
                   >
                     <ChevronRight className="h-6 w-6" />
                   </button>
@@ -216,6 +229,22 @@ export default function AssetDetailPage() {
         </div>
       </div>
 
+      {(asset as any).latitude && (asset as any).longitude && (
+        <div className="card p-0 overflow-hidden mb-6">
+          <div className="p-4 border-b border-gray-100 dark:border-gray-800">
+            <h2 className="text-lg font-bold">Location</h2>
+            <p className="text-sm text-gray-500">{asset.city}, {asset.country}</p>
+          </div>
+          <iframe
+            title="Asset location"
+            width="100%"
+            height="300"
+            style={{border: 0}}
+            src={`https://www.openstreetmap.org/export/embed.html?bbox=${Number((asset as any).longitude)-0.01},${Number((asset as any).latitude)-0.01},${Number((asset as any).longitude)+0.01},${Number((asset as any).latitude)+0.01}&layer=mapnik&marker=${(asset as any).latitude},${(asset as any).longitude}`}
+          />
+        </div>
+      )}
+
       {/* Inline Messaging Panel */}
       {showMessaging && activeThreadId && (
         <div className="mb-6">
@@ -298,7 +327,7 @@ export default function AssetDetailPage() {
           </div>
         </div>
         <div className="w-10 h-10 rounded-full bg-gray-50 dark:bg-gray-700 group-hover:bg-primary-50 dark:group-hover:bg-primary-900/30 flex items-center justify-center transition-colors">
-          <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-primary-600 group-hover:trangray-x-0.5 transition-all" />
+          <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-primary-600 group-hover:translate-x-0.5 transition-all" />
         </div>
       </Link>
 
@@ -308,6 +337,8 @@ export default function AssetDetailPage() {
         <p className="text-gray-600 dark:text-gray-300 whitespace-pre-wrap">{asset.description}</p>
       </div>
 
+      <AssetPropertiesPanel assetType={asset.asset_type} properties={asset.properties} />
+
       {/* Pricing */}
       <div className="card p-6 mb-6">
         <h2 className="text-xl font-semibold mb-4">Pricing</h2>
@@ -315,7 +346,7 @@ export default function AssetDetailPage() {
           {asset.pricing_rules?.map((rule) => (
             <div key={rule.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
               <span>{rule.name}</span>
-              <span className="font-semibold"><Price amount={rule.price} /> / {rule.unit_type.toLowerCase()}</span>
+              <span className="font-semibold"><Price amount={rule.price} /> / {UNIT_TYPE_LABELS[rule.unit_type] || rule.unit_type.toLowerCase()}</span>
             </div>
           ))}
         </div>
@@ -329,7 +360,7 @@ export default function AssetDetailPage() {
               <span className="text-2xl font-bold text-gray-900 dark:text-white">
                 <Price amount={asset.pricing_rules?.[0]?.price || '0'} />
               </span>
-              <span className="text-gray-500 dark:text-gray-400"> / {asset.pricing_rules?.[0]?.unit_type?.toLowerCase() || 'hour'}</span>
+              <span className="text-gray-500 dark:text-gray-400"> / {asset.pricing_rules?.[0] ? (UNIT_TYPE_LABELS[asset.pricing_rules[0].unit_type] || asset.pricing_rules[0].unit_type.toLowerCase()) : 'hour'}</span>
             </div>
             <div className="flex gap-2 w-full md:w-auto">
               {isAuthenticated && user && asset?.owner?.id && (
@@ -360,28 +391,54 @@ export default function AssetDetailPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="space-y-2">
               <label className="text-[10px] font-bold  text-gray-400 tracking-widest">Check-in</label>
-              <div className="flex items-center p-3 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800">
-                <Calendar className="h-4 w-4 text-primary-600 mr-2" />
-                <span className="text-sm font-bold text-gray-700 dark:text-gray-200">Add Date</span>
+              <div className="flex items-center bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 overflow-hidden">
+                <div className="pl-3 py-3">
+                  <Calendar className="h-4 w-4 text-primary-600" />
+                </div>
+                <input
+                  type="date"
+                  value={checkInDate}
+                  min={today}
+                  onChange={(e) => setCheckInDate(e.target.value)}
+                  className="w-full bg-transparent border-none text-sm font-bold text-gray-700 dark:text-gray-200 focus:ring-0 p-3"
+                />
               </div>
             </div>
             <div className="space-y-2">
               <label className="text-[10px] font-bold  text-gray-400 tracking-widest">Check-out</label>
-              <div className="flex items-center p-3 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800">
-                <Calendar className="h-4 w-4 text-primary-600 mr-2" />
-                <span className="text-sm font-bold text-gray-700 dark:text-gray-200">Add Date</span>
+              <div className="flex items-center bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 overflow-hidden">
+                <div className="pl-3 py-3">
+                  <Calendar className="h-4 w-4 text-primary-600" />
+                </div>
+                <input
+                  type="date"
+                  value={checkOutDate}
+                  min={minCheckOut}
+                  onChange={(e) => setCheckOutDate(e.target.value)}
+                  className="w-full bg-transparent border-none text-sm font-bold text-gray-700 dark:text-gray-200 focus:ring-0 p-3"
+                />
               </div>
             </div>
             <div className="space-y-2">
               <label className="text-[10px] font-bold  text-gray-400 tracking-widest">Guests</label>
-              <div className="flex items-center p-3 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800">
-                <User className="h-4 w-4 text-primary-600 mr-2" />
-                <span className="text-sm font-bold text-gray-700 dark:text-gray-200">1 Guest</span>
+              <div className="flex items-center bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 overflow-hidden">
+                <div className="pl-3 py-3">
+                  <User className="h-4 w-4 text-primary-600" />
+                </div>
+                <select
+                  value={guestCount}
+                  onChange={(e) => setGuestCount(Number(e.target.value))}
+                  className="w-full bg-transparent border-none text-sm font-bold text-gray-700 dark:text-gray-200 focus:ring-0 p-3 appearance-none"
+                >
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
+                    <option key={n} value={n}>{n} {n === 1 ? 'Guest' : 'Guests'}</option>
+                  ))}
+                </select>
               </div>
             </div>
             <div className="flex flex-col justify-end">
               <Link
-                to={`/bookings/new?asset_id=${asset.id}`}
+                to={`/bookings/new?asset_id=${asset.id}&check_in=${checkInDate}&check_out=${checkOutDate}&guests=${guestCount}`}
                 className="btn-primary w-full py-3.5 rounded-xl font-bold shadow-lg shadow-primary-500/20 flex items-center justify-center"
               >
                 Check Availability
@@ -425,6 +482,8 @@ export default function AssetDetailPage() {
           </div>
         </div>
       )}
+
+      <ReviewsSection assetId={asset.id} averageRating={asset.average_rating || 0} totalReviews={asset.total_reviews || 0} />
     </div>
   );
 }

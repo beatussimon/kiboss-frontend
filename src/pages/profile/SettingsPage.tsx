@@ -78,7 +78,7 @@ export default function SettingsPage() {
                   onClick={() => handleToggle('email')}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${notifications.email ? 'bg-primary-600' : 'bg-gray-200'}`}
                 >
-                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${notifications.email ? 'trangray-x-6' : 'trangray-x-1'}`} />
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${notifications.email ? 'translate-x-6' : 'translate-x-1'}`} />
                 </button>
               </div>
               <div className="flex items-center justify-between">
@@ -90,7 +90,7 @@ export default function SettingsPage() {
                   onClick={() => handleToggle('push')}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${notifications.push ? 'bg-primary-600' : 'bg-gray-200'}`}
                 >
-                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${notifications.push ? 'trangray-x-6' : 'trangray-x-1'}`} />
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${notifications.push ? 'translate-x-6' : 'translate-x-1'}`} />
                 </button>
               </div>
               <div className="flex items-center justify-between">
@@ -102,7 +102,7 @@ export default function SettingsPage() {
                   onClick={() => handleToggle('sms')}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${notifications.sms ? 'bg-primary-600' : 'bg-gray-200'}`}
                 >
-                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${notifications.sms ? 'trangray-x-6' : 'trangray-x-1'}`} />
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${notifications.sms ? 'translate-x-6' : 'translate-x-1'}`} />
                 </button>
               </div>
             </div>

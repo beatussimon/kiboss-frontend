@@ -7,7 +7,7 @@ import { fetchNotifications } from '../../features/notifications/notificationsSl
 import {
   MessageCircle, Bell, User, LogOut, Menu, X,
   Home, Car, Briefcase, Plus, Search, Settings,
-  Calendar, Shield, CreditCard, Globe, Facebook, Twitter, Instagram, Linkedin, CheckCircle, Heart, Building2, ChevronRight, Sparkles, Crown, MoreHorizontal, Sun, Moon, Laptop
+  Calendar, Shield, CreditCard, Globe, Facebook, Twitter, Instagram, Linkedin, CheckCircle, Heart, Building2, ChevronRight, Sparkles, Crown, MoreHorizontal, Sun, Moon, Laptop, Star
 } from 'lucide-react';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
@@ -30,6 +30,11 @@ export default function Layout() {
 
   // Start notification WebSocket
   useNotificationWebSocket();
+
+  const bottomNavClass = (...paths: string[]) => {
+    const isActive = paths.some(path => location.pathname === path || (path !== '/' && location.pathname.startsWith(path)));
+    return `flex flex-col items-center justify-center w-full h-full transition-colors ${isActive ? 'text-primary-600' : 'text-gray-400 hover:text-gray-600'}`;
+  };
 
   const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
   const { unreadCount: messageUnreadCount } = useSelector((state: RootState) => state.messaging);
@@ -438,6 +443,13 @@ export default function Layout() {
                           <Calendar className="h-4 w-4 mr-3 text-gray-400" /> Bookings
                         </Link>
                         <Link
+                          to="/subscription"
+                          onClick={() => setIsUserMenuOpen(false)}
+                          className="flex items-center px-4 py-2 text-sm font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
+                        >
+                          <Star className="h-4 w-4 mr-3 text-gray-400" /> Subscription
+                        </Link>
+                        <Link
                           to="/settings"
                           onClick={() => setIsUserMenuOpen(false)}
                           className="flex items-center px-4 py-2 text-sm font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
@@ -501,21 +513,28 @@ export default function Layout() {
       {!isMessagingPage && <Footer />}
 
       {/* Mobile Bottom Navbar */}
-      <nav className={`md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 z-50 transition-transform duration-300 ${showNavBars ? 'trangray-y-0' : 'trangray-y-full pb-safe'}`}>
-        <div className="flex justify-around items-center h-16 px-2 pb-safe">
-          <Link to="/" className={`flex flex-col items-center justify-center w-full h-full ${isActive('/') ? 'text-primary-600 dark:text-primary-400' : 'text-gray-500 dark:text-gray-400'}`}>
-            <Home className="h-5 w-5 mb-1" />
-            <span className="text-[10px] font-bold">Home</span>
+      <nav className={`md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 z-50 transition-transform duration-300 ${showNavBars ? 'translate-y-0' : 'translate-y-full'} pb-safe`}>
+        <div className="flex justify-around items-center h-16 px-2 relative">
+          {/* Home */}
+          <Link to="/" className={bottomNavClass('/')}>
+            <Home className="h-5 w-5 mb-1" /><span className="text-[10px] font-bold">Home</span>
           </Link>
-          <Link to="/search" className={`flex flex-col items-center justify-center w-full h-full ${isActive('/search') ? 'text-primary-600 dark:text-primary-400' : 'text-gray-500 dark:text-gray-400'}`}>
-            <Search className="h-5 w-5 mb-1" />
-            <span className="text-[10px] font-bold">Search</span>
+
+          {/* Explore (Assets + Rides) */}
+          <Link to="/assets" className={bottomNavClass('/assets', '/rides')}>
+            <Search className="h-5 w-5 mb-1" /><span className="text-[10px] font-bold">Explore</span>
           </Link>
-          <Link to="/bookings" className={`flex flex-col items-center justify-center w-full h-full ${isActive('/bookings') ? 'text-primary-600 dark:text-primary-400' : 'text-gray-500 dark:text-gray-400'}`}>
-            <Calendar className="h-5 w-5 mb-1" />
-            <span className="text-[10px] font-bold">Bookings</span>
-          </Link>
-          <Link to="/messages" className={`relative flex flex-col items-center justify-center w-full h-full ${isActive('/messages') ? 'text-primary-600 dark:text-primary-400' : 'text-gray-500 dark:text-gray-400'}`}>
+
+          {/* Create FAB — center raised button */}
+          {isAuthenticated && (
+            <button onClick={() => setIsCreateMenuOpen(true)}
+              className="flex flex-col items-center justify-center -mt-5 w-14 h-14 bg-primary-600 rounded-full shadow-xl shadow-primary-500/30 text-white hover:bg-primary-700 active:scale-95 transition-transform">
+              <Plus className="h-6 w-6" />
+            </button>
+          )}
+
+          {/* Inbox with badge */}
+          <Link to="/messages" className={`relative ${bottomNavClass('/messages')}`}>
             <MessageCircle className="h-5 w-5 mb-1" />
             <span className="text-[10px] font-bold">Inbox</span>
             {messageUnreadCount > 0 && (
@@ -524,13 +543,27 @@ export default function Layout() {
                </span>
             )}
           </Link>
-          <button 
-            onClick={() => setIsMobileMoreDrawerOpen(true)}
-            className="flex flex-col items-center justify-center w-full h-full text-gray-500 dark:text-gray-400"
-          >
-            <MoreHorizontal className="h-5 w-5 mb-1" />
-            <span className="text-[10px] font-bold">More</span>
-          </button>
+
+          {/* Me / Staff */}
+          {isStaff ? (
+            <Link to="/staff/tasks" className={bottomNavClass('/staff/tasks')}>
+              <Shield className="h-5 w-5 mb-1 text-red-600" />
+              <span className="text-[10px] font-bold text-red-600">Staff</span>
+            </Link>
+          ) : (
+            <button onClick={() => setIsMobileMoreDrawerOpen(true)} className={`relative ${bottomNavClass('/profile', '/settings', '/bookings', '/plus', '/business')}`}>
+              {user?.profile?.avatar
+                ? <img src={getMediaUrl(user.profile.avatar)} className="h-6 w-6 rounded-full mb-1 object-cover ring-2 ring-transparent" alt="" />
+                : <User className="h-5 w-5 mb-1" />
+              }
+              <span className="text-[10px] font-bold">Me</span>
+              {notificationUnreadCount > 0 && (
+                 <span className="absolute top-1 right-3 px-1 py-0.5 text-[8px] font-bold bg-red-500 text-white rounded-full min-w-[14px] text-center">
+                   {notificationUnreadCount > 99 ? '99+' : notificationUnreadCount}
+                 </span>
+              )}
+            </button>
+          )}
         </div>
       </nav>
 
@@ -569,8 +602,21 @@ export default function Layout() {
                 </div>
 
                 <div className="space-y-2 mb-6">
+                   <Link to="/notifications" onClick={() => setIsMobileMoreDrawerOpen(false)} className="flex items-center px-4 py-3 text-gray-700 dark:text-gray-200 font-bold hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl justify-between">
+                      <div className="flex items-center"><Bell className="h-5 w-5 mr-3 text-gray-400 dark:text-gray-500" /> Notifications</div>
+                      {notificationUnreadCount > 0 && <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">{notificationUnreadCount}</span>}
+                   </Link>
+                   <Link to="/bookings" onClick={() => setIsMobileMoreDrawerOpen(false)} className="flex items-center px-4 py-3 text-gray-700 dark:text-gray-200 font-bold hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl">
+                      <Calendar className="h-5 w-5 mr-3 text-gray-400 dark:text-gray-500" /> My Bookings
+                   </Link>
                    <Link to="/my-listings" onClick={() => setIsMobileMoreDrawerOpen(false)} className="flex items-center px-4 py-3 text-gray-700 dark:text-gray-200 font-bold hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl">
                       <Briefcase className="h-5 w-5 mr-3 text-gray-400 dark:text-gray-500" /> My Listings
+                   </Link>
+                   <Link to="/assets" onClick={() => setIsMobileMoreDrawerOpen(false)} className="flex items-center px-4 py-3 text-gray-700 dark:text-gray-200 font-bold hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl">
+                      <Building2 className="h-5 w-5 mr-3 text-gray-400 dark:text-gray-500" /> Browse Assets
+                   </Link>
+                   <Link to="/rides" onClick={() => setIsMobileMoreDrawerOpen(false)} className="flex items-center px-4 py-3 text-gray-700 dark:text-gray-200 font-bold hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl">
+                      <Car className="h-5 w-5 mr-3 text-gray-400 dark:text-gray-500" /> Browse Rides
                    </Link>
                    {effectiveTier === 'FREE' && (
                      <Link to="/upgrade" onClick={() => setIsMobileMoreDrawerOpen(false)} className="flex items-center px-4 py-3 font-bold text-white bg-gradient-to-r from-primary-600 to-purple-600 rounded-xl shadow-sm">
@@ -594,6 +640,9 @@ export default function Layout() {
                    )}
                    <Link to="/payments" onClick={() => setIsMobileMoreDrawerOpen(false)} className="flex items-center px-4 py-3 text-gray-700 dark:text-gray-200 font-bold hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl">
                       <CreditCard className="h-5 w-5 mr-3 text-gray-400 dark:text-gray-500" /> Payments & Wallet
+                   </Link>
+                   <Link to="/subscription" onClick={() => setIsMobileMoreDrawerOpen(false)} className="flex items-center px-4 py-3 text-gray-700 dark:text-gray-200 font-bold hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl">
+                     <Star className="h-5 w-5 mr-4 text-gray-400" /> Subscription
                    </Link>
                    <Link to="/settings" onClick={() => setIsMobileMoreDrawerOpen(false)} className="flex items-center px-4 py-3 text-gray-700 dark:text-gray-200 font-bold hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl">
                       <Settings className="h-5 w-5 mr-3 text-gray-400 dark:text-gray-500" /> Settings

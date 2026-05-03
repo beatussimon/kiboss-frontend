@@ -360,7 +360,7 @@ export default function BusinessRegistrationForm({ initialPlan = 'MONTHLY', onCa
               <div className="space-y-6 animate-in fade-in zoom-in-95 duration-500">
                 <div>
                   <h2 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tighter mb-1">Payment Verification</h2>
-                  <p className="text-gray-500 text-xs md:text-sm font-medium">Complete {formData.plan_type.toLowerCase()} plan via Zenopay.</p>
+                  <p className="text-gray-500 text-xs md:text-sm font-medium">Complete payment using the method below. Your account will be activated after admin verification.</p>
                 </div>
 
                 <div className="p-5 md:p-8 bg-gray-900 rounded-2xl md:rounded-[2.5rem] text-white relative overflow-hidden shadow-2xl">
@@ -384,11 +384,11 @@ export default function BusinessRegistrationForm({ initialPlan = 'MONTHLY', onCa
                         Transfer total to KIBOSS Corporate account. Enter transaction reference below.
                       </p>
                       <div>
-                        <label className="text-[9px] md:text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 block">Zenopay Transaction Reference</label>
+                        <label className="text-[9px] md:text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 block">Payment Reference / Transaction Code</label>
                         <input
                           type="text"
                           className="w-full bg-white/5 border border-white/10 rounded-xl md:rounded-2xl p-3 md:p-4 text-primary-400 font-black text-base md:text-lg focus:ring-2 focus:ring-primary-500 focus:outline-none placeholder:text-gray-700 dark:text-gray-200"
-                          placeholder="e.g. ZNP-882-991-X"
+                          placeholder="e.g. ABC123DEF456 (M-Pesa reference)"
                           value={formData.payment_reference}
                           onChange={(e) => setFormData({ ...formData, payment_reference: e.target.value })}
                         />

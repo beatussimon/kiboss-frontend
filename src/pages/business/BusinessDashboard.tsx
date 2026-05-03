@@ -48,6 +48,8 @@ import SupportInbox from './SupportInbox';
 import PaymentMethods from '../plus/PaymentMethods';
 import { Price } from '../../context/CurrencyContext';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { fetchCurrentUser } from '../../features/auth/authSlice';
+import { SubscriptionStatusCard } from '../../components/subscription/SubscriptionStatusCard';
 
 export default function BusinessDashboard() {
   const dispatch = useDispatch<AppDispatch>();
@@ -58,7 +60,7 @@ export default function BusinessDashboard() {
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [businessStats, setBusinessStats] = useState({ tripCount: 0, driverCount: 0, serviceCount: 0 });
-  const [activeTab, setActiveTab] = useState<'analytics' | 'directory' | 'team' | 'fleet' | 'support' | 'marketing' | 'audience' | 'payments'>('analytics');
+  const [activeTab, setActiveTab] = useState<'analytics' | 'team' | 'fleet' | 'support' | 'marketing' | 'payments' | 'directory'>('analytics');
   const [analytics, setAnalytics] = useState<any>(null);
   const [discountForm, setDiscountForm] = useState({ percentage: 10, isApplying: false, success: false, error: '' });
 
@@ -147,7 +149,7 @@ export default function BusinessDashboard() {
       await api.patch('/users/corporate/register/', regData);
       toast.success('Company application resubmitted successfully!');
       setIsEditing(false);
-      window.location.reload();
+      dispatch(fetchCurrentUser());
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Update failed');
     } finally {
@@ -345,7 +347,7 @@ export default function BusinessDashboard() {
             </div>
             <div className="space-y-2">
               <p className="text-xs font-black text-gray-900 uppercase tracking-widest">2. Payment Confirmation</p>
-              <p className="text-[11px] text-gray-500 font-medium leading-relaxed">We verify the Zenopay reference provided to ensure your subscription is valid.</p>
+              <p className="text-[11px] text-gray-500 font-medium leading-relaxed">Our team will verify your payment receipt and activate your account within 24 hours.</p>
             </div>
           </div>
         </div>
@@ -620,15 +622,7 @@ export default function BusinessDashboard() {
           <Percent className="h-3.5 w-3.5 inline mr-1.5 align-text-bottom" />
           Marketing
         </button>
-        <button
-          onClick={() => setActiveTab('audience')}
-          className={`px-6 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all flex items-center gap-1.5 whitespace-nowrap ${activeTab === 'audience'
-            ? 'bg-white text-gray-900 shadow-sm'
-            : 'text-gray-500 hover:text-gray-700'
-            }`}
-        >
-          <Users className="h-3.5 w-3.5" /> Audience
-        </button>
+
         <button
           onClick={() => setActiveTab('payments')}
           className={`px-6 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all flex items-center gap-1.5 whitespace-nowrap ${activeTab === 'payments'
@@ -652,6 +646,12 @@ export default function BusinessDashboard() {
       {/* Tab Content */}
       {activeTab === 'analytics' ? (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <SubscriptionStatusCard
+                tier="BUSINESS"
+                expiresAt={analytics?.subscription_expires_at || null}
+                isPending={analytics?.subscription_status === 'PENDING'}
+            />
+
             {/* Server Warning if advanced analytics missing */}
             {analytics && !analytics.advanced_analytics && (
                 <div className="bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded-xl flex items-start gap-4 shadow-sm">
@@ -878,57 +878,6 @@ export default function BusinessDashboard() {
                         Active ({analytics?.visibility_multiplier || 2.5}x)
                     </span>
                 </div>
-            </div>
-        </div>
-      ) : activeTab === 'audience' ? (
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="card p-12 border border-gray-100 bg-white dark:bg-gray-800 shadow-sm relative overflow-hidden">
-                <Users className="absolute -right-4 -top-4 h-32 w-32 text-gray-900 opacity-[0.03]" />
-                <h2 className="text-2xl font-black text-gray-900 tracking-tight mb-6 relative z-10">Audience Insights</h2>
-                
-                {analytics?.advanced_analytics?.audience_insights ? (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
-                        <div>
-                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Unique Customers</p>
-                            <p className="text-4xl font-black text-gray-900 dark:text-white">
-                                {analytics.advanced_analytics.audience_insights.unique_customers}
-                            </p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 font-medium">Individuals who have booked your assets</p>
-                        </div>
-                        
-                        <div>
-                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Repeat Customer Rate</p>
-                            <p className="text-4xl font-black text-gray-900 dark:text-white">
-                                {analytics.advanced_analytics.audience_insights.repeat_customer_rate}%
-                            </p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 font-medium">Customers with more than one booking</p>
-                        </div>
-
-                        <div>
-                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Top Locations</p>
-                            <ul className="space-y-2">
-                                {analytics.advanced_analytics.audience_insights.top_locations.map((loc: any, idx: number) => (
-                                    <li key={idx} className="flex justify-between items-center text-sm font-bold text-gray-700 bg-white/60 px-3 py-2 rounded-lg">
-                                        <span>{loc.city}</span>
-                                        <span className="text-gray-500 dark:text-gray-400">{loc.count} bookings</span>
-                                    </li>
-                                ))}
-                                {analytics.advanced_analytics.audience_insights.top_locations.length === 0 && (
-                                    <li className="text-sm text-gray-500 italic">Not enough data yet</li>
-                                )}
-                            </ul>
-                        </div>
-                    </div>
-                ) : (
-                    <div className="text-center flex flex-col items-center justify-center">
-                        <div className="h-20 w-20 bg-primary-100/50 text-primary-500 rounded-full flex items-center justify-center mb-4">
-                            <Users className="h-10 w-10" />
-                        </div>
-                        <p className="text-gray-500 max-w-md mt-2">
-                            Not enough data to generate insights yet. Insights update automatically as you complete bookings.
-                        </p>
-                    </div>
-                )}
             </div>
         </div>
       ) : activeTab === 'payments' ? (

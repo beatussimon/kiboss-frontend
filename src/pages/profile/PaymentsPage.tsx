@@ -163,12 +163,10 @@ export default function PaymentsPage() {
       <div className="mt-8 flex items-start p-4 bg-primary-50 rounded-xl border border-primary-100">
         <Shield className="h-5 w-5 text-primary-600 mr-3 mt-0.5" />
         <div>
-          <h4 className="text-sm font-bold text-primary-900">Secure Payments via Zenopay</h4>
+          <h4 className="text-sm font-bold text-primary-900">Secure Offline Payments</h4>
           <p className="text-xs text-primary-700 mt-1">
-            All payments are held in secure escrow until the rental or service is completed and both parties are satisfied. 
-            Funds are released automatically 24 hours after completion unless a dispute is raised.
-          </p>
-        </div>
+            Payments are made directly to the service provider. Completed bookings are logged to facilitate dispute resolution if needed.
+          </p>        </div>
       </div>
     </div>
   );
