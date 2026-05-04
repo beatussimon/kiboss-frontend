@@ -206,9 +206,14 @@ export default function UnifiedBookingsPage() {
                       </div>
 
                       <div className="flex-1 flex flex-col justify-between">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h3 className="font-bold text-gray-900 text-lg">
+                        <div className="flex justify-between items-start gap-4">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                                <span className="text-[10px] font-mono font-bold text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/30 px-2 py-0.5 rounded uppercase tracking-tighter">
+                                    ID: {booking.id.split('-')[0]}
+                                </span>
+                            </div>
+                            <h3 className="font-bold text-gray-900 dark:text-white text-lg truncate">
                               {isRide ? (booking.ride_details?.origin ? `${booking.ride_details.origin} to ${booking.ride_details.destination}` : 'Ride Booking') : (booking.asset?.name || 'Asset Booking')}
                             </h3>
                             {!isRide && booking.asset?.city && (

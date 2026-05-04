@@ -26,7 +26,7 @@ export default function Footer() {
     solutions: [
       { label: 'Rental Assets', href: '/assets' },
       { label: 'Ride Sharing', href: '/rides' },
-      { label: 'Business+ PRO', href: '/business', badge: 'PRO' },
+      { label: 'Business+ PRO', href: '/dashboard', badge: 'PRO' },
     ],
     resources: [
       { label: 'Help Center', href: '/faq' },

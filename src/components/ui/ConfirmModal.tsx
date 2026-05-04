@@ -1,3 +1,4 @@
+import React from 'react';
 import { X } from 'lucide-react';
 
 interface ConfirmModalProps {
@@ -9,6 +10,7 @@ interface ConfirmModalProps {
   confirmVariant?: 'danger' | 'primary';
   onConfirm: () => void;
   onCancel: () => void;
+  children?: React.ReactNode;
 }
 
 export function ConfirmModal({ 
@@ -19,7 +21,8 @@ export function ConfirmModal({
   cancelLabel = 'Cancel', 
   confirmVariant = 'danger', 
   onConfirm, 
-  onCancel 
+  onCancel,
+  children
 }: ConfirmModalProps) {
   if (!isOpen) return null;
 
@@ -36,7 +39,8 @@ export function ConfirmModal({
           <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed mb-8">
             {message}
           </p>
-          <div className="flex items-center justify-end gap-3">
+          {children}
+          <div className="flex items-center justify-end gap-3 mt-8">
             <button
               onClick={onCancel}
               className="px-5 py-2.5 text-sm font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 rounded-xl transition-colors"

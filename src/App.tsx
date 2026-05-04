@@ -42,10 +42,9 @@ const VehicleManagePage = React.lazy(() => import('./pages/rides/VehicleManagePa
 const TaskDashboard = React.lazy(() => import('./pages/staff/TaskDashboard'));
 const RideManifestPage = React.lazy(() => import('./pages/rides/RideManifestPage'));
 const RideEditPage = React.lazy(() => import('./pages/rides/RideEditPage'));
-const BusinessDashboard = React.lazy(() => import('./pages/business/BusinessDashboard'));
+const UserDashboard = React.lazy(() => import('./pages/dashboard/UserDashboard'));
 const UpgradePage = React.lazy(() => import('./pages/business/UpgradePage'));
 const SubscriptionPage = React.lazy(() => import('./pages/subscription/SubscriptionPage'));
-const PlusDashboard = React.lazy(() => import('./pages/plus/PlusDashboard'));
 const BusinessRegistrationForm = React.lazy(() => import('./pages/business/BusinessRegistrationForm'));
 const MyListingsPage = React.lazy(() => import('./pages/plus/MyListingsPage'));
 
@@ -131,11 +130,10 @@ function App() {
             <Route path="/vehicles" element={<ErrorBoundary><MyVehiclesPage /></ErrorBoundary>} />
             <Route path="/vehicles/register" element={<ErrorBoundary><RegisterVehiclePage /></ErrorBoundary>} />
             <Route path="/vehicles/:id/manage" element={<ErrorBoundary><VehicleManagePage /></ErrorBoundary>} />
-            <Route path="/business" element={<ErrorBoundary><BusinessDashboard /></ErrorBoundary>} />
+            <Route path="/dashboard" element={<ErrorBoundary><UserDashboard /></ErrorBoundary>} />
             <Route path="/business/register" element={<ErrorBoundary><BusinessRegistrationForm /></ErrorBoundary>} />
             <Route path="/upgrade" element={<ErrorBoundary><UpgradePage /></ErrorBoundary>} />
             <Route path="/subscription" element={<ErrorBoundary><SubscriptionPage /></ErrorBoundary>} />
-            <Route path="/plus" element={<ErrorBoundary><PlusDashboard /></ErrorBoundary>} />
             <Route path="/staff/tasks" element={<ErrorBoundary><TaskDashboard /></ErrorBoundary>} />
             <Route path="/payments" element={<ErrorBoundary><PaymentsPage /></ErrorBoundary>} />
             <Route path="/settings" element={<ErrorBoundary><SettingsPage /></ErrorBoundary>} />

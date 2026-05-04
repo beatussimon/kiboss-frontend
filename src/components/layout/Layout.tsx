@@ -142,10 +142,8 @@ export default function Layout() {
     { name: 'Home', href: '/', icon: Home },
     { name: 'Assets', href: '/assets', icon: Briefcase },
     { name: 'Rides', href: '/rides', icon: Car },
-    ...(effectiveTier === 'PLUS'
-      ? [{ name: 'Plus', href: '/plus', icon: Sparkles }]
-      : effectiveTier === 'BUSINESS'
-      ? [{ name: 'Business', href: '/business', icon: Building2 }]
+    ...(effectiveTier === 'PLUS' || effectiveTier === 'BUSINESS'
+      ? [{ name: 'Dashboard', href: '/dashboard', icon: effectiveTier === 'BUSINESS' ? Building2 : Sparkles }]
         : []),
     ...(isStaff ? [{ name: 'Staff', href: '/staff/tasks', icon: Shield }] : []),
   ];
@@ -379,26 +377,15 @@ export default function Layout() {
                           </Link>
                         </div>
                       )}
-                      {effectiveTier === 'PLUS' && (
+                      {['PLUS', 'BUSINESS'].includes(effectiveTier || '') && (
                         <div className="px-2 my-2">
                           <Link
-                            to="/plus"
+                            to="/dashboard"
                             onClick={() => setIsUserMenuOpen(false)}
-                            className="flex items-center justify-center px-4 py-2 text-sm font-bold text-purple-700 bg-purple-50 dark:bg-purple-900/30 dark:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-900/50 rounded-lg"
+                            className={`flex items-center justify-center px-4 py-2 text-sm font-bold rounded-lg ${effectiveTier === 'BUSINESS' ? 'text-primary-700 bg-primary-50 dark:bg-primary-900/30 dark:text-primary-400 hover:bg-primary-100 dark:hover:bg-primary-900/50' : 'text-purple-700 bg-purple-50 dark:bg-purple-900/30 dark:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-900/50'}`}
                           >
-                            <Crown className="h-4 w-4 mr-2" /> Plus Dashboard
-                          </Link>
-                        </div>
-                      )}
-                      {effectiveTier === 'BUSINESS' && (
-                        <div className="px-2 my-2">
-                          <Link
-                            to="/business"
-                            onClick={() => setIsUserMenuOpen(false)}
-                            className="flex items-center justify-center px-4 py-2 text-sm font-bold text-primary-700 bg-primary-50 dark:bg-primary-900/30 dark:text-primary-400 hover:bg-primary-100 dark:hover:bg-primary-900/50 rounded-lg"
-                          >
-                            <Building2 className="h-4 w-4 mr-2" /> 
-                            {isCorporateVerified ? 'Business Panel' : 'Pending Review'}
+                            {effectiveTier === 'BUSINESS' ? <Building2 className="h-4 w-4 mr-2" /> : <Crown className="h-4 w-4 mr-2" />} 
+                            {effectiveTier === 'BUSINESS' && !isCorporateVerified ? 'Pending Review' : 'Dashboard'}
                           </Link>
                         </div>
                       )}
@@ -513,7 +500,7 @@ export default function Layout() {
       {!isMessagingPage && <Footer />}
 
       {/* Mobile Bottom Navbar */}
-      <nav className={`md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 z-50 transition-transform duration-300 ${showNavBars ? 'translate-y-0' : 'translate-y-full'} pb-safe`}>
+      <nav className={`md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 z-50 transition-transform duration-300 ${showNavBars ? 'translate-y-0' : 'translate-y-full'} pb-safe`} style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
         <div className="flex justify-around items-center h-16 px-2 relative">
           {/* Home */}
           <Link to="/" className={bottomNavClass('/')}>
@@ -572,6 +559,7 @@ export default function Layout() {
         <div className="md:hidden fixed inset-0 z-[60] bg-black/60 transition-opacity" onClick={() => setIsMobileMoreDrawerOpen(false)}>
           <div 
             className="absolute bottom-0 left-0 right-0 bg-white dark:bg-gray-900 rounded-t-3xl p-6 shadow-2xl animate-in slide-in-from-bottom duration-300 pb-safe"
+            style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}
             onClick={e => e.stopPropagation()}
           >
             <div className="w-12 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full mx-auto mb-6" />
@@ -623,14 +611,9 @@ export default function Layout() {
                         <Sparkles className="h-5 w-5 mr-3" /> Upgrade Plan
                      </Link>
                    )}
-                   {effectiveTier === 'PLUS' && (
-                     <Link to="/plus" onClick={() => setIsMobileMoreDrawerOpen(false)} className="flex items-center px-4 py-3 font-bold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-900/30 rounded-xl">
-                        <Crown className="h-5 w-5 mr-3" /> Plus Dashboard
-                     </Link>
-                   )}
-                   {effectiveTier === 'BUSINESS' && (
-                     <Link to="/business" onClick={() => setIsMobileMoreDrawerOpen(false)} className="flex items-center px-4 py-3 font-bold text-primary-700 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/30 rounded-xl">
-                        <Building2 className="h-5 w-5 mr-3" /> Business Dashboard
+                   {['PLUS', 'BUSINESS'].includes(effectiveTier || '') && (
+                     <Link to="/dashboard" onClick={() => setIsMobileMoreDrawerOpen(false)} className={`flex items-center px-4 py-3 font-bold rounded-xl ${effectiveTier === 'BUSINESS' ? 'text-primary-700 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/30' : 'text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-900/30'}`}>
+                        {effectiveTier === 'BUSINESS' ? <Building2 className="h-5 w-5 mr-3" /> : <Crown className="h-5 w-5 mr-3" />} Dashboard
                      </Link>
                    )}
                    {isStaff && (

@@ -81,118 +81,118 @@ export default function MessagesPage() {
   };
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Messages</h1>
-        <p className="text-sm text-gray-500 dark:text-gray-400">
-          Continue conversations about your listings and bookings
-        </p>
+    <div className="max-w-4xl mx-auto px-4 py-8 h-[calc(100vh-100px)] flex flex-col">
+      <div className="flex items-center justify-between mb-6 shrink-0">
+        <div>
+          <h1 className="text-3xl font-black text-gray-900 dark:text-white uppercase tracking-tighter">Messages</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
+            Manage your conversations and requests
+          </p>
+        </div>
       </div>
 
       {/* Search */}
-      <div className="mb-4">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+      <div className="mb-6 shrink-0">
+        <div className="relative group">
+          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 group-focus-within:text-primary-500 transition-colors" />
           <input
             type="text"
             placeholder="Search conversations..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="input pl-10"
+            className="w-full pl-12 pr-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all font-medium text-gray-900 dark:text-white"
           />
         </div>
       </div>
 
-      {isLoading ? (
-        <div className="space-y-4">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="card p-4 animate-pulse">
-              <div className="flex gap-4">
-                <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-full" />
-                <div className="flex-1 space-y-2">
-                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3" />
-                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2" />
+      <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+        {isLoading ? (
+          <div className="space-y-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 p-5 rounded-2xl animate-pulse">
+                <div className="flex gap-4">
+                  <div className="w-14 h-14 bg-gray-100 dark:bg-gray-700 rounded-2xl" />
+                  <div className="flex-1 space-y-3 py-1">
+                    <div className="h-4 bg-gray-100 dark:bg-gray-700 rounded w-1/4" />
+                    <div className="h-4 bg-gray-100 dark:bg-gray-700 rounded w-1/2" />
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-      ) : contextualThreads.length > 0 ? (
-        <div className="space-y-2">
-          {contextualThreads.map((thread) => {
-            const otherUser = getOtherParticipant(thread.participants, user?.id || '');
-            const isUnread = (thread as any).unread_count > 0;
-            return (
-              <Link
-                key={thread.id}
-                to={`/messages/${thread.id}`}
-                className={`card p-4 hover:shadow-lg transition-shadow block border-l-4 ${
-                  isUnread ? 'border-l-primary-600 bg-primary-50/10' : 'border-l-transparent'
-                }`}
-              >
-                <div className="flex gap-4 relative">
-                  <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center overflow-hidden">
-                    {otherUser?.profile?.avatar ? (
-                      <img 
-                        src={getMediaUrl(otherUser.profile.avatar)} 
-                        alt={otherUser.first_name} 
-                        className="w-12 h-12 rounded-full object-cover"
-                      />
-                    ) : (
-                      <User className="h-6 w-6 text-gray-400" />
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-2">
-                        <p className={`text-gray-900 dark:text-white truncate ${isUnread ? 'font-bold' : 'font-semibold'}`}>
-                          {getUserDisplayName(otherUser)}
-                        </p>
-                        <span className="flex items-center gap-1 text-[10px] px-2 py-0.5 bg-white dark:bg-gray-800 border border-gray-100 rounded-full font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                          {getContextIcon(thread)}
-                          <span>{getContextLabel(thread)}</span>
+            ))}
+          </div>
+        ) : contextualThreads.length > 0 ? (
+          <div className="space-y-3">
+            {contextualThreads.map((thread) => {
+              const otherUser = getOtherParticipant(thread.participants, user?.id || '');
+              const isUnread = (thread as any).unread_count > 0;
+              return (
+                <Link
+                  key={thread.id}
+                  to={`/messages/${thread.id}`}
+                  className={`group bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 p-5 rounded-2xl hover:border-primary-300 dark:hover:border-primary-700 hover:shadow-xl hover:shadow-primary-500/5 transition-all block relative ${
+                    isUnread ? 'ring-1 ring-primary-500/20 shadow-lg shadow-primary-500/5' : ''
+                  }`}
+                >
+                  <div className="flex gap-4 items-center">
+                    <div className="w-14 h-14 bg-gray-50 dark:bg-gray-900 rounded-2xl flex items-center justify-center overflow-hidden border border-gray-100 dark:border-gray-800 group-hover:scale-105 transition-transform duration-300 shrink-0">
+                      {otherUser?.profile?.avatar ? (
+                        <img 
+                          src={getMediaUrl(otherUser.profile.avatar)} 
+                          alt={otherUser.first_name} 
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <User className="h-7 w-7 text-gray-300" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between mb-1">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <p className={`text-gray-900 dark:text-white truncate text-base ${isUnread ? 'font-black' : 'font-bold'}`}>
+                            {getUserDisplayName(otherUser)}
+                          </p>
+                          <span className="shrink-0 flex items-center gap-1.5 px-2.5 py-1 bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-lg text-[9px] font-black uppercase tracking-widest text-gray-500 dark:text-gray-400 group-hover:bg-primary-50 dark:group-hover:bg-primary-900/10 group-hover:text-primary-600 transition-colors">
+                            {getContextIcon(thread)}
+                            <span>{getContextLabel(thread)}</span>
+                          </span>
+                        </div>
+                        <span className={`text-[10px] font-bold uppercase tracking-tight shrink-0 ${isUnread ? 'text-primary-600 dark:text-primary-400' : 'text-gray-400'}`}>
+                          {new Date(thread.updated_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                         </span>
                       </div>
-                      <span className={`text-xs ${isUnread ? 'font-bold text-primary-600' : 'text-gray-500'}`}>
-                        {new Date(thread.updated_at).toLocaleDateString()}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between mt-1">
-                      <p className={`text-sm truncate ${isUnread ? 'text-gray-900 font-medium' : 'text-gray-500'}`}>
-                        {thread.subject || thread.messages?.[0]?.content || 'No messages'}
-                      </p>
-                      <div className="flex items-center gap-2">
-                        {isUnread && (
-                          <span className="flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 bg-primary-600 rounded-full text-[10px] font-black text-white shadow-sm shadow-primary-200">
-                            {(thread as any).unread_count}
-                          </span>
-                        )}
-                        {isUnread && (
-                          <span className="h-2.5 w-2.5 bg-primary-600 rounded-full shadow-sm shadow-primary-200" />
-                        )}
+                      <div className="flex items-center justify-between">
+                        <p className={`text-sm truncate pr-6 ${isUnread ? 'text-gray-900 dark:text-gray-100 font-bold' : 'text-gray-500 dark:text-gray-400'}`}>
+                          {thread.subject || thread.messages?.[0]?.content || 'Start a conversation...'}
+                        </p>
+                        <div className="flex items-center gap-2 shrink-0">
+                          {isUnread && (
+                            <span className="flex items-center justify-center min-w-[1.5rem] h-6 px-2 bg-primary-600 rounded-lg text-[10px] font-black text-white shadow-lg shadow-primary-500/30">
+                              {(thread as any).unread_count}
+                            </span>
+                          )}
+                          {thread.status === 'LOCKED' && (
+                            <span className="text-[10px] text-red-500 font-black uppercase bg-red-50 dark:bg-red-900/20 px-2 py-0.5 rounded-lg border border-red-100 dark:border-red-800">🔒 Locked</span>
+                          )}
+                        </div>
                       </div>
                     </div>
-                    {thread.status === 'LOCKED' && (
-                      <span className="text-[10px] text-red-500 font-bold uppercase mt-1 block">🔒 Locked</span>
-                    )}
                   </div>
-                </div>
-              </Link>
-            );
-          })}
-        </div>
-      ) : (
-        <div className="card p-12 text-center">
-          <MessageCircle className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No messages yet</h3>
-          <p className="text-gray-500 dark:text-gray-400">
-            Messages about your listings and bookings will appear here.
-          </p>
-          <p className="text-sm text-gray-400 mt-2">
-            Contact a seller from their listing to start a conversation.
-          </p>
-        </div>
-      )}
+                </Link>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 p-16 rounded-[2.5rem] text-center shadow-sm">
+            <div className="w-20 h-20 bg-gray-50 dark:bg-gray-900 rounded-3xl flex items-center justify-center mx-auto mb-6">
+              <MessageCircle className="h-10 w-10 text-gray-200" />
+            </div>
+            <h3 className="text-xl font-black text-gray-900 dark:text-white mb-2 uppercase tracking-tight">No conversations</h3>
+            <p className="text-gray-500 dark:text-gray-400 font-medium max-w-xs mx-auto text-sm leading-relaxed">
+              When you message providers or receive requests, they will appear here.
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

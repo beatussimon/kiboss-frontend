@@ -19,6 +19,8 @@ import VerificationBadge from '../../components/ui/VerificationBadge';
 import { AssetPropertiesPanel } from '../../components/assets/AssetPropertiesPanel';
 import { ReviewsSection } from '../../components/assets/ReviewsSection';
 
+const isHotelType = (type: string) => ['HOTEL_ROOM', 'ENTIRE_HOME', 'PRIVATE_ROOM', 'SHARED_ROOM', 'GUEST_HOUSE'].includes(type);
+
 export default function AssetDetailPage() {
   const { id } = useParams<{ id: string }>();
   const dispatch = useDispatch<AppDispatch>();
@@ -44,7 +46,6 @@ export default function AssetDetailPage() {
   const UNIT_TYPE_LABELS: Record<string, string> = { HOUR: 'per hour', DAY: 'per day', WEEK: 'per week', MONTH: 'per month', SEAT: 'per seat', FIXED: 'flat rate', UNIT: 'per item', KM: 'per km', MILE: 'per mile' };
 
   const handleThreadCreated = (threadId: string) => {
-    // Navigate to the thread page instead of showing inline
     navigate(`/messages/${threadId}`);
   };
 
@@ -85,10 +86,19 @@ export default function AssetDetailPage() {
     );
   }
 
-  // Check if current user is the owner
   const isOwner = isAuthenticated && user?.id === asset.owner?.id;
 
   const imageModalPhotos = asset.photos ? asset.photos.map((p, i) => ({ id: p.id || i, url: getMediaUrl(p.url) })) : [];
+
+  const buildBookingUrl = () => {
+    const params = new URLSearchParams({ asset_id: asset.id });
+    if (isHotelType(asset.asset_type) || asset.asset_type === 'ROOM') {
+      if (checkInDate) params.append('check_in', checkInDate);
+      if (checkOutDate) params.append('check_out', checkOutDate);
+      if (guestCount) params.append('guests', guestCount.toString());
+    }
+    return `/bookings/new?${params}`;
+  };
 
   return (
     <div>
@@ -100,270 +110,286 @@ export default function AssetDetailPage() {
       />
 
       <div className="flex justify-between items-center mb-4">
-        <Link to="/assets" className="text-primary-600 hover:text-primary-700 flex items-center font-bold">
-          ← Back to Assets
-        </Link>
-        <button
-          onClick={debouncedToggleWishlist}
-          className={`flex items-center gap-2 px-6 py-2.5 rounded-full transition-all border font-bold shadow-sm ${isWishlisted ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border-red-100 dark:border-red-800 hover:bg-red-100 dark:hover:bg-red-900/40' : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
-            }`}
-        >
-          <Heart className={`h-5 w-5 ${isWishlisted ? 'fill-current' : ''}`} />
-          <span>{isWishlisted ? 'Saved' : 'Save'}</span>
-        </button>
+        <div />
+        <div className="flex gap-2">
+            {isOwner && (
+              <>
+                <Link to={`/assets/${asset.id}/edit`} className="btn-secondary py-2">
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit
+                </Link>
+                <Link to={`/assets/${asset.id}/bookings`} className="btn-secondary py-2">
+                  <List className="h-4 w-4 mr-2" />
+                  Bookings
+                </Link>
+              </>
+            )}
+            <button
+              onClick={debouncedToggleWishlist}
+              className={`flex items-center gap-2 px-6 py-2.5 rounded-full transition-all border font-bold shadow-sm ${isWishlisted ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border-red-100 dark:border-red-800 hover:bg-red-100 dark:hover:bg-red-900/40' : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
+                }`}
+            >
+              <Heart className={`h-5 w-5 ${isWishlisted ? 'fill-current' : ''}`} />
+              <span className="hidden sm:inline">{isWishlisted ? 'Saved' : 'Save'}</span>
+            </button>
+        </div>
       </div>
 
-      {/* Image Gallery */}
-      <div className="space-y-4 mb-8">
-        <div
-          className="aspect-video relative rounded-xl md:rounded-[2rem] overflow-hidden bg-gray-900 group cursor-pointer shadow-xl border border-gray-800"
-          onClick={() => setIsImageModalOpen(true)}
-        >
-          {asset.photos && asset.photos.length > 0 ? (
-            <>
-              <img
-                src={getMediaUrl(asset.photos?.[currentImageIndex]?.url)}
-                alt={`${asset.name} - ${currentImageIndex + 1}`}
-                onError={(e) => { (e.target as HTMLImageElement).src = 'https://placehold.co/800x450/e2e8f0/64748b?text=Image+Unavailable'; }}
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-black/10 transition-opacity group-hover:bg-transparent" />
-
-              {/* Navigation Arrows */}
-              {asset.photos.length > 1 && (
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-6">
+          {/* Image Gallery */}
+          <div className="space-y-4">
+            <div
+              className="aspect-[4/3] md:aspect-video relative rounded-xl md:rounded-[2rem] overflow-hidden bg-gray-900 group cursor-pointer shadow-xl border border-gray-800"
+              onClick={() => setIsImageModalOpen(true)}
+            >
+              {asset.photos && asset.photos.length > 0 ? (
                 <>
-                  <button
-                    onClick={prevImage}
-                    className="absolute left-6 top-1/2 -translate-y-1/2 p-3 bg-gray-900 hover:bg-black rounded-full text-white transition-all opacity-0 group-hover:opacity-100 border border-gray-700 hover:scale-110 shadow-xl"
-                  >
-                    <ChevronLeft className="h-6 w-6" />
-                  </button>
-                  <button
-                    onClick={nextImage}
-                    className="absolute right-6 top-1/2 -translate-y-1/2 p-3 bg-gray-900 hover:bg-black rounded-full text-white transition-all opacity-0 group-hover:opacity-100 border border-gray-700 hover:scale-110 shadow-xl"
-                  >
-                    <ChevronRight className="h-6 w-6" />
-                  </button>
+                  <img
+                    src={getMediaUrl(asset.photos?.[currentImageIndex]?.url)}
+                    alt={`${asset.name} - ${currentImageIndex + 1}`}
+                    onError={(e) => { (e.target as HTMLImageElement).src = 'https://placehold.co/800x450/e2e8f0/64748b?text=Image+Unavailable'; }}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-black/10 transition-opacity group-hover:bg-transparent" />
 
-                  {/* Image Counter */}
-                  <div className="absolute bottom-6 right-6 px-4 py-1.5 bg-gray-900 rounded-full text-white text-xs font-bold border border-gray-700 shadow-lg tracking-widest uppercase">
-                    {currentImageIndex + 1} / {asset.photos.length}
-                  </div>
+                  {/* Navigation Arrows */}
+                  {asset.photos.length > 1 && (
+                    <>
+                      <button
+                        onClick={prevImage}
+                        className="absolute left-6 top-1/2 -translate-y-1/2 p-3 bg-gray-900 hover:bg-black rounded-full text-white transition-all opacity-0 group-hover:opacity-100 border border-gray-700 hover:scale-110 shadow-xl"
+                      >
+                        <ChevronLeft className="h-6 w-6" />
+                      </button>
+                      <button
+                        onClick={nextImage}
+                        className="absolute right-6 top-1/2 -translate-y-1/2 p-3 bg-gray-900 hover:bg-black rounded-full text-white transition-all opacity-0 group-hover:opacity-100 border border-gray-700 hover:scale-110 shadow-xl"
+                      >
+                        <ChevronRight className="h-6 w-6" />
+                      </button>
+
+                      {/* Image Counter */}
+                      <div className="absolute bottom-6 right-6 px-4 py-1.5 bg-gray-900 rounded-full text-white text-xs font-bold border border-gray-700 shadow-lg tracking-widest uppercase">
+                        {currentImageIndex + 1} / {asset.photos.length}
+                      </div>
+                    </>
+                  )}
                 </>
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <Home className="h-24 w-24 text-gray-700 dark:text-gray-200" />
+                </div>
               )}
-            </>
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <Home className="h-24 w-24 text-gray-700 dark:text-gray-200" />
             </div>
-          )}
-        </div>
 
-        {/* Thumbnails */}
-        {asset.photos && asset.photos.length > 1 && (
-          <div className="flex gap-3 overflow-x-auto pb-4 no-scrollbar">
-            {asset.photos.map((photo, index) => (
-              <button
-                key={photo.id}
-                onClick={() => setCurrentImageIndex(index)}
-                className={`relative w-32 h-20 rounded-xl overflow-hidden flex-shrink-0 transition-all shadow-sm ${currentImageIndex === index ? 'ring-2 ring-primary-500 scale-105 shadow-primary-500/30' : 'opacity-60 hover:opacity-100 hover:scale-105 bg-gray-100'
-                  }`}
-              >
-                <img src={getMediaUrl(photo?.url)} alt="" onError={(e) => { (e.target as HTMLImageElement).src = 'https://placehold.co/128x80/e2e8f0/64748b?text=NA'; }} className="w-full h-full object-cover" />
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Title Section */}
-      <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6 w-full">
-        <div className="flex-1 min-w-0">
-          <div className="flex flex-wrap items-center gap-2 mb-2">
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white break-words">{asset.name}</h1>
-            {asset.is_verified && (
-              <span className="badge-success">
-                <Shield className="h-3 w-3 mr-1" />
-                Verified
-              </span>
+            {/* Thumbnails */}
+            {asset.photos && asset.photos.length > 1 && (
+              <div className="flex gap-3 overflow-x-auto pb-4 no-scrollbar">
+                {asset.photos.map((photo, index) => (
+                  <button
+                    key={photo.id}
+                    onClick={() => setCurrentImageIndex(index)}
+                    className={`relative w-32 h-20 rounded-xl overflow-hidden flex-shrink-0 transition-all shadow-sm ${currentImageIndex === index ? 'ring-2 ring-primary-500 scale-105 shadow-primary-500/30' : 'opacity-60 hover:opacity-100 hover:scale-105 bg-gray-100'
+                      }`}
+                  >
+                    <img src={getMediaUrl(photo?.url)} alt="" onError={(e) => { (e.target as HTMLImageElement).src = 'https://placehold.co/128x80/e2e8f0/64748b?text=NA'; }} className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
             )}
           </div>
-          <div className="flex items-center text-gray-500 dark:text-gray-400">
-            <MapPin className="h-4 w-4 mr-1" />
-            {asset.address}, {asset.city}, {asset.country}
-          </div>
-        </div>
-        <div className="flex flex-wrap items-center gap-2 md:gap-4 flex-shrink-0">
-          {/* Owner Actions */}
-          {isOwner && (
-            <>
-              <Link to={`/assets/${asset.id}/edit`} className="btn-secondary">
-                <Edit className="h-4 w-4 mr-2" />
-                Edit
-              </Link>
-              <Link to={`/assets/${asset.id}/bookings`} className="btn-secondary">
-                <List className="h-4 w-4 mr-2" />
-                View Bookings
-              </Link>
-            </>
-          )}
-          {/* Contact Owner Button - only for non-owners */}
-          {isAuthenticated && !isOwner && asset.owner?.id && (
-            <ContactButton
-              targetUserId={asset.owner.id}
-              label="Message Owner"
-              threadType="INQUIRY"
-              listingId={asset.id}
-              subject={`Inquiry about ${asset.name}`}
-              onThreadCreated={handleThreadCreated}
-              variant="secondary"
-              initialMessage={`Hi, I'm interested in booking ${asset.name}.`}
-            />
-          )}
-          {!isAuthenticated && (
-            <Link to={`/login?redirect=${encodeURIComponent(window.location.pathname)}`} className="btn-secondary">
-              <MessageCircle className="h-4 w-4 mr-2" />
-              Message Owner
-            </Link>
-          )}
-        </div>
-      </div>
 
-      {(asset as any).latitude && (asset as any).longitude && (
-        <div className="card p-0 overflow-hidden mb-6">
-          <div className="p-4 border-b border-gray-100 dark:border-gray-800">
-            <h2 className="text-lg font-bold">Location</h2>
-            <p className="text-sm text-gray-500">{asset.city}, {asset.country}</p>
-          </div>
-          <iframe
-            title="Asset location"
-            width="100%"
-            height="300"
-            style={{border: 0}}
-            src={`https://www.openstreetmap.org/export/embed.html?bbox=${Number((asset as any).longitude)-0.01},${Number((asset as any).latitude)-0.01},${Number((asset as any).longitude)+0.01},${Number((asset as any).latitude)+0.01}&layer=mapnik&marker=${(asset as any).latitude},${(asset as any).longitude}`}
-          />
-        </div>
-      )}
-
-      {/* Inline Messaging Panel */}
-      {showMessaging && activeThreadId && (
-        <div className="mb-6">
-          <InlineMessagingPanel
-            threadId={activeThreadId}
-            onClose={() => setShowMessaging(false)}
-          />
-        </div>
-      )}
-
-      {/* Room Features (for Hotels/Rooms) */}
-      {asset.asset_type === 'ROOM' && (
-        <div className="flex flex-wrap gap-6 py-6 border-y border-gray-100 dark:border-gray-800 mb-6 text-gray-600 dark:text-gray-300">
-          <div className="flex items-center gap-2">
-            <User className="h-5 w-5 text-gray-400" />
-            <span className="text-sm font-medium">{(asset.properties as any)?.guests || 2} guests</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Home className="h-5 w-5 text-gray-400" />
-            <span className="text-sm font-medium">{(asset.properties as any)?.bedrooms || 1} bedroom</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Shield className="h-5 w-5 text-gray-400" />
-            <span className="text-sm font-medium">{(asset.properties as any)?.beds || 1} bed</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Zap className="h-5 w-5 text-gray-400" />
-            <span className="text-sm font-medium">{(asset.properties as any)?.baths || 1} private bath</span>
-          </div>
-        </div>
-      )}
-
-      {/* Rating & Reviews */}
-      <div className="flex items-center gap-4 mb-6">
-        <div className="flex items-center">
-          <Star className="h-5 w-5 text-yellow-400 fill-yellow-400" />
-          <span className="ml-1 font-semibold">{asset.average_rating || 'N/A'}</span>
-          <span className="ml-1 text-gray-500 dark:text-gray-400">({asset.total_reviews || 0} reviews)</span>
-        </div>
-      </div>
-
-      {/* Host / Owner Info - Clickable to profile */}
-      <Link
-        to={`/users/${asset.owner.id}`}
-        className="flex items-center gap-4 p-5 bg-white dark:bg-gray-800 border border-gray-100/80 dark:border-gray-700 rounded-2xl hover:shadow-xl hover:border-primary-100 dark:hover:border-primary-800 transition-all duration-300 group mb-6"
-      >
-        <div className="relative">
-          <div className="w-16 h-16 rounded-[1.25rem] bg-gradient-to-br from-primary-100/50 to-primary-50/50 dark:from-primary-900/30 dark:to-primary-800/20 flex flex-col items-center justify-center overflow-hidden ring-4 ring-white dark:ring-gray-700 shadow-sm group-hover:ring-primary-50 dark:group-hover:ring-primary-900 transition-all duration-300">
-            {asset.owner.profile?.avatar ? (
-              <img
-                src={getMediaUrl(asset.owner.profile.avatar)}
-                alt={asset.owner.first_name}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <span className="text-xl font-black text-primary-700 uppercase tracking-tighter">
-                {asset.owner.first_name?.[0] || 'K'}{asset.owner.last_name?.[0] || ''}
-              </span>
-            )}
-          </div>
-        </div>
-        <div className="flex-1">
-          <p className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-0.5">Hosted By</p>
-          <div className="flex items-center gap-2">
-            <p className="font-bold text-lg text-gray-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors leading-tight">
-              {asset.owner.first_name || 'Kiboss User'} {asset.owner.last_name || ''}
-            </p>
-            <VerificationBadge
-              tier={asset.owner.verification_badge?.tier}
-              color={asset.owner.verification_badge?.color}
-              size="xs"
-              checkmarkData={(asset.owner as any).checkmark_data}
-            />
-          </div>
-          <div className="flex items-center gap-3 mt-1.5">
-            <p className="text-xs font-bold text-gray-500 flex items-center gap-1 bg-gray-50 dark:bg-gray-900 px-2 py-0.5 rounded-md border border-gray-100/50">
-              <Star className="h-3 w-3 text-yellow-500 fill-yellow-500" />
-              {(asset.owner as any).trust_score || 'N/A'} Trust
-            </p>
-          </div>
-        </div>
-        <div className="w-10 h-10 rounded-full bg-gray-50 dark:bg-gray-700 group-hover:bg-primary-50 dark:group-hover:bg-primary-900/30 flex items-center justify-center transition-colors">
-          <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-primary-600 group-hover:translate-x-0.5 transition-all" />
-        </div>
-      </Link>
-
-      {/* Description */}
-      <div className="card p-6 mb-6">
-        <h2 className="text-xl font-semibold mb-4">Description</h2>
-        <p className="text-gray-600 dark:text-gray-300 whitespace-pre-wrap">{asset.description}</p>
-      </div>
-
-      <AssetPropertiesPanel assetType={asset.asset_type} properties={asset.properties} />
-
-      {/* Pricing */}
-      <div className="card p-6 mb-6">
-        <h2 className="text-xl font-semibold mb-4">Pricing</h2>
-        <div className="space-y-3">
-          {asset.pricing_rules?.map((rule) => (
-            <div key={rule.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
-              <span>{rule.name}</span>
-              <span className="font-semibold"><Price amount={rule.price} /> / {UNIT_TYPE_LABELS[rule.unit_type] || rule.unit_type.toLowerCase()}</span>
+          {/* Title Section */}
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-wrap items-center gap-2 mb-2">
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white break-words">{asset.name}</h1>
+              {asset.is_verified && (
+                <span className="badge-success">
+                  <Shield className="h-3 w-3 mr-1" />
+                  Verified
+                </span>
+              )}
             </div>
-          ))}
-        </div>
-      </div>
+            <div className="flex items-center text-gray-500 dark:text-gray-400">
+              <MapPin className="h-4 w-4 mr-1" />
+              {asset.address}, {asset.city}, {asset.country}
+            </div>
+          </div>
 
-      {/* Book Now Button - only for non-owners (hide if ROOM to prevent redundant UI) */}
-      {!isOwner && asset.asset_type !== 'ROOM' && (
-        <div className="card p-6 border-l-4 border-l-primary-500 mb-6">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+          {/* Mobile Booking Teaser (Visible only on Mobile) */}
+          <div className="lg:hidden card p-4 flex items-center justify-between">
             <div>
-              <span className="text-2xl font-bold text-gray-900 dark:text-white">
+              <span className="text-2xl font-black text-gray-900 dark:text-white">
                 <Price amount={asset.pricing_rules?.[0]?.price || '0'} />
               </span>
-              <span className="text-gray-500 dark:text-gray-400"> / {asset.pricing_rules?.[0] ? (UNIT_TYPE_LABELS[asset.pricing_rules[0].unit_type] || asset.pricing_rules[0].unit_type.toLowerCase()) : 'hour'}</span>
+              <span className="text-sm text-gray-400 ml-1">
+                / {asset.pricing_rules?.[0] ? (UNIT_TYPE_LABELS[asset.pricing_rules[0].unit_type] || asset.pricing_rules[0].unit_type.toLowerCase()) : 'hour'}
+              </span>
             </div>
-            <div className="flex gap-2 w-full md:w-auto">
-              {isAuthenticated && user && asset?.owner?.id && (
+            <a href="#book-now" className="btn-primary py-2.5 px-5 text-sm font-black">
+              {isOwner ? 'Manage' : 'Reserve'}
+            </a>
+          </div>
+
+          {/* Owner Info - Compact Row */}
+          <Link to={`/users/${asset.owner.id}`}
+            className="flex items-center gap-3 group bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow">
+            <div className="h-10 w-10 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-700 flex-shrink-0">
+              {asset.owner.profile?.avatar
+                ? <img src={getMediaUrl(asset.owner.profile.avatar)} className="h-full w-full object-cover" />
+                : <span className="h-full w-full flex items-center justify-center text-sm font-black text-gray-500">{asset.owner.first_name?.[0] || 'K'}</span>}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs text-gray-400 font-medium">Hosted by</p>
+              <p className="text-sm font-bold text-gray-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors flex items-center gap-1">
+                {asset.owner.first_name} {asset.owner.last_name}
+                <VerificationBadge tier={asset.owner.verification_badge?.tier} color={asset.owner.verification_badge?.color} size="xs" checkmarkData={(asset.owner as any).checkmark_data} />
+              </p>
+            </div>
+            <ChevronRight className="h-4 w-4 text-gray-300 group-hover:text-primary-500 transition-colors flex-shrink-0" />
+          </Link>
+
+          {/* Asset Properties */}
+          <AssetPropertiesPanel assetType={asset.asset_type} properties={asset.properties} />
+
+          {/* Description */}
+          <div className="card p-6">
+            <h2 className="text-xl font-semibold mb-4">Description</h2>
+            <p className="text-gray-600 dark:text-gray-300 whitespace-pre-wrap">{asset.description}</p>
+          </div>
+
+          {/* Pricing */}
+          <div>
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-3">Pricing</h2>
+            <div className="bg-gray-50 dark:bg-gray-900 rounded-xl overflow-hidden divide-y divide-gray-100 dark:divide-gray-800 border border-gray-100 dark:border-gray-800">
+              {asset.pricing_rules?.map((rule) => (
+                <div key={rule.id} className="flex items-center justify-between px-4 py-3">
+                  <span className="text-sm text-gray-600 dark:text-gray-300">{rule.name || 'Base rate'}</span>
+                  <span className="text-sm font-black text-gray-900 dark:text-white">
+                    <Price amount={rule.price} /> 
+                    <span className="text-gray-400 font-normal ml-1">{UNIT_TYPE_LABELS[rule.unit_type] || rule.unit_type.toLowerCase()}</span>
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Location Map */}
+          {(asset as any).latitude && (asset as any).longitude && (
+            <div className="card p-0 overflow-hidden">
+              <div className="p-4 border-b border-gray-100 dark:border-gray-800">
+                <h2 className="text-lg font-bold">Location</h2>
+                <p className="text-sm text-gray-500">{asset.city}, {asset.country}</p>
+              </div>
+              <iframe
+                title="Asset location"
+                width="100%"
+                height="300"
+                style={{border: 0}}
+                src={`https://www.openstreetmap.org/export/embed.html?bbox=${Number((asset as any).longitude)-0.01},${Number((asset as any).latitude)-0.01},${Number((asset as any).longitude)+0.01},${Number((asset as any).latitude)+0.01}&layer=mapnik&marker=${(asset as any).latitude},${(asset as any).longitude}`}
+              />
+            </div>
+          )}
+
+          {/* Reviews Section */}
+          <ReviewsSection assetId={asset.id} averageRating={asset.average_rating || 0} totalReviews={asset.total_reviews || 0} />
+        </div>
+
+        {/* Right Column - Sticky Booking Card */}
+        <div className="lg:col-span-1" id="book-now">
+          <div className="lg:sticky lg:top-24 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl overflow-hidden shadow-xl">
+            {/* Price header */}
+            <div className="p-6 border-b border-gray-100 dark:border-gray-800">
+              <div className="flex items-baseline gap-2">
+                <span className="text-3xl font-black text-gray-900 dark:text-white">
+                  <Price amount={asset.pricing_rules?.[0]?.price || '0'} />
+                </span>
+                <span className="text-gray-400 font-medium">
+                  / {asset.pricing_rules?.[0] ? (UNIT_TYPE_LABELS[asset.pricing_rules[0].unit_type] || asset.pricing_rules[0].unit_type.toLowerCase()) : 'booking'}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 mt-2">
+                <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
+                <span className="text-sm font-bold text-gray-900 dark:text-white">{asset.average_rating || 'New'}</span>
+                <span className="text-sm text-gray-400">({asset.total_reviews || 0} reviews)</span>
+              </div>
+            </div>
+            
+            {/* Booking form */}
+            <div className="p-6">
+              {(asset.asset_type === 'ROOM' || isHotelType(asset.asset_type)) ? (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-gray-400 tracking-widest uppercase">Check-in</label>
+                    <div className="flex items-center bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 overflow-hidden">
+                      <div className="pl-3 py-3">
+                        <Calendar className="h-4 w-4 text-primary-600" />
+                      </div>
+                      <input
+                        type="date"
+                        value={checkInDate}
+                        min={today}
+                        onChange={(e) => setCheckInDate(e.target.value)}
+                        className="w-full bg-transparent border-none text-sm font-bold text-gray-700 dark:text-gray-200 focus:ring-0 p-3"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-gray-400 tracking-widest uppercase">Check-out</label>
+                    <div className="flex items-center bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 overflow-hidden">
+                      <div className="pl-3 py-3">
+                        <Calendar className="h-4 w-4 text-primary-600" />
+                      </div>
+                      <input
+                        type="date"
+                        value={checkOutDate}
+                        min={minCheckOut}
+                        onChange={(e) => setCheckOutDate(e.target.value)}
+                        className="w-full bg-transparent border-none text-sm font-bold text-gray-700 dark:text-gray-200 focus:ring-0 p-3"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-gray-400 tracking-widest uppercase">Guests</label>
+                    <div className="flex items-center bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 overflow-hidden">
+                      <div className="pl-3 py-3">
+                        <User className="h-4 w-4 text-primary-600" />
+                      </div>
+                      <select
+                        value={guestCount}
+                        onChange={(e) => setGuestCount(Number(e.target.value))}
+                        className="w-full bg-transparent border-none text-sm font-bold text-gray-700 dark:text-gray-200 focus:ring-0 p-3 appearance-none"
+                      >
+                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
+                          <option key={n} value={n}>{n} {n === 1 ? 'Guest' : 'Guests'}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 mb-4 text-center border border-gray-100 dark:border-gray-700">
+                  <p className="text-sm text-gray-600 dark:text-gray-300">Select dates and time on the next screen to view total price.</p>
+                </div>
+              )}
+              
+              <Link
+                to={buildBookingUrl()}
+                className="w-full btn-primary py-3.5 text-base font-black rounded-xl mt-4 flex items-center justify-center gap-2 shadow-lg"
+              >
+                <Calendar className="h-5 w-5" />
+                {isOwner ? 'View Bookings' : 'Reserve'}
+              </Link>
+              
+              {!isOwner && (
+                <p className="text-center text-xs text-gray-400 mt-3">No charge until confirmed</p>
+              )}
+            </div>
+            
+            {/* Contact owner */}
+            {isAuthenticated && !isOwner && asset.owner?.id && (
+              <div className="px-6 pb-6">
                 <ContactButton
                   targetUserId={asset.owner.id}
                   label="Message Owner"
@@ -372,118 +398,33 @@ export default function AssetDetailPage() {
                   subject={`Inquiry about ${asset.name}`}
                   onThreadCreated={handleThreadCreated}
                   variant="outline"
-                  className="flex-1 md:flex-none justify-center"
+                  className="w-full justify-center text-sm py-2.5"
                   initialMessage={`Hi, I'm interested in booking ${asset.name}.`}
                 />
-              )}
-              <Link to={`/bookings/new?asset_id=${asset.id}`} className="btn-primary flex-1 md:flex-none flex items-center justify-center">
-                <Calendar className="h-4 w-4 mr-2" />
-                Book Now
-              </Link>
-            </div>
+              </div>
+            )}
+            
+            {!isAuthenticated && !isOwner && (
+              <div className="px-6 pb-6">
+                <Link to={`/login?redirect=${encodeURIComponent(window.location.pathname)}`} className="btn-secondary w-full justify-center text-sm py-2.5">
+                  <MessageCircle className="h-4 w-4 mr-2" />
+                  Message Owner
+                </Link>
+              </div>
+            )}
           </div>
         </div>
-      )}
+      </div>
 
-      {/* Hotel-style Booking Section (if ROOM) */}
-      {!isOwner && asset.asset_type === 'ROOM' && (
-        <div className="card p-8 border-t-4 border-t-primary-600 shadow-xl mb-12 bg-white dark:bg-gray-800">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold  text-gray-400 tracking-widest">Check-in</label>
-              <div className="flex items-center bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 overflow-hidden">
-                <div className="pl-3 py-3">
-                  <Calendar className="h-4 w-4 text-primary-600" />
-                </div>
-                <input
-                  type="date"
-                  value={checkInDate}
-                  min={today}
-                  onChange={(e) => setCheckInDate(e.target.value)}
-                  className="w-full bg-transparent border-none text-sm font-bold text-gray-700 dark:text-gray-200 focus:ring-0 p-3"
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold  text-gray-400 tracking-widest">Check-out</label>
-              <div className="flex items-center bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 overflow-hidden">
-                <div className="pl-3 py-3">
-                  <Calendar className="h-4 w-4 text-primary-600" />
-                </div>
-                <input
-                  type="date"
-                  value={checkOutDate}
-                  min={minCheckOut}
-                  onChange={(e) => setCheckOutDate(e.target.value)}
-                  className="w-full bg-transparent border-none text-sm font-bold text-gray-700 dark:text-gray-200 focus:ring-0 p-3"
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold  text-gray-400 tracking-widest">Guests</label>
-              <div className="flex items-center bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 overflow-hidden">
-                <div className="pl-3 py-3">
-                  <User className="h-4 w-4 text-primary-600" />
-                </div>
-                <select
-                  value={guestCount}
-                  onChange={(e) => setGuestCount(Number(e.target.value))}
-                  className="w-full bg-transparent border-none text-sm font-bold text-gray-700 dark:text-gray-200 focus:ring-0 p-3 appearance-none"
-                >
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
-                    <option key={n} value={n}>{n} {n === 1 ? 'Guest' : 'Guests'}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-            <div className="flex flex-col justify-end">
-              <Link
-                to={`/bookings/new?asset_id=${asset.id}&check_in=${checkInDate}&check_out=${checkOutDate}&guests=${guestCount}`}
-                className="btn-primary w-full py-3.5 rounded-xl font-bold shadow-lg shadow-primary-500/20 flex items-center justify-center"
-              >
-                Check Availability
-              </Link>
-            </div>
-          </div>
-
-          <div className="mt-8 pt-6 border-t border-gray-50 flex justify-between items-center">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-1">
-                <Shield className="h-4 w-4 text-green-500" />
-                <span className="text-xs font-bold text-gray-500 dark:text-gray-400">Free Cancellation</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <CreditCard className="h-4 w-4 text-primary-500" />
-                <span className="text-xs font-bold text-gray-500 dark:text-gray-400">Secure Payment</span>
-              </div>
-            </div>
-            <div className="text-right">
-              <p className="text-[10px] font-bold text-gray-400 ">Starting from</p>
-              <p className="text-2xl font-black text-primary-600"><Price amount={asset.pricing_rules?.[0]?.price || '0'} /></p>
-            </div>
-          </div>
+      {/* Inline Messaging Panel */}
+      {showMessaging && activeThreadId && (
+        <div className="fixed bottom-0 right-0 m-4 w-96 z-50 shadow-2xl rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+          <InlineMessagingPanel
+            threadId={activeThreadId}
+            onClose={() => setShowMessaging(false)}
+          />
         </div>
       )}
-
-      {/* Owner Info Card */}
-      {isOwner && (
-        <div className="card p-6 bg-primary-50 dark:bg-primary-900/20 border-primary-200 dark:border-primary-800">
-          <h3 className="text-lg font-semibold text-primary-800 mb-2">This is your listing</h3>
-          <p className="text-primary-600 mb-4">You can edit this listing or view its bookings from the buttons above.</p>
-          <div className="flex gap-4">
-            <Link to={`/assets/${asset.id}/edit`} className="btn-primary">
-              <Edit className="h-4 w-4 mr-2" />
-              Edit Listing
-            </Link>
-            <Link to={`/assets/${asset.id}/bookings`} className="btn-secondary">
-              <List className="h-4 w-4 mr-2" />
-              View Bookings
-            </Link>
-          </div>
-        </div>
-      )}
-
-      <ReviewsSection assetId={asset.id} averageRating={asset.average_rating || 0} totalReviews={asset.total_reviews || 0} />
     </div>
   );
 }

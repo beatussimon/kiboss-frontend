@@ -27,6 +27,7 @@ export default function RideDetailPage() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [hasCargoBooking, setHasCargoBooking] = useState(false);
+  const [showMobileBooking, setShowMobileBooking] = useState(false);
 
   // Use a ref to track which ride ID we last fetched — prevents StrictMode double-fire
   const fetchedForId = useRef<string | null>(null);
@@ -255,7 +256,32 @@ export default function RideDetailPage() {
   const imageModalPhotos = ride.photos ? ride.photos.map((p, i) => ({ id: p.id || i, url: getMediaUrl(p.url) })) : [];
 
   return (
-    <div>
+    <div className="pb-24 lg:pb-0">
+      {/* Mobile Floating Booking Bar */}
+      {!isDriver && (
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 p-4 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 z-50 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] pb-safe">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Price</p>
+              <div className="flex items-baseline gap-1">
+                <span className="text-2xl font-black text-gray-900 dark:text-white">
+                  <Price amount={activeTab === 'SEATS' ? ride.seat_price : (ride.cargo_price || 0)} />
+                </span>
+                <span className="text-xs text-gray-500">/ {activeTab === 'SEATS' ? 'seat' : 'kg'}</span>
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                document.getElementById('booking-card')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="btn-primary py-3 px-6 shadow-lg shadow-primary-500/20"
+            >
+              Select {activeTab === 'SEATS' ? 'Seats' : 'Cargo'}
+            </button>
+          </div>
+        </div>
+      )}
+
       <ImageModal
         isOpen={isImageModalOpen}
         onClose={() => setIsImageModalOpen(false)}
@@ -332,7 +358,7 @@ export default function RideDetailPage() {
             )}
           </div>
 
-          <div className="card p-8 border-none shadow-xl bg-gradient-to-br from-white to-gray-50">
+          <div className="card p-6 border border-gray-200 dark:border-gray-700 shadow-xl bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
             <div className="flex items-start justify-between mb-8">
               <div>
                 <p className="text-[10px] font-black  tracking-[0.2em] text-primary-600 mb-2 tracking-widest">Confirmed Ride</p>
@@ -352,8 +378,11 @@ export default function RideDetailPage() {
             </div>
 
             {/* Visual Route */}
-            <div className="relative py-10 px-6 bg-gray-900 rounded-3xl mb-8 overflow-hidden">
-              <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10" />
+            <div className="relative py-6 px-6 bg-gray-900 rounded-3xl mb-6 overflow-hidden border border-gray-800 dark:border-gray-700 shadow-xl">
+              <div className="absolute inset-0 opacity-5" style={{
+                backgroundImage: 'repeating-linear-gradient(45deg, #fff 0, #fff 1px, transparent 0, transparent 50%)',
+                backgroundSize: '8px 8px'
+              }} />
               <div className="relative flex flex-col md:flex-row items-center justify-between gap-8 md:gap-6">
                 <div className="text-center md:text-left flex-1">
                   <p className="text-[10px] font-bold text-primary-400  tracking-widest mb-1">Origin</p>
@@ -375,15 +404,15 @@ export default function RideDetailPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8 pt-6 border-t border-gray-100 dark:border-gray-800">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-6 pt-6 border-t border-gray-100 dark:border-gray-800">
               <div className="space-y-1">
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Departure</p>
                 <div className="flex items-center gap-2 text-gray-900 dark:text-white">
                   <Clock className="h-4 w-4 text-primary-600" />
-                  <span className="font-bold text-sm">{new Date(ride.departure_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                  <span className="font-bold text-sm truncate">{new Date(ride.departure_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                 </div>
               </div>
-              <div className="space-y-1">
+              <div className="space-y-1 hidden lg:block">
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Date</p>
                 <div className="flex items-center gap-2 text-gray-900 dark:text-white">
                   <Calendar className="h-4 w-4 text-primary-600" />
@@ -398,7 +427,7 @@ export default function RideDetailPage() {
                 </div>
               </div>
               {ride.cargo_enabled ? (
-                <div className="space-y-1">
+                <div className="space-y-1 hidden lg:block">
                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Cargo (kg)</p>
                   <div className="flex items-center gap-2 text-gray-900 dark:text-white">
                     <Package className="h-4 w-4 text-primary-600" />
@@ -406,7 +435,7 @@ export default function RideDetailPage() {
                   </div>
                 </div>
               ) : (
-                <div className="space-y-1">
+                <div className="space-y-1 hidden lg:block">
                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Price</p>
                   <p className="text-lg font-black text-primary-600 leading-none"><Price amount={ride.seat_price} /></p>
                 </div>
@@ -482,26 +511,22 @@ export default function RideDetailPage() {
         <div className="space-y-6">
           {/* Unified Booking Card */}
           {!isDriver && (
-            <div className="card p-0 sticky top-24 border-none shadow-2xl overflow-hidden bg-white dark:bg-gray-800">
+            <div id="booking-card" className="card p-0 lg:sticky lg:top-24 border border-gray-200 dark:border-gray-700 shadow-2xl overflow-hidden bg-white dark:bg-gray-900">
               {ride.cargo_enabled && (
-                <div className="flex border-b border-gray-200 dark:border-gray-700">
-                  <button
-                    onClick={() => setActiveTab('SEATS')}
-                    className={`flex-1 py-4 text-sm font-black uppercase tracking-widest transition-colors ${activeTab === 'SEATS' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
-                  >
-                    <Users className="h-4 w-4 inline-block mr-2 -mt-1" />
-                    Seats
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('CARGO')}
-                    className={`flex-1 py-4 text-sm font-black uppercase tracking-widest transition-colors ${activeTab === 'CARGO' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
-                  >
-                    <Package className="h-4 w-4 inline-block mr-2 -mt-1" />
-                    Cargo
-                  </button>
+                <div className="flex border-b border-gray-200 dark:border-gray-700 mb-4 px-6 pt-4">
+                  {['SEATS', 'CARGO'].map(tab => (
+                    <button key={tab} onClick={() => setActiveTab(tab as any)}
+                      className={`px-4 py-2.5 text-sm font-bold border-b-2 transition-all ${
+                        activeTab === tab
+                          ? 'border-primary-600 text-primary-600'
+                          : 'border-transparent text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
+                      }`}>
+                      {tab === 'SEATS' ? 'Seats' : 'Cargo'}
+                    </button>
+                  ))}
                 </div>
               )}
-              <div className="bg-gray-900 p-6 text-white rounded-t-lg">
+              <div className="bg-gray-900 p-6 text-white rounded-t-lg lg:rounded-t-none">
                 <div className="flex justify-between items-center mb-2">
                   <p className="text-[10px] font-black uppercase tracking-widest text-primary-400">
                     {activeTab === 'SEATS' ? 'Reserve Seats' : 'Book Cargo'}
@@ -723,7 +748,7 @@ export default function RideDetailPage() {
                 </div>
 
                 <p className="text-[9px] text-gray-400 font-bold uppercase tracking-tighter text-center px-4">
-                  Payment is confirmed directly by the driver. All trips are logged for dispute resolution.
+                  Payment is confirmed directly with the provider. Disputes are logged and reviewed.
                 </p>
               </div>
             </div>
@@ -731,24 +756,17 @@ export default function RideDetailPage() {
 
           {/* Driver Info Card */}
           {isDriver && (
-            <div className="card p-8 bg-gray-900 border-none shadow-2xl text-white overflow-hidden relative">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-primary-600/10 rounded-full blur-3xl -mr-32 -mt-32" />
-              <div className="relative">
-                <h3 className="text-xl font-black mb-2 flex items-center gap-2">
-                  <Star className="h-5 w-5 text-primary-400 fill-primary-400" />
-                  Driver Console
-                </h3>
-                <p className="text-gray-400 text-sm mb-6 font-medium">Manage your trip settings, view passenger list, or update route details.</p>
-                <div className="grid grid-cols-1 gap-3">
-                  <Link to={`/rides/${ride.id}/edit`} className="w-full py-3 bg-white text-gray-900 rounded-xl font-bold text-sm text-center hover:bg-gray-100 transition-all flex items-center justify-center gap-2">
-                    <Edit className="h-4 w-4" />
-                    Edit Trip Details
-                  </Link>
-                  <Link to={`/rides/${ride.id}/manifest`} className="w-full py-3 bg-gray-800 text-white border border-gray-700 rounded-xl font-bold text-sm text-center hover:bg-gray-700 transition-all flex items-center justify-center gap-2">
-                    <Users className="h-4 w-4" />
-                    View Passenger Manifest
-                  </Link>
-                </div>
+            <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl p-6">
+              <h3 className="text-base font-black text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                <Star className="h-4 w-4 text-primary-500" /> Driver Console
+              </h3>
+              <div className="grid grid-cols-2 gap-3">
+                <Link to={`/rides/${ride.id}/edit`} className="btn-secondary text-sm py-2.5 flex items-center justify-center gap-2">
+                  <Edit className="h-4 w-4" /> Edit Trip
+                </Link>
+                <Link to={`/rides/${ride.id}/manifest`} className="btn-primary text-sm py-2.5 flex items-center justify-center gap-2">
+                  <Users className="h-4 w-4" /> Manifest
+                </Link>
               </div>
             </div>
           )}

@@ -33,7 +33,7 @@ export default function PaymentsPage() {
     <div className="max-w-6xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Payments & Wallet</h1>
-        <p className="text-gray-500 dark:text-gray-400 mt-1">Manage your transactions, escrow funds, and payout history.</p>
+        <p className="text-gray-500 dark:text-gray-400 mt-1">Manage your transactions and security holds.</p>
       </div>
 
       {/* Summary Cards */}
@@ -47,7 +47,7 @@ export default function PaymentsPage() {
           </div>
           <div className="flex flex-col">
             <span className="text-2xl font-bold text-gray-900 dark:text-white">{formatCurrency(summary.total_paid)}</span>
-            <span className="text-xs text-gray-400 mt-1">Lifetime spending</span>
+            <span className="text-xs text-gray-400 mt-1">Direct payments confirmed</span>
           </div>
         </div>
 
@@ -60,7 +60,7 @@ export default function PaymentsPage() {
           </div>
           <div className="flex flex-col">
             <span className="text-2xl font-bold text-gray-900 dark:text-white">{formatCurrency(summary.total_received)}</span>
-            <span className="text-xs text-gray-400 mt-1">Earnings available for payout</span>
+            <span className="text-xs text-gray-400 mt-1">Confirmed earnings</span>
           </div>
         </div>
 
@@ -69,11 +69,11 @@ export default function PaymentsPage() {
             <div className="p-2 bg-warning-50 rounded-lg">
               <Shield className="h-6 w-6 text-warning-600" />
             </div>
-            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">In Escrow</span>
+            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Security Hold</span>
           </div>
           <div className="flex flex-col">
             <span className="text-2xl font-bold text-gray-900 dark:text-white">{formatCurrency(summary.in_escrow)}</span>
-            <span className="text-xs text-gray-400 mt-1">Held securely during rentals</span>
+            <span className="text-xs text-gray-400 mt-1">Pending verification</span>
           </div>
         </div>
       </div>

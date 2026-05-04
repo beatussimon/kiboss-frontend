@@ -104,7 +104,11 @@ export default function MyVehiclesPage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto">
+    <div className="max-w-5xl mx-auto px-4 py-8">
+      <Link to="/profile" className="text-primary-600 hover:text-primary-700 mb-6 inline-flex items-center gap-2 font-bold transition-colors">
+        ← Back to Profile
+      </Link>
+      
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-4xl font-black text-gray-900 tracking-tighter ">My Vehicles</h1>

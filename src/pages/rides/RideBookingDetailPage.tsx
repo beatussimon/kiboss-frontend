@@ -123,8 +123,8 @@ export default function RideBookingDetailPage() {
   const counterpartyLabel = isOwnerView ? 'Message Customer' : 'Message Driver';
 
   return (
-    <div>
-      <Link to="/bookings" className="text-primary-600 hover:text-primary-700 mb-4 inline-block">
+    <div className="max-w-6xl mx-auto px-4 py-6">
+      <Link to="/bookings" className="text-primary-600 hover:text-primary-700 mb-6 inline-flex items-center gap-2 font-bold transition-colors">
         ← Back to Bookings
       </Link>
 

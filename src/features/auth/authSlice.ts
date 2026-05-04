@@ -7,7 +7,7 @@ const initialState: AuthState = {
   accessToken: null,
   refreshToken: null,
   isAuthenticated: false, // Will be set to true upon fetching me/ successfully
-  isLoading: false,
+  isLoading: true,
   error: null,
 };
 
