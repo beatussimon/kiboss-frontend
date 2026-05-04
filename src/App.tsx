@@ -43,6 +43,7 @@ const TaskDashboard = React.lazy(() => import('./pages/staff/TaskDashboard'));
 const RideManifestPage = React.lazy(() => import('./pages/rides/RideManifestPage'));
 const RideEditPage = React.lazy(() => import('./pages/rides/RideEditPage'));
 const UserDashboard = React.lazy(() => import('./pages/dashboard/UserDashboard'));
+const TermsPage = React.lazy(() => import('./pages/legal/TermsPage'));
 const UpgradePage = React.lazy(() => import('./pages/business/UpgradePage'));
 const SubscriptionPage = React.lazy(() => import('./pages/subscription/SubscriptionPage'));
 const BusinessRegistrationForm = React.lazy(() => import('./pages/business/BusinessRegistrationForm'));
