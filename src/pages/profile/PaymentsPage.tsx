@@ -17,11 +17,10 @@ export default function PaymentsPage() {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'ESCROW': return <Shield className="h-4 w-4 text-warning-500" />;
-      case 'RELEASED': return <CheckCircle className="h-4 w-4 text-success-500" />;
+      case 'RELEASED': return <CheckCircle className="h-4 w-4 text-green-500" />;
       case 'PENDING': return <Clock className="h-4 w-4 text-gray-400" />;
       case 'REFUNDED': return <ArrowDownLeft className="h-4 w-4 text-primary-500" />;
-      default: return <AlertCircle className="h-4 w-4 text-error-500" />;
+      default: return <AlertCircle className="h-4 w-4 text-red-500" />;
     }
   };
 
@@ -66,15 +65,14 @@ export default function PaymentsPage() {
 
         <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800">
           <div className="flex items-center justify-between mb-4">
-            <div className="p-2 bg-warning-50 rounded-lg">
+            <div className="p-2 bg-amber-50 rounded-lg">
               <Shield className="h-6 w-6 text-warning-600" />
             </div>
-            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Security Hold</span>
+            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Pending Confirmation</span>
           </div>
           <div className="flex flex-col">
             <span className="text-2xl font-bold text-gray-900 dark:text-white">{formatCurrency(summary.in_escrow)}</span>
-            <span className="text-xs text-gray-400 mt-1">Pending verification</span>
-          </div>
+            </div>
         </div>
       </div>
 
@@ -82,7 +80,12 @@ export default function PaymentsPage() {
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
           <h2 className="text-lg font-bold text-gray-900 dark:text-white">Transaction History</h2>
-          <button className="text-sm font-medium text-primary-600 hover:text-primary-700">Download CSV</button>
+          <button onClick={() => {
+              const csv = payments.map((p: any) => `${p.id},${p.created_at},${p.payment_method},${p.status},${p.amount}`).join('\n');
+              const blob = new Blob([`ID,Date,Method,Status,Amount\n${csv}`], { type: 'text/csv' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a'); a.href = url; a.download = 'payments.csv'; a.click();
+            }} className="text-sm font-medium text-primary-600 hover:text-primary-700">Download CSV</button>
         </div>
 
         {isLoading ? (

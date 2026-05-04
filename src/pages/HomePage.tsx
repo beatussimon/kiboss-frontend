@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../app/store';
 import { fetchAssets } from '../features/assets/assetsSlice';
 import { fetchRides } from '../features/rides/ridesSlice';
+import { toggleWishlist } from '../features/wishlist/wishlistSlice';
 import { motion } from 'framer-motion';
 import {
   Home as HomeIcon, MapPin, Star, ArrowRight, Search, Shield, Clock, CreditCard,
@@ -20,6 +21,7 @@ export default function HomePage() {
   const { assets, isLoading: assetsLoading } = useSelector((state: RootState) => state.assets);
   const { rides, isLoading: ridesLoading } = useSelector((state: RootState) => state.rides);
   const { user } = useSelector((state: RootState) => state.auth);
+  const wishlistIds = useSelector((state: RootState) => state.wishlist.items.map(i => i.id));
   const [searchQuery, setSearchQuery] = useState('');
 
   const fetched = useRef(false);
@@ -136,7 +138,9 @@ export default function HomePage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 p-4 md:p-6 bg-gray-100 dark:bg-gray-800/50 -mx-4 md:-mx-6 md:rounded-3xl">
-            {assets.slice(0, 8).map((asset) => (
+            {assets.slice(0, 8).map((asset) => {
+              const isWishlisted = wishlistIds.includes(asset.id);
+              return (
               <Link key={asset.id} to={`/assets/${asset.id}`} className="group cursor-pointer flex flex-col bg-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 p-3 border border-transparent dark:border-gray-700">
                 <div className="aspect-[4/3] relative rounded-xl overflow-hidden mb-3">
                   <img
@@ -144,12 +148,29 @@ export default function HomePage() {
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                     alt={asset.name}
                   />
-                  <button className="absolute top-3 right-3 p-2 bg-gray-900 hover:bg-black rounded-full text-white transition-all shadow-md">
-                    <Heart className="h-5 w-5" />
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      dispatch(toggleWishlist(asset as any));
+                    }}
+                    aria-label={isWishlisted ? 'Remove from saved' : 'Save'}
+                    className={`absolute top-3 right-3 p-2 rounded-full transition-all shadow-md ${
+                      isWishlisted
+                        ? 'bg-red-500 text-white'
+                        : 'bg-black/40 hover:bg-black/60 text-white backdrop-blur-sm'
+                    }`}
+                  >
+                    <Heart className={`h-4 w-4 transition-transform ${isWishlisted ? 'fill-white scale-110' : ''}`} />
                   </button>
                   {asset.is_verified && (
                     <div className="absolute top-3 left-3 bg-white dark:bg-gray-900 px-2 py-1 rounded-lg text-[10px] font-black text-primary-700 dark:text-primary-400 flex items-center gap-1 shadow-sm border border-gray-100 dark:border-gray-800">
                       <Shield className="h-3 w-3" /> VERIFIED
+                    </div>
+                  )}
+                  {(asset as any).is_promoted && (
+                    <div className="absolute bottom-3 left-3 bg-amber-400 text-amber-900 text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
+                      Sponsored
                     </div>
                   )}
                 </div>
@@ -167,12 +188,16 @@ export default function HomePage() {
                 </div>
 
                 <div className="flex items-center gap-4 mt-2 text-[10px] font-bold text-gray-400 dark:text-gray-500 tracking-widest">
-                  <span className="flex items-center gap-1">
-                    <Eye className="h-3 w-3" /> {(asset as any).views_count || Math.floor(Math.random() * 500) + 50}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Bookmark className="h-3 w-3" /> {(asset as any).wishlist_count || Math.floor(Math.random() * 50) + 5}
-                  </span>
+                  {(asset as any).views_count ? (
+                    <span className="flex items-center gap-1">
+                      <Eye className="h-3 w-3" /> {(asset as any).views_count}
+                    </span>
+                  ) : null}
+                  {(asset as any).wishlist_count ? (
+                    <span className="flex items-center gap-1">
+                      <Bookmark className="h-3 w-3" /> {(asset as any).wishlist_count}
+                    </span>
+                  ) : null}
                   <span className="flex items-center gap-1">
                     <Users className="h-3 w-3" /> {asset.total_bookings || 0}
                   </span>
@@ -200,7 +225,7 @@ export default function HomePage() {
                   </div>
                 </div>
               </Link>
-            ))}
+            );})}
           </div>
         )}
       </section>

@@ -21,6 +21,17 @@ import { ReviewsSection } from '../../components/assets/ReviewsSection';
 
 const isHotelType = (type: string) => ['HOTEL_ROOM', 'ENTIRE_HOME', 'PRIVATE_ROOM', 'SHARED_ROOM', 'GUEST_HOUSE'].includes(type);
 
+const getScheduleLabel = (schedule: any) => {
+  if (!schedule) return '';
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const dayNames = (schedule.days_of_week || []).map((d: number) => days[d]);
+  const from = schedule.from_time?.substring(0, 5);
+  const to = schedule.to_time?.substring(0, 5);
+  let label = dayNames.join(', ');
+  if (from && to) label += ` from ${from} to ${to}`;
+  return label;
+};
+
 export default function AssetDetailPage() {
   const { id } = useParams<{ id: string }>();
   const dispatch = useDispatch<AppDispatch>();
@@ -273,7 +284,21 @@ export default function AssetDetailPage() {
                 </div>
               ))}
             </div>
+            <p className="text-xs text-gray-500 mt-2">Rates vary by duration or time. The applicable rate will be calculated at checkout.</p>
           </div>
+
+          {(asset as any).availability?.schedule?.days_of_week && (
+            <div className="mb-6 mt-6">
+              <h2 className="text-base font-bold text-gray-900 dark:text-white mb-3">Availability Schedule</h2>
+              <div className="bg-primary-50 dark:bg-primary-900/20 border border-primary-100 dark:border-primary-800 rounded-xl p-4">
+                <p className="text-xs font-black text-primary-600 uppercase tracking-widest mb-2">Regular Schedule</p>
+                <p className="text-sm font-bold text-gray-900 dark:text-white">
+                  {getScheduleLabel((asset as any).availability?.schedule)}
+                </p>
+                <p className="text-xs text-gray-500 mt-1">Book any available slot within this schedule</p>
+              </div>
+            </div>
+          )}
 
           {/* Location Map */}
           {(asset as any).latitude && (asset as any).longitude && (

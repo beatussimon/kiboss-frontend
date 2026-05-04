@@ -116,6 +116,7 @@ function App() {
             <Route path="/bookings" element={<ErrorBoundary><UnifiedBookingsPage /></ErrorBoundary>} />
             <Route path="/bookings/new" element={<ErrorBoundary><CreateBookingPage /></ErrorBoundary>} />
             <Route path="/bookings/:id" element={<ErrorBoundary><BookingDetailPage /></ErrorBoundary>} />
+          <Route path="/terms" element={<ErrorBoundary><TermsPage /></ErrorBoundary>} />
             <Route path="/contracts/:id" element={<ErrorBoundary><ContractDetailPage /></ErrorBoundary>} />
             <Route path="/rides" element={<ErrorBoundary><RidesPage /></ErrorBoundary>} />
             <Route path="/rides/create" element={<ErrorBoundary><CreateRidePage /></ErrorBoundary>} />

@@ -15,6 +15,7 @@ import { ServiceFeeTrigger } from '../../components/common/ServiceFeeModal';
 
 export default function BookingDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const [archived, setArchived] = useState(false);
   const dispatch = useDispatch<AppDispatch>();
   const { currentBooking: booking, timeline, isLoading, error } = useSelector((state: RootState) => state.bookings);
   const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);

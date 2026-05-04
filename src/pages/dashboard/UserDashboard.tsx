@@ -345,7 +345,10 @@ export default function UserDashboard() {
                 </h2>
                 <p className="text-gray-500 text-sm">Your plan includes a {isBusiness ? '2.5x' : '1.5x'} visibility multiplier.</p>
             </div>
-            <span className="px-4 py-1.5 bg-primary-50 text-primary-600 rounded-full text-xs font-black uppercase tracking-widest">Active</span>
+            <div className="flex items-center gap-3">
+              <span className="px-4 py-1.5 bg-primary-50 text-primary-600 rounded-full text-xs font-black uppercase tracking-widest">Active</span>
+              <button onClick={() => toast.success('Promotion purchase initiated.')} className="btn-primary px-4 py-1.5 text-xs rounded-full uppercase tracking-widest">Purchase Promotion</button>
+            </div>
           </div>
         </div>
       )}

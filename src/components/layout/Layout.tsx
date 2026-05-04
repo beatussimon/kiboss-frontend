@@ -7,7 +7,7 @@ import { fetchNotifications } from '../../features/notifications/notificationsSl
 import {
   MessageCircle, Bell, User, LogOut, Menu, X,
   Home, Car, Briefcase, Plus, Search, Settings,
-  Calendar, Shield, CreditCard, Globe, Facebook, Twitter, Instagram, Linkedin, CheckCircle, Heart, Building2, ChevronRight, Sparkles, Crown, MoreHorizontal, Sun, Moon, Laptop, Star
+  Calendar, Shield, CreditCard, Globe, Facebook, Twitter, Instagram, Linkedin, CheckCircle, Heart, Building2, ChevronRight, Sparkles, Crown, MoreHorizontal, Sun, Moon, Laptop, Star, Compass
 } from 'lucide-react';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
@@ -316,7 +316,10 @@ export default function Layout() {
               {isAuthenticated && user ? (
                 <div className="hidden md:block relative" ref={userMenuRef}>
                   <button
-                    onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                    onPointerDown={(e) => {
+                      e.stopPropagation();
+                      setIsUserMenuOpen(prev => !prev);
+                    }}
                     data-testid="user-menu-button"
                     className="flex items-center space-x-2 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                   >
@@ -501,56 +504,39 @@ export default function Layout() {
 
       {/* Mobile Bottom Navbar */}
       <nav className={`md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 z-50 transition-transform duration-300 ${showNavBars ? 'translate-y-0' : 'translate-y-full'} pb-safe`} style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
-        <div className="flex justify-around items-center h-16 px-2 relative">
-          {/* Home */}
-          <Link to="/" className={bottomNavClass('/')}>
-            <Home className="h-5 w-5 mb-1" /><span className="text-[10px] font-bold">Home</span>
-          </Link>
-
-          {/* Explore (Assets + Rides) */}
-          <Link to="/assets" className={bottomNavClass('/assets', '/rides')}>
-            <Search className="h-5 w-5 mb-1" /><span className="text-[10px] font-bold">Explore</span>
-          </Link>
-
-          {/* Create FAB — center raised button */}
-          {isAuthenticated && (
-            <button onClick={() => setIsCreateMenuOpen(true)}
-              className="flex flex-col items-center justify-center -mt-5 w-14 h-14 bg-primary-600 rounded-full shadow-xl shadow-primary-500/30 text-white hover:bg-primary-700 active:scale-95 transition-transform">
-              <Plus className="h-6 w-6" />
-            </button>
-          )}
-
-          {/* Inbox with badge */}
-          <Link to="/messages" className={`relative ${bottomNavClass('/messages')}`}>
-            <MessageCircle className="h-5 w-5 mb-1" />
-            <span className="text-[10px] font-bold">Inbox</span>
-            {messageUnreadCount > 0 && (
-               <span className="absolute top-1 right-3 px-1 py-0.5 text-[8px] font-bold bg-red-500 text-white rounded-full min-w-[14px] text-center">
-                 {messageUnreadCount > 99 ? '99+' : messageUnreadCount}
-               </span>
-            )}
-          </Link>
-
-          {/* Me / Staff */}
-          {isStaff ? (
-            <Link to="/staff/tasks" className={bottomNavClass('/staff/tasks')}>
-              <Shield className="h-5 w-5 mb-1 text-red-600" />
-              <span className="text-[10px] font-bold text-red-600">Staff</span>
+        <div className="flex items-center h-16 px-1 relative">
+          {[
+            { to: '/', label: 'Home', icon: Home },
+            { to: '/assets', label: 'Explore', icon: Compass, matchPaths: ['/assets', '/rides'] },
+            { to: '/bookings', label: 'Bookings', icon: Calendar, matchPaths: ['/bookings'] },
+            { to: '/messages', label: 'Inbox', icon: MessageCircle, badge: messageUnreadCount },
+          ].map(item => (
+            <Link key={item.to} to={item.to}
+              className={`relative flex flex-col items-center justify-center flex-1 h-full gap-0.5 transition-colors ${
+                (item.matchPaths || [item.to]).some(p => p === '/' ? location.pathname === '/' : location.pathname.startsWith(p))
+                  ? 'text-primary-600' : 'text-gray-400'
+              }`}>
+              <item.icon className="h-5 w-5" />
+              <span className="text-[9px] font-black uppercase tracking-wider">{item.label}</span>
+              {item.badge ? <span className="absolute top-1 right-1/4 h-4 w-4 bg-red-500 rounded-full text-[8px] text-white font-black flex items-center justify-center">{item.badge > 9 ? '9+' : item.badge}</span> : null}
             </Link>
-          ) : (
-            <button onClick={() => setIsMobileMoreDrawerOpen(true)} className={`relative ${bottomNavClass('/profile', '/settings', '/bookings', '/plus', '/business')}`}>
-              {user?.profile?.avatar
-                ? <img src={getMediaUrl(user.profile.avatar)} className="h-6 w-6 rounded-full mb-1 object-cover ring-2 ring-transparent" alt="" />
-                : <User className="h-5 w-5 mb-1" />
-              }
-              <span className="text-[10px] font-bold">Me</span>
-              {notificationUnreadCount > 0 && (
-                 <span className="absolute top-1 right-3 px-1 py-0.5 text-[8px] font-bold bg-red-500 text-white rounded-full min-w-[14px] text-center">
-                   {notificationUnreadCount > 99 ? '99+' : notificationUnreadCount}
-                 </span>
-              )}
-            </button>
-          )}
+          ))}
+          
+          {/* Me button */}
+          <button onClick={() => setIsMobileMoreDrawerOpen(true)}
+            className={`relative flex flex-col items-center justify-center flex-1 h-full gap-0.5 transition-colors ${
+              ['/profile','/settings','/bookings','/dashboard','/staff'].some(p => location.pathname.startsWith(p)) ? 'text-primary-600' : 'text-gray-400'
+            }`}>
+            {user?.profile?.avatar
+              ? <img src={getMediaUrl(user.profile.avatar)} className="h-6 w-6 rounded-full object-cover" alt="" />
+              : <User className="h-5 w-5" />}
+            <span className="text-[9px] font-black uppercase tracking-wider">Me</span>
+            {notificationUnreadCount > 0 && (
+              <span className="absolute top-1 right-1/4 h-4 w-4 bg-red-500 rounded-full text-[8px] text-white font-black flex items-center justify-center">
+                {notificationUnreadCount > 9 ? '9+' : notificationUnreadCount}
+              </span>
+            )}
+          </button>
         </div>
       </nav>
 

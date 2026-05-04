@@ -359,7 +359,7 @@ export default function RideDetailPage() {
           </div>
 
           <div className="card p-6 border border-gray-200 dark:border-gray-700 shadow-xl bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
-            <div className="flex items-start justify-between mb-8">
+            <div className="flex items-start justify-between mb-4">
               <div>
                 <p className="text-[10px] font-black  tracking-[0.2em] text-primary-600 mb-2 tracking-widest">Confirmed Ride</p>
                 <h1 className="text-3xl font-black text-gray-900 dark:text-white leading-tight">{ride.route_name}</h1>

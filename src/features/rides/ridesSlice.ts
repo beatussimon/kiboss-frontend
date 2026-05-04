@@ -235,6 +235,10 @@ const ridesSlice = createSlice({
       state.error = null;
       state.notFoundRideId = null;
     },
+    clearRides: (state) => {
+      state.rides = [];
+      state.count = 0;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -326,5 +330,6 @@ const ridesSlice = createSlice({
   },
 });
 
-export const { clearCurrentRide, clearError, clearRideError } = ridesSlice.actions;
+export const { clearCurrentRide, clearError, clearRideError, clearRides } = ridesSlice.actions;
 export default ridesSlice.reducer;
+

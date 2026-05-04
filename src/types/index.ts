@@ -14,6 +14,7 @@ export interface User {
   is_blocked: boolean;
   is_staff?: boolean;
   is_superuser?: boolean;
+  has_verified_vehicle?: boolean;
   account_tier?: 'FREE' | 'PLUS' | 'BUSINESS';
   verification_tier?: string;
   verification_badge?: {

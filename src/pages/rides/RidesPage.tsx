@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, useRef, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../app/store';
-import { fetchRides } from '../../features/rides/ridesSlice';
+import { fetchRides, clearRides } from '../../features/rides/ridesSlice';
 import { getDistanceToRide } from '../../utils/distance';
 import { MapPin, ArrowRight, Users, Star, Navigation, Search, Eye, Clock, Loader2 } from 'lucide-react';
 import { Price } from '../../context/CurrencyContext';
@@ -39,6 +39,7 @@ export default function RidesPage() {
   // Handle search form submission
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
+    dispatch(clearRides());
     setPage(1);
     dispatch(fetchRides({
       origin: searchParams.origin || undefined,
@@ -54,7 +55,6 @@ export default function RidesPage() {
   useEffect(() => {
     if (!fetched.current) {
       dispatch(fetchRides({ page: 1 } as any));
-      dispatch(fetchAssets({ asset_type: 'VEHICLE' }));
       fetched.current = true;
     }
   }, [dispatch]);
@@ -96,8 +96,7 @@ export default function RidesPage() {
     return getDistanceToRide(userLocation.latitude, userLocation.longitude, stops);
   };
 
-  const vehicles = useSelector((state: RootState) => state.assets.assets).filter(a => a.asset_type === 'VEHICLE');
-  const isVerifiedDriver = vehicles.some(v => v.verification_status === 'VERIFIED') || user?.is_superuser;
+  const isVerifiedDriver = user?.has_verified_vehicle || user?.is_superuser || user?.is_staff;
 
   return (
     <div>

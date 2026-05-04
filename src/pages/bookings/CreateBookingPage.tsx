@@ -20,10 +20,16 @@ export default function CreateBookingPage() {
 
   const assetId = searchParams.get('asset_id');
 
+  const prefillCheckIn = searchParams.get('check_in');
+  const prefillCheckOut = searchParams.get('check_out');
+  const prefillStart = searchParams.get('start_time') || (prefillCheckIn ? `${prefillCheckIn}T14:00` : '');
+  const prefillEnd = searchParams.get('end_time') || (prefillCheckOut ? `${prefillCheckOut}T11:00` : '');
+  const prefillGuests = searchParams.get('guests') ? Number(searchParams.get('guests')) : 1;
+
   const [formData, setFormData] = useState({
-    start_time: '',
-    end_time: '',
-    quantity: 1,
+    start_time: prefillStart,
+    end_time: prefillEnd,
+    quantity: prefillGuests,
     renter_notes: '',
     driver_license_number: '',
     driving_experience_years: '',
@@ -253,6 +259,19 @@ export default function CreateBookingPage() {
             </div>
           </div>
         </div>
+
+        {(prefillStart && prefillEnd) && (
+          <div className="bg-primary-50 dark:bg-primary-900/20 rounded-xl p-4 mb-6 border border-primary-100 dark:border-primary-800 flex items-start justify-between">
+            <div>
+              <p className="text-xs font-black text-primary-600 uppercase tracking-widest mb-1">Selected Dates</p>
+              <p className="text-sm font-bold text-gray-900 dark:text-white">
+                {new Date(prefillStart).toLocaleDateString()} → {new Date(prefillEnd).toLocaleDateString()}
+              </p>
+            </div>
+            <button onClick={(e) => { e.preventDefault(); setFormData(p => ({...p, start_time: '', end_time: ''})); }}
+              className="text-xs text-primary-600 font-bold hover:underline">Change</button>
+          </div>
+        )}
 
         {/* Booking Form */}
         <form onSubmit={handleSubmit} className="card p-6 space-y-6">
